@@ -1,7 +1,6 @@
 // Keyboard action definitions and default bindings
 
 export type KeyboardActionId =
-  | 'selectMode'
   | 'undo'
   | 'redo'
   | 'duplicate'
@@ -37,14 +36,6 @@ export interface KeyboardAction {
 
 // Default keyboard actions with standard bindings
 export const KEYBOARD_ACTIONS: KeyboardAction[] = [
-  {
-    id: 'selectMode',
-    label: 'Select Mode',
-    description: 'Switch to select mode (exit stamp mode)',
-    category: 'navigation',
-    defaultBinding: { key: 'KeyV' },
-    allowRemap: true,
-  },
   {
     id: 'undo',
     label: 'Undo',
@@ -130,7 +121,7 @@ export const KEYBOARD_ACTIONS: KeyboardAction[] = [
     label: 'Mirror Horizontal',
     description: 'Flip selected shapes horizontally (left/right)',
     category: 'movement',
-    defaultBinding: { key: 'KeyM' },
+    defaultBinding: { key: 'KeyH' },
     allowRemap: true,
   },
   {
@@ -138,7 +129,7 @@ export const KEYBOARD_ACTIONS: KeyboardAction[] = [
     label: 'Mirror Vertical',
     description: 'Flip selected shapes vertically (up/down)',
     category: 'movement',
-    defaultBinding: { key: 'KeyM', shift: true },
+    defaultBinding: { key: 'KeyV' },
     allowRemap: true,
   },
   {

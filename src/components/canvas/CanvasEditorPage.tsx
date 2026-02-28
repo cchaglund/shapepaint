@@ -4,7 +4,7 @@ import { Canvas } from './Canvas';
 import { LayerPanel } from '../LayerPanel';
 import { ZoomControls } from './ZoomControls';
 import { ToolsPanel } from './ToolsPanel';
-import { BottomToolbar, type EditorTool } from './BottomToolbar';
+import { BottomToolbar } from './BottomToolbar';
 import { TopBar, InspirationCenter } from './TopBar';
 import { KeyboardShortcutsPopover } from './KeyboardShortcutsPopover';
 import { OnboardingModal } from '../modals/OnboardingModal';
@@ -257,9 +257,13 @@ export function CanvasEditorPage({ challenge, todayDate, themeMode, onSetThemeMo
   const isTouchDevice = useIsTouchDevice();
   const isDesktop = useIsDesktop();
 
-  // Editor tool mode (select vs stamp) and selected color for new shapes
-  const [editorTool, setEditorTool] = useState<EditorTool>('select');
+  // Selected color for new shapes
   const [selectedColorIndex, setSelectedColorIndex] = useState<number>(0);
+
+  // Add shape at canvas center with currently selected color
+  const handleAddShape = useCallback((shapeIndex: number) => {
+    addShape(shapeIndex, selectedColorIndex);
+  }, [addShape, selectedColorIndex]);
 
   // When a color is clicked, also recolor any selected shapes
   const handleSetSelectedColor = useCallback((colorIndex: number) => {
@@ -353,16 +357,12 @@ export function CanvasEditorPage({ challenge, todayDate, themeMode, onSetThemeMo
               onToggleGrid={toggleGrid}
               hoveredShapeIds={hoveredShapeIds}
               marqueeStartRef={marqueeStartRef}
-              editorTool={editorTool}
-              selectedColorIndex={selectedColorIndex}
-              onAddShape={addShape}
-              onSetTool={setEditorTool}
             />
           </div>
         </main>
 
         {/* Empty canvas prompt — only after hydration to avoid flash */}
-        {hydrated && canvasState.shapes.length === 0 && editorTool === 'select' && (
+        {hydrated && canvasState.shapes.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center z-0 pointer-events-none">
             <p className="text-lg text-(--color-text-secondary) opacity-50 select-none">
               Pick a shape below to start creating.
@@ -423,24 +423,14 @@ export function CanvasEditorPage({ challenge, todayDate, themeMode, onSetThemeMo
           )}
         </AnimatePresence>
 
-        {/* Stamp mode hint text */}
-        {editorTool.startsWith('stamp-') && (
-          <div className="absolute bottom-20 md:bottom-18 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
-            <span className="text-xs font-semibold px-3.5 py-1" style={{ color: 'var(--color-text-secondary)', background: 'var(--color-card-bg)', border: 'var(--border-width, 2px) solid var(--color-border-light)', borderRadius: 'var(--radius-pill)', boxShadow: 'var(--shadow-card)', fontFamily: 'var(--font-body)' }}>
-              Click to place · Drag to size · Esc to select
-            </span>
-          </div>
-        )}
-
         {/* Bottom floating toolbar */}
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
           <BottomToolbar
             challenge={challenge}
-            activeTool={editorTool}
             selectedColorIndex={selectedColorIndex}
             backgroundColorIndex={canvasState.backgroundColorIndex}
             selectedColor={challenge.colors[selectedColorIndex]}
-            onSetTool={setEditorTool}
+            onAddShape={handleAddShape}
             onSetSelectedColor={handleSetSelectedColor}
             onSetBackground={setBackgroundColor}
           />

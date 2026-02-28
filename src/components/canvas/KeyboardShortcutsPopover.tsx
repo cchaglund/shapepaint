@@ -47,7 +47,6 @@ export function KeyboardShortcutsPopover({ keyMappings, onOpenSettings }: Keyboa
   }, [keyMappings]);
 
   const shortcuts = useMemo(() => [
-    { key: `${fmt('selectMode')} / Esc`, action: 'Select mode' },
     { key: fmt('undo'), action: 'Undo' },
     { key: fmt('redo'), action: 'Redo' },
     { key: fmt('duplicate'), action: 'Duplicate' },

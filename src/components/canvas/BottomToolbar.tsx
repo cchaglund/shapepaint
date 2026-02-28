@@ -2,53 +2,7 @@ import { motion } from 'motion/react';
 import type { DailyChallenge } from '../../types';
 import { ShapeIcon } from '../shared/ShapeIcon';
 
-// --- Icons ---
-
-function CursorIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z" />
-      <path d="M13 13l6 6" />
-    </svg>
-  );
-}
-
-// --- Types ---
-
-export type EditorTool = 'select' | 'stamp-0' | 'stamp-1';
-
 // --- Sub-components ---
-
-function ToolButton({
-  active,
-  onClick,
-  title,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      className={`w-[34px] h-[34px] flex items-center justify-center rounded-(--radius-sm) transition-all cursor-pointer ${
-        active
-          ? 'text-(--color-text-primary)'
-          : 'bg-transparent text-(--color-text-secondary) border border-transparent hover:bg-(--color-hover) hover:text-(--color-text-primary)'
-      }`}
-      style={active ? {
-        background: 'var(--color-card-bg)',
-        border: 'var(--border-width, 2px) solid var(--color-border)',
-        boxShadow: 'var(--shadow-btn)',
-      } : undefined}
-      onClick={onClick}
-      title={title}
-    >
-      {children}
-    </button>
-  );
-}
 
 function ColorSwatch({
   color,
@@ -99,22 +53,20 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 interface BottomToolbarProps {
   challenge: DailyChallenge;
-  activeTool: EditorTool;
   selectedColorIndex: number;
   backgroundColorIndex: number | null;
   selectedColor: string;
-  onSetTool: (tool: EditorTool) => void;
+  onAddShape: (shapeIndex: number) => void;
   onSetSelectedColor: (index: number) => void;
   onSetBackground: (index: number | null) => void;
 }
 
 export function BottomToolbar({
   challenge,
-  activeTool,
   selectedColorIndex,
   backgroundColorIndex,
   selectedColor,
-  onSetTool,
+  onAddShape,
   onSetSelectedColor,
   onSetBackground,
 }: BottomToolbarProps) {
@@ -135,34 +87,25 @@ export function BottomToolbar({
         marginBottom: 'env(safe-area-inset-bottom)',
       }}
     >
-      {/* Tool mode: Select + shape buttons (grouped in tray) */}
-      <div className="flex items-center gap-0.5 p-0.5 rounded-(--radius-md) bg-(--color-selected)">
-        <ToolButton
-          active={activeTool === 'select'}
-          onClick={() => onSetTool('select')}
-          title="Select (V)"
-        >
-          <CursorIcon />
-        </ToolButton>
-        {challenge.shapes.map((shape, i) => {
-          const toolId = `stamp-${i}` as EditorTool;
-          return (
-            <ToolButton
-              key={shape.type}
-              active={activeTool === toolId}
-              onClick={() => onSetTool(activeTool === toolId ? 'select' : toolId)}
-              title={shape.name}
-            >
-              <ShapeIcon
-                type={shape.type}
-                size={16}
-                fill={selectedColor}
-                stroke="var(--color-border)"
-                strokeWidth={1.5}
-              />
-            </ToolButton>
-          );
-        })}
+      {/* Shape add buttons */}
+      <SectionLabel>Add</SectionLabel>
+      <div className="flex items-center gap-1">
+        {challenge.shapes.map((shape, i) => (
+          <button
+            key={shape.type}
+            className="w-[34px] h-[34px] flex items-center justify-center rounded-(--radius-sm) cursor-pointer transition-all bg-transparent text-(--color-text-secondary) border border-transparent hover:bg-(--color-hover) hover:text-(--color-text-primary) active:scale-90"
+            onClick={() => onAddShape(i)}
+            title={`Add ${shape.name}`}
+          >
+            <ShapeIcon
+              type={shape.type}
+              size={16}
+              fill={selectedColor}
+              stroke="var(--color-border)"
+              strokeWidth={1.5}
+            />
+          </button>
+        ))}
       </div>
 
       <Divider />

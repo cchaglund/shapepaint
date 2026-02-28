@@ -14,7 +14,6 @@ interface UseCanvasKeyboardShortcutsOptions {
   onMirrorHorizontal: (ids: string[]) => void;
   onMirrorVertical: (ids: string[]) => void;
   onToggleGrid?: () => void;
-  onSelectMode?: () => void;
 }
 
 /**
@@ -32,7 +31,6 @@ export function useCanvasKeyboardShortcuts({
   onMirrorHorizontal,
   onMirrorVertical,
   onToggleGrid,
-  onSelectMode,
 }: UseCanvasKeyboardShortcutsOptions) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -40,14 +38,6 @@ export function useCanvasKeyboardShortcuts({
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement
       ) {
-        return;
-      }
-
-      // Check for select mode binding (V by default — exits stamp mode)
-      const selectModeBinding = keyMappings.selectMode;
-      if (selectModeBinding && matchesBinding(e, selectModeBinding)) {
-        e.preventDefault();
-        onSelectMode?.();
         return;
       }
 
@@ -195,6 +185,5 @@ export function useCanvasKeyboardShortcuts({
     onMirrorHorizontal,
     onMirrorVertical,
     onToggleGrid,
-    onSelectMode,
   ]);
 }

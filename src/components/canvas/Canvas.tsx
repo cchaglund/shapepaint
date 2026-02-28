@@ -1,11 +1,10 @@
 import { useRef, useState, useCallback, useMemo } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import { motion } from 'motion/react';
 import type { Shape, ShapeGroup, DailyChallenge, ViewportState } from '../../types';
 import { CANVAS_SIZE } from '../../types/canvas';
 import { getShapeDimensions } from '../../utils/shapes';
 import { getVisibleShapes } from '../../utils/visibility';
 import { ShapeElement } from './ShapeElement';
-import { SVGShape } from '../shared/SVGShape';
 import {
   TransformInteractionLayer,
   MultiSelectTransformLayer,
@@ -13,7 +12,6 @@ import {
   HoverHighlightLayer,
 } from './TransformHandles';
 import { type KeyMappings } from '../../constants/keyboardActions';
-import { type EditorTool } from './BottomToolbar';
 import { TouchContextMenu } from './TouchContextMenu';
 import { CanvasGridLines } from './CanvasGridLines';
 
@@ -26,7 +24,6 @@ import { useWheelZoom } from '../../hooks/canvas/useWheelZoom';
 import { useShapeDrag } from '../../hooks/canvas/useShapeDrag';
 import { useCanvasTouchGestures } from '../../hooks/canvas/useCanvasTouchGestures';
 import { useMarqueeSelection } from '../../hooks/canvas/useMarqueeSelection';
-import { useStampMode } from '../../hooks/canvas/useStampMode';
 
 interface CanvasProps {
   shapes: Shape[];
@@ -56,10 +53,6 @@ interface CanvasProps {
   onToggleGrid?: () => void;
   hoveredShapeIds?: Set<string> | null;
   marqueeStartRef?: React.MutableRefObject<((clientX: number, clientY: number) => void) | null>;
-  editorTool: EditorTool;
-  selectedColorIndex: number;
-  onAddShape: (shapeIndex: number, colorIndex: number, options?: { x?: number; y?: number; size?: number }) => void;
-  onSetTool: (tool: EditorTool) => void;
 }
 
 export function Canvas({
@@ -90,10 +83,6 @@ export function Canvas({
   onToggleGrid,
   hoveredShapeIds,
   marqueeStartRef,
-  editorTool,
-  selectedColorIndex,
-  onAddShape,
-  onSetTool,
 }: CanvasProps) {
   const svgRef = useRef<SVGSVGElement>(null);
 
@@ -160,10 +149,6 @@ export function Canvas({
 
   useWheelZoom(svgRef, onZoomAtPoint, onPan, viewport);
 
-  const handleSelectMode = useCallback(() => {
-    onSetTool('select');
-  }, [onSetTool]);
-
   useCanvasKeyboardShortcuts({
     selectedShapes,
     hasSelection,
@@ -176,7 +161,6 @@ export function Canvas({
     onMirrorHorizontal,
     onMirrorVertical,
     onToggleGrid,
-    onSelectMode: handleSelectMode,
   });
 
   const { setDragState } = useShapeDrag({
@@ -209,32 +193,11 @@ export function Canvas({
     getClientPoint,
   });
 
-  // Stamp mode
-  const {
-    isStampMode,
-    shapeIndex: stampShapeIndex,
-    ghost: stampGhost,
-    preview: stampPreview,
-    handleMouseMove: handleStampMouseMove,
-    handleMouseLeave: handleStampMouseLeave,
-    handleMouseDown: handleStampMouseDown,
-  } = useStampMode({
-    editorTool,
-    selectedColorIndex,
-    getSVGPoint,
-    onAddShape,
-    onSetTool,
-  });
-
   // Track which transform handle is hovered for visual feedback (1.3x scale)
   const [hoveredHandleId, setHoveredHandleId] = useState<string | null>(null);
 
   // Event handlers that need to set drag state
   const handleCanvasMouseDown = (e: React.MouseEvent) => {
-    if (isStampMode) {
-      handleStampMouseDown(e);
-      return;
-    }
     if (e.target === svgRef.current) {
       startMarqueeAt(e.clientX, e.clientY);
     }
@@ -503,10 +466,8 @@ export function Canvas({
         height={CANVAS_SIZE}
         viewBox={`${viewBoxX} ${viewBoxY} ${viewBoxSize} ${viewBoxSize}`}
         className="touch-none overflow-visible"
-        style={{ cursor: isStampMode ? 'crosshair' : marqueeState ? 'crosshair' : cursorStyle }}
+        style={{ cursor: marqueeState ? 'crosshair' : cursorStyle }}
         onMouseDown={handleCanvasMouseDown}
-        onMouseMove={isStampMode ? handleStampMouseMove : undefined}
-        onMouseLeave={isStampMode ? handleStampMouseLeave : undefined}
         onTouchStart={handleCanvasTouchStart}
         onTouchMove={handleCanvasTouchMove}
         onTouchEnd={handleCanvasTouchEnd}
@@ -529,10 +490,6 @@ export function Canvas({
           animate={{ fill: backgroundColor || 'var(--color-bg-elevated)' }}
           transition={{ duration: 0.3 }}
           onMouseDown={(e) => {
-            if (isStampMode) {
-              handleStampMouseDown(e);
-              return;
-            }
             if (!isSpacePressed) startMarqueeAt(e.clientX, e.clientY);
           }}
         />
@@ -554,10 +511,6 @@ export function Canvas({
           {sortedShapes.map((shape) => (
             <g key={shape.id}>
               <g onMouseDown={(e) => {
-                if (isStampMode) {
-                  handleStampMouseDown(e);
-                  return;
-                }
                 if (!isSpacePressed) handleShapeMouseDown(e, shape.id);
               }}>
                 <ShapeElement
@@ -628,49 +581,6 @@ export function Canvas({
             />
           </>
         )}
-
-        {/* Ghost cursor + drag preview for stamp mode */}
-        <g clipPath={showOffCanvas ? undefined : "url(#canvas-clip)"} pointerEvents="none">
-          <AnimatePresence>
-            {isStampMode && stampGhost && !stampPreview && challenge && (
-              <motion.g
-                key="stamp-ghost"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.35 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
-              >
-                <SVGShape
-                  type={challenge.shapes[stampShapeIndex].type}
-                  size={60}
-                  x={stampGhost.x - 30}
-                  y={stampGhost.y - 30}
-                  rotation={0}
-                  color={challenge.colors[selectedColorIndex]}
-                />
-              </motion.g>
-            )}
-            {isStampMode && stampPreview && challenge && (
-              <motion.g
-                key="stamp-preview"
-                initial={{ scale: 0.6, opacity: 0 }}
-                animate={{ scale: 1, opacity: 0.75 }}
-                exit={{ opacity: 0 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 25 }}
-                style={{ transformOrigin: `${stampPreview.x}px ${stampPreview.y}px` }}
-              >
-                <SVGShape
-                  type={challenge.shapes[stampShapeIndex].type}
-                  size={stampPreview.size}
-                  x={stampPreview.x - stampPreview.size / 2}
-                  y={stampPreview.y - stampPreview.size / 2}
-                  rotation={0}
-                  color={challenge.colors[selectedColorIndex]}
-                />
-              </motion.g>
-            )}
-          </AnimatePresence>
-        </g>
 
         {/* Marquee selection rectangle */}
         {marqueeState && (
