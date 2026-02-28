@@ -7,7 +7,7 @@ interface ThemeToggleProps {
   onSetTheme: (theme: ThemeName) => void;
 }
 
-const THEMES: ThemeName[] = ['a', 'b', 'c', 'd'];
+const THEMES: ThemeName[] = ['a', 'b', 'c'];
 
 export function ThemeToggle({ mode, onSetMode, theme, onSetTheme }: ThemeToggleProps) {
   return (

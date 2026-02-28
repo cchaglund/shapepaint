@@ -159,42 +159,42 @@
     --color-accent-text: #ffffff;
     --color-danger: #d4705e;
     --color-danger-hover: #c45c4a;
-    --color-bg-primary: #2D1B69;
-    --color-bg-secondary: #331f73;
-    --color-bg-tertiary: #3a2578;
-    --color-bg-elevated: #432e88;
-    --color-text-primary: rgba(255, 255, 255, 0.92);
-    --color-text-secondary: rgba(255, 255, 255, 0.65);
-    --color-text-tertiary: rgba(255, 255, 255, 0.4);
-    --color-text-faint: rgba(255, 255, 255, 0.2);
-    --color-border: rgba(255, 255, 255, 0.1);
-    --color-border-light: rgba(255, 255, 255, 0.06);
+    --color-bg-primary: #1A1230;
+    --color-bg-secondary: #241B3D;
+    --color-bg-tertiary: #2D2248;
+    --color-bg-elevated: #352A55;
+    --color-text-primary: #E8E0FF;
+    --color-text-secondary: #8B7EC8;
+    --color-text-tertiary: rgba(232, 224, 255, 0.4);
+    --color-text-faint: rgba(232, 224, 255, 0.2);
+    --color-border: #4A3B6B;
+    --color-border-light: #3A2D55;
     --color-border-emphasis: rgba(255, 255, 255, 0.15);
     --color-hover: rgba(255, 255, 255, 0.06);
     --color-selected: rgba(255, 51, 102, 0.2);
     --color-selected-partial: rgba(255, 51, 102, 0.1);
-    --color-overlay: rgba(45, 27, 105, 0.95);
+    --color-overlay: rgba(10, 6, 20, 0.95);
     --color-modal-overlay: rgba(0, 0, 0, 0.6);
-    --color-modal-bg: #3a2578;
-    --color-checkered-bg: #241460;
-    --color-checkered-pattern: #2D1B69;
-    --color-card-bg: #3a2578;
+    --color-modal-bg: #2D2248;
+    --color-checkered-bg: #150F25;
+    --color-checkered-pattern: #1A1230;
+    --color-card-bg: #241B3D;
     --shadow-card: 4px 4px 0 rgba(0, 0, 0, 0.3);
     --shadow-btn: 3px 3px 0 rgba(0, 0, 0, 0.3);
     --shadow-modal: 8px 8px 0 rgba(0, 0, 0, 0.4);
     --shadow-panel: 4px 0 0 rgba(0, 0, 0, 0.2);
     --border-panel: 2px solid var(--color-border);
     --border-card: 2px solid var(--color-border-light);
-    --sel-border: #FF3366;
-    --sel-handle-fill: #432e88;
-    --sel-handle-stroke: #FF3366;
+    --sel-border: #FF69B4;
+    --sel-handle-fill: #FF69B4;
+    --sel-handle-stroke: #1A1230;
     --sel-rotate-color: #33CCFF;
-    --sel-hover-fill: rgba(255, 51, 102, 0.15);
+    --sel-hover-fill: rgba(255, 105, 180, 0.1);
     --pattern-image:
       radial-gradient(circle, rgba(255, 51, 102, 0.06) 1px, transparent 1px),
       radial-gradient(circle, rgba(51, 204, 255, 0.04) 1px, transparent 1px);
     --pattern-size: 20px 20px, 33px 33px;
-    --pattern-opacity: 1;
+    --pattern-opacity: 0.015;
     color: var(--color-text-primary);
     background-color: var(--color-bg-primary);
   }
@@ -419,117 +419,6 @@
     --sel-hover-fill: rgba(157, 196, 176, 0.12);
     --pattern-image: radial-gradient(circle, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
     --pattern-opacity: 1;
-    color: var(--color-text-primary);
-    background-color: var(--color-bg-primary);
-  }
-
-  /* ================================================================
-   * THEME D — Brutalist
-   * Neon yellow + black, Space Mono, zero radius, thick shadows/borders
-   * ================================================================ */
-
-  :root[data-theme="d"] {
-    font-family: 'Space Mono', monospace;
-    --font-body: 'Space Mono', monospace;
-    --font-display: 'Space Mono', monospace;
-    --radius-sm: 0px;
-    --radius-md: 0px;
-    --radius-lg: 0px;
-    --radius-xl: 0px;
-    --radius-2xl: 0px;
-    --radius-pill: 0px;
-    --border-width: 3px;
-    --border-width-heavy: 4px;
-    --sel-handle-size: 10px;
-    --sel-handle-radius: 0;
-    --sel-dash: 0;
-    --pattern-size: 0;
-  }
-
-  :root[data-theme="d"][data-mode="light"] {
-    --color-accent: #CCFF00;
-    --color-accent-hover: #b8e600;
-    --color-accent-subtle: rgba(204, 255, 0, 0.15);
-    --color-accent-text: #000000;
-    --color-danger: #ff0000;
-    --color-danger-hover: #cc0000;
-    --color-bg-primary: #ffffff;
-    --color-bg-secondary: #f5f5f5;
-    --color-bg-tertiary: #eeeeee;
-    --color-bg-elevated: #ffffff;
-    --color-text-primary: #000000;
-    --color-text-secondary: #333333;
-    --color-text-tertiary: #666666;
-    --color-text-faint: #999999;
-    --color-border: #000000;
-    --color-border-light: rgba(0, 0, 0, 0.3);
-    --color-border-emphasis: #000000;
-    --color-hover: rgba(204, 255, 0, 0.15);
-    --color-selected: rgba(204, 255, 0, 0.2);
-    --color-selected-partial: rgba(204, 255, 0, 0.1);
-    --color-overlay: rgba(255, 255, 255, 0.95);
-    --color-modal-overlay: rgba(0, 0, 0, 0.7);
-    --color-modal-bg: #ffffff;
-    --color-checkered-bg: #f0f0f0;
-    --color-checkered-pattern: #ffffff;
-    --color-card-bg: #ffffff;
-    --shadow-card: 6px 6px 0 #000000;
-    --shadow-btn: 4px 4px 0 #000000;
-    --shadow-modal: 10px 10px 0 #000000;
-    --shadow-panel: 6px 0 0 #000000;
-    --border-panel: 3px solid #000000;
-    --border-card: 3px solid rgba(0, 0, 0, 0.3);
-    --sel-border: #CCFF00;
-    --sel-handle-fill: #000000;
-    --sel-handle-stroke: #CCFF00;
-    --sel-rotate-color: #CCFF00;
-    --sel-hover-fill: rgba(204, 255, 0, 0.15);
-    --pattern-image: none;
-    --pattern-opacity: 0;
-    color: var(--color-text-primary);
-    background-color: var(--color-bg-primary);
-  }
-
-  :root[data-theme="d"][data-mode="dark"] {
-    --color-accent: #CCFF00;
-    --color-accent-hover: #ddff33;
-    --color-accent-subtle: rgba(204, 255, 0, 0.15);
-    --color-accent-text: #000000;
-    --color-danger: #ff3333;
-    --color-danger-hover: #ff0000;
-    --color-bg-primary: #0a0a0a;
-    --color-bg-secondary: #0f0f0f;
-    --color-bg-tertiary: #151515;
-    --color-bg-elevated: #1a1a1a;
-    --color-text-primary: #ffffff;
-    --color-text-secondary: rgba(255, 255, 255, 0.75);
-    --color-text-tertiary: rgba(255, 255, 255, 0.5);
-    --color-text-faint: rgba(255, 255, 255, 0.25);
-    --color-border: #ffffff;
-    --color-border-light: rgba(255, 255, 255, 0.3);
-    --color-border-emphasis: #ffffff;
-    --color-hover: rgba(204, 255, 0, 0.12);
-    --color-selected: rgba(204, 255, 0, 0.2);
-    --color-selected-partial: rgba(204, 255, 0, 0.1);
-    --color-overlay: rgba(10, 10, 10, 0.95);
-    --color-modal-overlay: rgba(0, 0, 0, 0.8);
-    --color-modal-bg: #1a1a1a;
-    --color-checkered-bg: #080808;
-    --color-checkered-pattern: #121212;
-    --color-card-bg: #1a1a1a;
-    --shadow-card: 6px 6px 0 rgba(204, 255, 0, 0.25);
-    --shadow-btn: 4px 4px 0 rgba(204, 255, 0, 0.25);
-    --shadow-modal: 10px 10px 0 rgba(204, 255, 0, 0.15);
-    --shadow-panel: 6px 0 0 rgba(204, 255, 0, 0.1);
-    --border-panel: 3px solid #ffffff;
-    --border-card: 3px solid rgba(255, 255, 255, 0.3);
-    --sel-border: #CCFF00;
-    --sel-handle-fill: #0a0a0a;
-    --sel-handle-stroke: #CCFF00;
-    --sel-rotate-color: #CCFF00;
-    --sel-hover-fill: rgba(204, 255, 0, 0.2);
-    --pattern-image: none;
-    --pattern-opacity: 0;
     color: var(--color-text-primary);
     background-color: var(--color-bg-primary);
   }

@@ -9,7 +9,7 @@ import { supabase } from '../../lib/supabase';
 import { Button } from '../shared/Button';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
 
-const THEMES: ThemeName[] = ['a', 'b', 'c', 'd'];
+const THEMES: ThemeName[] = ['a', 'b', 'c'];
 
 interface UserMenuDropdownProps {
   profile: Profile | null;

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
-export type ThemeName = 'a' | 'b' | 'c' | 'd';
+export type ThemeName = 'a' | 'b' | 'c';
 
 const MODE_KEY = 'theme-mode';
 const THEME_KEY = 'theme-name';
@@ -15,9 +15,6 @@ const THEME_FONT_URLS: Record<ThemeName, string[]> = {
   b: [], // DM Sans is self-hosted
   c: [
     'https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap',
-  ],
-  d: [
-    'https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap',
   ],
 };
 
@@ -78,7 +75,7 @@ export function useThemeState() {
     () => loadFromStorage(MODE_KEY, ['light', 'dark', 'system'], 'system')
   );
   const [theme, setThemeState] = useState<ThemeName>(
-    () => loadFromStorage(THEME_KEY, ['a', 'b', 'c', 'd'], 'a')
+    () => loadFromStorage(THEME_KEY, ['a', 'b', 'c'], 'a')
   );
   const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>(getSystemTheme);
 

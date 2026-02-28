@@ -8,7 +8,7 @@ import { useIsDesktop } from '../../hooks/ui/useBreakpoint';
 
 // --- Theme Pill (dark mode toggle + divider + A/B/C/D) ---
 
-const THEMES: ThemeName[] = ['a', 'b', 'c', 'd'];
+const THEMES: ThemeName[] = ['a', 'b', 'c'];
 
 function SunIcon() {
   return (
