@@ -16,14 +16,15 @@ export type ButtonVariant = 'secondary' | 'primary' | 'ghost' | 'inverse' | 'dan
 
 const variantClasses: Record<ButtonVariant, string> = {
   secondary:
-    'bg-(--color-card-bg) text-(--color-text-primary) hover:text-(--color-text-primary)',
+    'bg-(--color-card-bg) text-(--color-text-primary) hover:text-(--color-text-primary) hover:translate-y-px active:translate-y-0.5',
   primary:
-    'bg-(--color-accent) text-(--color-accent-text) hover:bg-(--color-accent-hover)',
+    'bg-(--color-accent) text-(--color-accent-text) hover:bg-(--color-accent-hover) hover:translate-y-px active:translate-y-0.5',
   ghost:
-    'bg-(--color-selected) text-(--color-text-primary) hover:bg-(--color-selected-hover)',
-  inverse: '',
+    'bg-(--color-selected) text-(--color-text-primary) hover:bg-(--color-selected-hover) hover:-translate-y-px active:translate-y-0',
+  inverse:
+    'hover:translate-y-px active:translate-y-0.5',
   danger:
-    'bg-(--color-danger) text-(--color-accent-text) hover:bg-(--color-danger-hover)',
+    'bg-(--color-danger) text-(--color-accent-text) hover:bg-(--color-danger-hover) hover:translate-y-px active:translate-y-0.5',
 };
 
 /** Variants that get the btn-shadow */
@@ -59,7 +60,7 @@ export function Button<T extends ElementType = 'button'>({
 
   return (
     <Tag
-      className={`h-9 md:h-8 px-3 rounded-(--radius-pill) text-xs font-semibold transition-colors cursor-pointer inline-flex items-center justify-center no-underline ${fullWidth ? 'w-full' : ''} ${variantClasses[variant]} ${className}`}
+      className={`h-9 md:h-8 px-3 rounded-(--radius-pill) text-xs font-semibold transition-all duration-150 cursor-pointer inline-flex items-center justify-center no-underline ${fullWidth ? 'w-full' : ''} ${variantClasses[variant]} ${className}`}
       style={{
         border: 'var(--border-width, 2px) solid var(--color-border)',
         ...(hasShadow ? { boxShadow: 'var(--shadow-btn)' } : {}),

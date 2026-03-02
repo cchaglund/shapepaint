@@ -60,7 +60,7 @@ function ThemePill({
     <div className="flex items-center gap-0 rounded-(--radius-pill) h-8 bg-(--color-card-bg)" style={{ border: 'var(--border-width, 2px) solid var(--color-border)', boxShadow: 'var(--shadow-btn)' }}>
       {/* Dark mode toggle */}
       <button
-        className="flex items-center justify-center w-8 h-full rounded-l-(--radius-pill) transition-colors text-(--color-text-secondary) hover:text-(--color-text-primary) hover:bg-(--color-hover)"
+        className="flex items-center justify-center w-8 h-full rounded-l-(--radius-pill) transition-colors cursor-pointer text-(--color-text-secondary) hover:text-(--color-text-primary) hover:bg-(--color-hover)"
         onClick={toggleDarkMode}
         title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       >
@@ -74,7 +74,7 @@ function ThemePill({
       {THEMES.map((t) => (
         <button
           key={t}
-          className={`flex items-center justify-center w-7 h-full text-xs font-bold uppercase transition-colors ${
+          className={`flex items-center justify-center w-7 h-full text-xs font-bold uppercase transition-colors cursor-pointer ${
             theme === t
               ? 'bg-(--color-accent) text-(--color-accent-text)'
               : 'text-(--color-text-secondary) hover:text-(--color-text-primary) hover:bg-(--color-hover)'
