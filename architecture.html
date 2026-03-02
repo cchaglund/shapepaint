@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Architecture: 2 Colors 2 Shapes</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+    line-height: 1.6;
+  }
+  .container { max-width: 1200px; margin: 0 auto; padding: 40px 24px 80px; }
+  h1 {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #f0f6fc;
+  }
+  .subtitle {
+    color: #7d8590;
+    font-size: 14px;
+    margin-bottom: 48px;
+    border-left: 3px solid #3b82f6;
+    padding-left: 12px;
+  }
+  h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-top: 56px;
+    margin-bottom: 20px;
+    color: #f0f6fc;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #21262d;
+  }
+  .diagram-wrapper {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 32px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+  }
+  .diagram-wrapper .mermaid {
+    display: flex;
+    justify-content: center;
+  }
+  .diagram-wrapper .mermaid svg {
+    max-width: 100%;
+    height: auto;
+  }
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: rgba(13, 17, 23, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid #21262d;
+    z-index: 100;
+    padding: 0 24px;
+  }
+  nav .inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 10px 0;
+  }
+  nav .inner::-webkit-scrollbar { display: none; }
+  nav a {
+    color: #7d8590;
+    text-decoration: none;
+    font-size: 12px;
+    white-space: nowrap;
+    padding: 4px 10px;
+    border-radius: 6px;
+    transition: all 0.15s;
+  }
+  nav a:hover { color: #e6edf3; background: #21262d; }
+  nav a.active { color: #f0f6fc; background: #30363d; }
+  .container { padding-top: 72px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="inner">
+    <a href="#system">System</a>
+    <a href="#hooks">Hook Map</a>
+    <a href="#dataflow">Data Flow</a>
+    <a href="#canvas">Canvas Tree</a>
+    <a href="#routing">Routing</a>
+    <a href="#caching">Caching</a>
+    <a href="#schema">DB Schema</a>
+  </div>
+</nav>
+
+<div class="container">
+  <h1>Architecture: 2 Colors 2 Shapes</h1>
+  <p class="subtitle">Auto-generated architecture visualization. Re-generate by asking Claude to update this file.</p>
+
+  <h2 id="system">1. High-Level System Architecture</h2>
+  <div class="diagram-wrapper">
+    <pre class="mermaid">
+graph TB
+    subgraph Client["Client (React 19 + Vite SPA)"]
+        App["App.tsx\nMotionConfig + URL routing"]
+
+        subgraph Pages["Pages (lazy-loaded)"]
+            CEP["CanvasEditorPage"]
+            GP["GalleryPage"]
+            WOTD["WallOfTheDayPage"]
+            WDP["WinnersDayPage"]
+            UPP["UserProfilePage"]
+            SDP["SubmissionDetailPage"]
+            Admin["Admin pages"]
+        end
+
+        subgraph State["State Layer"]
+            Hooks["Custom Hooks\n(44 files, 6 domains)"]
+            FC["FollowsContext\n(only React context)"]
+            LS["localStorage\ncanvas, challenges, theme"]
+        end
+
+        subgraph UI["Shared UI"]
+            Modal["Modal"]
+            Button["Button"]
+            Card["Card"]
+            SVGShape["SVGShape"]
+            More["LoadingSpinner, EmptyState,\nTrophyBadge, InfoTooltip..."]
+        end
+    end
+
+    subgraph Supabase["Supabase (Remote)"]
+        Auth["Auth (Google, Email)"]
+        DB["PostgreSQL"]
+        EF["Edge Functions (3)"]
+    end
+
+    App --> Pages
+    Pages --> Hooks
+    Pages --> UI
+    Hooks --> FC
+    Hooks --> LS
+    Hooks -->|"supabase-js"| Auth
+    Hooks -->|"supabase-js"| DB
+    Hooks -->|"functions.invoke()"| EF
+    EF --> DB
+    </pre>
+  </div>
+
+  <h2 id="hooks">2. Feature Domains & Hook Map</h2>
+  <div class="diagram-wrapper">
+    <pre class="mermaid">
+graph LR
+    subgraph Canvas["Canvas Domain (33 files)"]
+        direction TB
+        CS[useCanvasState]
+        CH[useCanvasHistory]
+        CSt[useCanvasStorage]
+        SO[useShapeOperations]
+        SA[useShapeActions]
+        SD[useShapeDrag]
+        CK[useCanvasKeyboardShortcuts]
+        CT[useCanvasTouchGestures]
+        CP[useCanvasPanning]
+        WZ[useWheelZoom]
+        MS[useMarqueeSelection]
+        VS[useViewportState]
+
+        CS --> CH
+        CS --> CSt
+        CS --> SO
+    end
+
+    subgraph Challenge["Challenge Domain"]
+        direction TB
+        DC[useDailyChallenge]
+        CC[useCalendarChallenges]
+        WOT[useWallOfTheDay]
+        UV[useVoting]
+        UR[useRankings]
+        UWA[useWinnerAnnouncement]
+    end
+
+    subgraph Submission["Submission Domain"]
+        direction TB
+        US[useSubmissions]
+        USS[useSaveSubmission]
+        USync[useSubmissionSync]
+        UExp[useExport]
+    end
+
+    subgraph Social["Social Domain"]
+        direction TB
+        UF[useFollows via Context]
+        UL[useLikes]
+        UFr[useFriendsFeed]
+        UP[useProfile]
+    end
+
+    subgraph Auth["Auth Domain"]
+        direction TB
+        UA[useAuth]
+        UPr[useProfile]
+        UAd[useAdmin]
+    end
+
+    subgraph UIHooks["UI Hooks"]
+        direction TB
+        UT[useThemeState]
+        UM[useAppModals]
+        UW[useWelcomeModal]
+        UKS[useKeyboardSettings]
+        USB[useSidebarState]
+        UB[useBreakpoint]
+    end
+    </pre>
+  </div>
+
+  <h2 id="dataflow">3. Core Data Flow: Challenge &rarr; Create &rarr; Submit &rarr; Vote &rarr; Rank</h2>
+  <div class="diagram-wrapper">
+    <pre class="mermaid">
+sequenceDiagram
+    participant U as User
+    participant App as App.tsx
+    participant DC as useDailyChallenge
+    participant DB as Supabase DB
+    participant EF as Edge Functions
+    participant CS as useCanvasState
+    participant LS as localStorage
+    participant Sub as useSubmissions
+    participant Vote as useVoting
+
+    Note over App,DC: 1. Load Today's Challenge
+    App->>DC: useDailyChallenge(today)
+    DC->>DC: Check memory cache
+    DC->>DC: Check localStorage cache
+    DC->>DB: SELECT from challenges
+    alt Not in DB
+        DC->>EF: get-daily-challenge
+        EF->>EF: Generate colors (OKLCH, contrast checks)
+        EF->>EF: Pick 2 shapes from 40+
+        EF->>DB: INSERT challenge
+        EF-->>DC: { colors, shapes, word }
+    end
+    DC-->>App: challenge data
+
+    Note over U,CS: 2. Create Artwork
+    App->>CS: CanvasEditorPage(challenge)
+    CS->>LS: Load saved canvas (if today's date matches)
+    U->>CS: Add shapes, pick colors, arrange
+    CS->>LS: Auto-save (debounced 300ms)
+
+    Note over U,DB: 3. Submit
+    U->>Sub: Save submission
+    Sub->>DB: UPSERT submissions (user_id + date unique)
+    Sub->>DB: Initialize daily_rankings row
+
+    Note over U,EF: 4. Vote on Others
+    U->>Vote: Open voting modal
+    Vote->>DB: get_next_pair(voter_id, date) RPC
+    DB-->>Vote: { submissionA, submissionB }
+    U->>Vote: Pick winner
+    Vote->>EF: process-vote({ winnerId })
+    EF->>EF: Calculate ELO (K=32)
+    EF->>DB: UPDATE daily_rankings (elo_score)
+    EF->>DB: UPDATE user_voting_status (vote_count)
+    alt vote_count >= required
+        EF->>DB: SET included_in_ranking = true
+    end
+
+    Note over DB: 5. Rankings visible on Wall
+    </pre>
+  </div>
+
+  <h2 id="canvas">4. Canvas Editor Component Tree</h2>
+  <div class="diagram-wrapper">
+    <pre class="mermaid">
+graph TB
+    CEP["CanvasEditorPage"]
+
+    CEP --> TB["TopBar"]
+    CEP --> C["Canvas (SVG)"]
+    CEP --> LP["LayerPanel"]
+    CEP --> TP["ToolsPanel"]
+    CEP --> BT["BottomToolbar"]
+    CEP --> ZC["ZoomControls"]
+    CEP --> KSP["KeyboardShortcutsPopover"]
+    CEP --> Modals
+
+    TB --> IC["InspirationCenter\n(daily word)"]
+    TB --> ThP["ThemePill"]
+    TB --> UMD["UserMenuDropdown"]
+
+    C --> GL["CanvasGridLines"]
+    C --> SE["ShapeElement[]"]
+    C --> TIL["TransformInteractionLayer"]
+    C --> MSTL["MultiSelectTransformLayer"]
+    C --> HHL["HoverHighlightLayer"]
+    C --> TCM["TouchContextMenu"]
+
+    LP --> LI["LayerItem[]"]
+
+    BT --> ShapePicker["Shape buttons"]
+    BT --> ColorSwatch["Color swatches"]
+
+    subgraph Modals["Modals"]
+        WM["WelcomeModal"]
+        OM["OnboardingModal"]
+        VM["VotingModal"]
+        FM["FriendsModal"]
+        KSM["KeyboardSettingsModal"]
+        RCM["ResetConfirmModal"]
+        WAM["WinnerAnnouncementModal"]
+        CM["CongratulatoryModal"]
+    end
+
+    VM --> VPV["VotingPairView"]
+    VM --> VPr["VotingProgress"]
+    VM --> VC["VotingConfirmation"]
+    </pre>
+  </div>
+
+  <h2 id="routing">5. Page Routing & Code Splitting</h2>
+  <div class="diagram-wrapper">
+    <pre class="mermaid">
+graph TB
+    App["App.tsx"] --> AR["useAppRoute()"]
+    AR -->|"URL params"| Route{"Route?"}
+
+    Route -->|"default"| CEP["CanvasEditorPage\n(waits for challenge)"]
+    Route -->|"tab=gallery"| GP["GalleryPage\n(lazy)"]
+    Route -->|"page=wall-of-the-day"| WOTD["WallOfTheDayPage\n(lazy)"]
+    Route -->|"page=winners"| WDP["WinnersDayPage\n(lazy)"]
+    Route -->|"page=profile"| UPP["UserProfilePage\n(lazy)"]
+    Route -->|"page=submission"| SDP["SubmissionDetailPage\n(lazy)"]
+    Route -->|"page=dashboard"| Dash["Dashboard\n(lazy, admin)"]
+    Route -->|"page=explorer"| SE["ShapeExplorer\n(lazy, admin)"]
+    Route -->|"page=color-tester"| CT["ColorTester\n(lazy, admin)"]
+
+    GP -.- FP["FollowsProvider"]
+    UPP -.- FP
+    SDP -.- FP
+    </pre>
+  </div>
+
+  <h2 id="caching">6. Persistence & Caching Strategy</h2>
+  <div class="diagram-wrapper">
+    <pre class="mermaid">
+graph LR
+    subgraph Hot["In-Memory (fastest)"]
+        ChallengeCache["challengeCache\n(module-level Map)"]
+        WallCache["wallCache\n(module-level Map)"]
+        PendingReqs["pendingRequests\n(dedup Maps)"]
+    end
+
+    subgraph Warm["localStorage"]
+        CanvasLS["canvas state\n(debounced 300ms, daily reset)"]
+        ChallengeLS["challenge cache\n(version-validated)"]
+        ThemeLS["theme preferences"]
+        KeyboardLS["keyboard settings"]
+        SidebarLS["sidebar/grid state"]
+    end
+
+    subgraph Cold["Supabase DB"]
+        ChallengesDB["challenges"]
+        SubmissionsDB["submissions"]
+        ProfilesDB["profiles"]
+        FollowsDB["follows"]
+        LikesDB["likes"]
+        RankingsDB["daily_rankings"]
+        ComparisonsDB["comparisons"]
+        VotingStatusDB["user_voting_status"]
+    end
+
+    ChallengeCache -->|"miss"| ChallengeLS
+    ChallengeLS -->|"miss"| ChallengesDB
+    WallCache -->|"invalidated on save"| SubmissionsDB
+    CanvasLS -->|"save submission"| SubmissionsDB
+    </pre>
+  </div>
+
+  <h2 id="schema">7. Database Schema (Key Tables)</h2>
+  <div class="diagram-wrapper">
+    <pre class="mermaid">
+erDiagram
+    challenges {
+        date challenge_date PK
+        string color_1
+        string color_2
+        string color_3
+        string shape_1
+        string shape_2
+        string shape_1_svg
+        string shape_2_svg
+        string word
+    }
+
+    profiles {
+        uuid id PK
+        string nickname
+        boolean is_admin
+    }
+
+    submissions {
+        uuid id PK
+        uuid user_id FK
+        date challenge_date FK
+        json shapes
+        json groups
+        int background_color_index
+        boolean included_in_ranking
+        int like_count
+    }
+
+    daily_rankings {
+        uuid submission_id FK
+        float elo_score
+        int vote_count
+        int final_rank
+    }
+
+    comparisons {
+        uuid voter_id FK
+        uuid submission_a_id FK
+        uuid submission_b_id FK
+        uuid winner_id
+    }
+
+    user_voting_status {
+        uuid user_id FK
+        date challenge_date
+        int vote_count
+        boolean entered_ranking
+    }
+
+    follows {
+        uuid follower_id FK
+        uuid following_id FK
+    }
+
+    likes {
+        uuid user_id FK
+        uuid submission_id FK
+    }
+
+    profiles ||--o{ submissions : creates
+    challenges ||--o{ submissions : "for date"
+    submissions ||--o| daily_rankings : ranked
+    submissions ||--o{ comparisons : "voted on"
+    profiles ||--o{ comparisons : votes
+    profiles ||--o{ follows : follows
+    profiles ||--o{ likes : likes
+    submissions ||--o{ likes : liked
+    profiles ||--o{ user_voting_status : tracks
+    </pre>
+  </div>
+</div>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      darkMode: true,
+      background: '#161b22',
+      primaryColor: '#1f6feb',
+      primaryTextColor: '#e6edf3',
+      primaryBorderColor: '#30363d',
+      lineColor: '#7d8590',
+      secondaryColor: '#21262d',
+      tertiaryColor: '#161b22',
+      noteBkgColor: '#1c2128',
+      noteTextColor: '#e6edf3',
+      noteBorderColor: '#30363d',
+      actorTextColor: '#e6edf3',
+      actorBkg: '#1f6feb',
+      actorBorder: '#388bfd',
+      signalColor: '#e6edf3',
+      labelTextColor: '#e6edf3',
+    },
+    flowchart: { curve: 'basis', padding: 20 },
+    sequence: { mirrorActors: false },
+  });
+
+  // highlight active nav link on scroll
+  const sections = document.querySelectorAll('h2[id]');
+  const navLinks = document.querySelectorAll('nav a');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+      }
+    });
+  }, { rootMargin: '-80px 0px -60% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
