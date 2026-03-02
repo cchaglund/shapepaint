@@ -7,9 +7,9 @@ interface ModalProps {
   size?: string;
   /** Additional classes on the content box */
   className?: string;
-  /** Close when pressing Escape. Default: true */
+  /** Close when pressing Escape. Default: false */
   closeOnEscape?: boolean;
-  /** Close when clicking the backdrop. Default: true */
+  /** Close when clicking the backdrop. Default: false */
   closeOnBackdropClick?: boolean;
   /** aria-labelledby id for accessibility */
   ariaLabelledBy?: string;
@@ -24,8 +24,8 @@ export function Modal({
   children,
   size = 'max-w-lg',
   className = '',
-  closeOnEscape = true,
-  closeOnBackdropClick = true,
+  closeOnEscape = false,
+  closeOnBackdropClick = false,
   ariaLabelledBy,
   zIndex = 'z-50',
   dataTestId,
