@@ -442,6 +442,49 @@ function oklchToHsl(oklch: OKLCH): { h: number; s: number; l: number } {
 }
 
 // =============================================================================
+// sRGB Gamut Mapping for OKLCH
+// =============================================================================
+
+// Check if an OKLCH color maps to valid sRGB (no channel outside [0, 1])
+function isOklchInGamut(l: number, c: number, h: number): boolean {
+  const hRad = (h * Math.PI) / 180;
+  const a = c * Math.cos(hRad);
+  const b = c * Math.sin(hRad);
+
+  const l_ = l + 0.3963377774 * a + 0.2158037573 * b;
+  const m_ = l - 0.1055613458 * a - 0.0638541728 * b;
+  const s_ = l - 0.0894841775 * a - 1.291485548 * b;
+
+  const l3 = l_ * l_ * l_;
+  const m3 = m_ * m_ * m_;
+  const s3 = s_ * s_ * s_;
+
+  const rLinear = 4.0767416621 * l3 - 3.3077115913 * m3 + 0.2309699292 * s3;
+  const gLinear = -1.2684380046 * l3 + 2.6097574011 * m3 - 0.3413193965 * s3;
+  const bLinear = -0.0041960863 * l3 - 0.7034186147 * m3 + 1.707614701 * s3;
+
+  const eps = 0.001;
+  return rLinear >= -eps && rLinear <= 1 + eps &&
+         gLinear >= -eps && gLinear <= 1 + eps &&
+         bLinear >= -eps && bLinear <= 1 + eps;
+}
+
+// Binary search for the maximum in-gamut chroma at a given lightness and hue
+function maxChromaInGamut(l: number, h: number): number {
+  let lo = 0;
+  let hi = 0.5;
+  for (let i = 0; i < 16; i++) {
+    const mid = (lo + hi) / 2;
+    if (isOklchInGamut(l, mid, h)) {
+      lo = mid;
+    } else {
+      hi = mid;
+    }
+  }
+  return lo;
+}
+
+// =============================================================================
 // Muddy Hue Exclusion
 // =============================================================================
 
@@ -480,7 +523,11 @@ function dateToSeed(dateStr: string): number {
 function generateColorWithOKLCH(random: () => number, hue: number): string {
   const { oklch } = COLOR_CONFIG;
   const l = oklch.lightness.min + random() * (oklch.lightness.max - oklch.lightness.min);
-  const c = oklch.chroma.min + random() * (oklch.chroma.max - oklch.chroma.min);
+  // Gamut map: cap chroma to the maximum that stays within sRGB
+  const maxC = maxChromaInGamut(l, hue);
+  const effectiveMax = Math.min(oklch.chroma.max, maxC);
+  const effectiveMin = Math.min(oklch.chroma.min, effectiveMax);
+  const c = effectiveMin + random() * (effectiveMax - effectiveMin);
   const hsl = oklchToHsl({ l, c, h: hue });
   return `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`;
 }
