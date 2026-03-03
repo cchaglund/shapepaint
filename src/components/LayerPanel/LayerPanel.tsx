@@ -268,6 +268,19 @@ export function LayerPanel({
   // Group action handlers
   const canCreateGroup = selectedShapeIds.size >= 2;
 
+  // Determine which selected shapes are in a group
+  const selectedInGroupIds = useMemo(() => {
+    const ids: string[] = [];
+    for (const shape of shapes) {
+      if (selectedShapeIds.has(shape.id) && shape.groupId) {
+        ids.push(shape.id);
+      }
+    }
+    return ids;
+  }, [shapes, selectedShapeIds]);
+
+  const canUngroup = selectedInGroupIds.length > 0;
+
   const handleCreateGroup = () => {
     if (canCreateGroup) {
       onCreateGroup(Array.from(selectedShapeIds));
@@ -315,6 +328,20 @@ export function LayerPanel({
             <rect x="14" y="2" width="8" height="8" rx="1" />
             <rect x="2" y="14" width="8" height="8" rx="1" />
             <rect x="14" y="14" width="8" height="8" rx="1" />
+          </svg>
+        </button>
+
+        {/* Ungroup icon button — enabled when selected shapes are in a group */}
+        <button
+          className="w-6 h-6 flex items-center justify-center bg-transparent border-none cursor-pointer rounded transition-colors text-(--color-text-tertiary) hover:text-(--color-text-primary) hover:bg-(--color-hover) disabled:opacity-30 disabled:cursor-not-allowed"
+          disabled={!canUngroup}
+          onClick={() => onUngroupShapes(selectedInGroupIds)}
+          title={canUngroup ? 'Ungroup selected shapes' : 'Select grouped shapes to ungroup'}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="2" width="8" height="8" rx="1" />
+            <rect x="14" y="14" width="8" height="8" rx="1" />
+            <path d="M14 7h3M7 14v3" />
           </svg>
         </button>
 
