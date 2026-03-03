@@ -5,6 +5,7 @@ import { LayerPanel } from '../LayerPanel';
 import { ZoomControls } from './ZoomControls';
 import { ToolsPanel } from './ToolsPanel';
 import { BottomToolbar } from './BottomToolbar';
+import { BackgroundColorPicker } from './BackgroundColorPicker';
 import { TopBar, InspirationCenter } from './TopBar';
 import { KeyboardShortcutsPopover } from './KeyboardShortcutsPopover';
 import { OnboardingModal } from '../modals/OnboardingModal';
@@ -364,9 +365,30 @@ export function CanvasEditorPage({ challenge, todayDate, themeMode, onSetThemeMo
         {/* Empty canvas prompt — only after hydration to avoid flash */}
         {hydrated && canvasState.shapes.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center z-0 pointer-events-none">
-            <p className="text-lg text-(--color-text-secondary) opacity-50 select-none">
-              Add a shape below to start creating.
-            </p>
+            <div
+              className="flex items-center gap-3 px-5 py-2.5 select-none pointer-events-auto"
+              style={{
+                background: 'var(--color-card-bg)',
+                border: 'var(--border-width, 2px) solid var(--color-border)',
+                borderRadius: 'var(--radius-xl)',
+                boxShadow: 'var(--shadow-card)',
+              }}
+            >
+              <p className="text-sm text-(--color-text-secondary)">
+                Add a shape below to start creating!
+              </p>
+              <div className="w-px h-5 bg-(--color-border-light) shrink-0" />
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-(--color-text-secondary)">
+                  Background: 
+                </span>
+                <BackgroundColorPicker
+                  colors={challenge.colors}
+                  selectedIndex={canvasState.backgroundColorIndex}
+                  onSelect={setBackgroundColor}
+                />
+              </div>
+            </div>
           </div>
         )}
 

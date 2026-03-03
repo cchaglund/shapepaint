@@ -1,42 +1,7 @@
 import { motion } from 'motion/react';
 import type { DailyChallenge } from '../../types';
 import { ShapeIcon } from '../shared/ShapeIcon';
-
-// --- Sub-components ---
-
-function ColorSwatch({
-  color,
-  selected,
-  onClick,
-  title,
-  small,
-}: {
-  color: string;
-  selected: boolean;
-  onClick: () => void;
-  title?: string;
-  small?: boolean;
-}) {
-  return (
-    <button
-      className={`cursor-pointer transition-all duration-150 shrink-0 ${
-        small ? 'w-5 h-5 md:w-[22px] md:h-[22px]' : 'w-5 h-5 md:w-6 md:h-6'
-      } ${selected ? 'scale-115' : 'hover:scale-105'}`}
-      style={{
-        backgroundColor: color,
-        borderRadius: 'var(--radius-sm)',
-        border: selected
-          ? 'var(--border-width, 2px) solid var(--color-border)'
-          : small
-            ? 'var(--border-width, 2px) solid var(--color-border-light)'
-            : 'var(--border-width, 2px) solid transparent',
-        boxShadow: selected ? 'var(--shadow-btn)' : 'none',
-      }}
-      onClick={onClick}
-      title={title ?? color}
-    />
-  );
-}
+import { ColorSwatch, BackgroundColorPicker } from './BackgroundColorPicker';
 
 function Divider() {
   return <div className="w-px h-6 bg-(--color-border-light) mx-0.5 md:mx-1 shrink-0" />;
@@ -153,21 +118,10 @@ export function BottomToolbar({
 
       {/* Background color selection */}
       <SectionLabel>Background</SectionLabel>
-      {challenge.colors.map((color, i) => (
-        <ColorSwatch
-          key={`bg-${i}`}
-          color={color}
-          selected={backgroundColorIndex === i}
-          onClick={() => onSetBackground(i)}
-          small
-        />
-      ))}
-      <ColorSwatch
-        color="#FFFDF7"
-        selected={backgroundColorIndex === null}
-        onClick={() => onSetBackground(null)}
-        title="Default (cream)"
-        small
+      <BackgroundColorPicker
+        colors={challenge.colors}
+        selectedIndex={backgroundColorIndex}
+        onSelect={onSetBackground}
       />
     </motion.div>
   );
