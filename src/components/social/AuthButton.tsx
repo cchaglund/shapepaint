@@ -1,5 +1,6 @@
 import { useAuth } from '../../hooks/auth/useAuth';
 import type { Profile } from '../../hooks/auth/useProfile';
+import { AvatarImage } from '../shared/AvatarImage';
 
 interface AuthButtonProps {
   profile?: Profile | null;
@@ -20,13 +21,11 @@ export function AuthButton({ profile, profileLoading = false }: AuthButtonProps)
   if (user && profile) {
     return (
       <div className="flex items-center gap-2">
-        {profile.avatar_url && (
-          <img
-            src={profile.avatar_url}
-            alt="Avatar"
-            className="w-6 h-6 rounded-(--radius-pill)"
-          />
-        )}
+        <AvatarImage
+          avatarUrl={profile.avatar_url}
+          initial={(profile.nickname || 'U')[0].toUpperCase()}
+          size="md"
+        />
         <span className="text-sm truncate max-w-24 text-(--color-text-primary)">
           {profile.onboarding_complete ? profile.nickname : 'New user'}
         </span>

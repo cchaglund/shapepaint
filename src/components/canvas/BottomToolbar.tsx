@@ -56,8 +56,7 @@ interface BottomToolbarProps {
   challenge: DailyChallenge;
   selectedColorIndex: number;
   backgroundColorIndex: number | null;
-  selectedColor: string;
-  onAddShape: (shapeIndex: number) => void;
+  onAddShape: (shapeIndex: number, colorIndex: number) => void;
   onSetSelectedColor: (index: number) => void;
   onSetBackground: (index: number | null) => void;
 }
@@ -66,7 +65,6 @@ export function BottomToolbar({
   challenge,
   selectedColorIndex,
   backgroundColorIndex,
-  selectedColor,
   onAddShape,
   onSetSelectedColor,
   onSetBackground,
@@ -88,42 +86,47 @@ export function BottomToolbar({
         marginBottom: 'env(safe-area-inset-bottom)',
       }}
     >
-      {/* Shape add buttons */}
+      {/* Shape add buttons — one per (color, shape) combo, grouped by color */}
       <SectionLabel>Add</SectionLabel>
       <div className="flex items-center gap-1">
-        {challenge.shapes.map((shape, i) => (
-          <button
-            key={shape.type}
-            className="w-[34px] h-[34px] flex items-center justify-center rounded-(--radius-sm) cursor-pointer transition-all duration-150 bg-(--color-card-bg) text-(--color-text-secondary) hover:bg-(--color-selected) hover:text-(--color-text-primary) active:scale-90"
-            style={{
-              border: 'var(--border-width, 2px) solid var(--color-border-light)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = 'var(--color-border)';
-              e.currentTarget.style.boxShadow = 'var(--shadow-btn)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = 'var(--color-border-light)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-            onClick={() => onAddShape(i)}
-            title={`Add ${shape.name}`}
-          >
-            <ShapeIcon
-              type={shape.type}
-              size={16}
-              fill={selectedColor}
-              stroke="var(--color-border)"
-              strokeWidth={1.5}
-            />
-          </button>
+        {challenge.colors.map((color, colorIndex) => (
+          <div key={`color-group-${colorIndex}`} className="flex items-center gap-1">
+            {colorIndex > 0 && <div className="w-px h-4 bg-(--color-border-light) mx-0.5 shrink-0" />}
+            {challenge.shapes.map((shape, shapeIndex) => (
+              <button
+                key={`${colorIndex}-${shape.type}`}
+                className="w-8.5 h-8.5 flex items-center justify-center rounded-sm cursor-pointer transition-all duration-150 bg-(--color-card-bg) active:scale-90"
+                style={{
+                  border: 'var(--border-width, 2px) solid var(--color-border-light)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--color-border)';
+                  e.currentTarget.style.boxShadow = 'var(--shadow-btn)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--color-border-light)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+                onClick={() => onAddShape(shapeIndex, colorIndex)}
+                title={`Add ${shape.name}`}
+              >
+                <ShapeIcon
+                  type={shape.type}
+                  size={16}
+                  fill={color}
+                  stroke="var(--color-border)"
+                  strokeWidth={1.5}
+                />
+              </button>
+            ))}
+          </div>
         ))}
       </div>
 
       <Divider />
 
-      {/* Shape color selection — radio-group style */}
-      <SectionLabel>Color</SectionLabel>
+      {/* Shape color selection — recolors selected shapes */}
+      <SectionLabel>Change</SectionLabel>
       <div
         className="flex items-center gap-1.5 px-1.5 py-1 rounded-(--radius-md)"
         style={{

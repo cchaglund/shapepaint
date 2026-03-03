@@ -6,6 +6,7 @@ import { FollowsProvider } from '../../contexts/FollowsContext';
 import { useFollows } from '../../hooks/social/useFollows';
 import { useIsDesktop } from '../../hooks/ui/useBreakpoint';
 import { supabase } from '../../lib/supabase';
+import { AvatarImage } from '../shared/AvatarImage';
 import { Button } from '../shared/Button';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
 
@@ -73,13 +74,7 @@ export function UserMenuDropdown({ profile, loading, isLoggedIn, onSignIn, onSig
         className="gap-2"
         onClick={() => setOpen(prev => !prev)}
       >
-        {profile.avatar_url ? (
-          <img src={profile.avatar_url} alt="" className="w-5 h-5 rounded-(--radius-pill)" />
-        ) : (
-          <div className="w-5 h-5 rounded-(--radius-pill) bg-(--color-accent) text-(--color-accent-text) flex items-center justify-center text-xs font-semibold leading-none">
-            {initial}
-          </div>
-        )}
+        <AvatarImage avatarUrl={profile.avatar_url} initial={initial} size="sm" />
         <span className="max-w-20 truncate">{displayName}</span>
         <svg
           width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -201,13 +196,7 @@ function UserMenuContent({
       {/* Header: large avatar + name + stats */}
       <div className="px-4 py-3 border-b border-(--color-border-light)">
         <div className="flex items-center gap-3">
-          {profile.avatar_url ? (
-            <img src={profile.avatar_url} alt="" className="w-10 h-10 rounded-(--radius-pill) shrink-0" />
-          ) : (
-            <div className="w-10 h-10 rounded-(--radius-pill) bg-(--color-accent) text-(--color-accent-text) flex items-center justify-center text-lg font-semibold shrink-0">
-              {initial}
-            </div>
-          )}
+          <AvatarImage avatarUrl={profile.avatar_url} initial={initial} size="lg" />
           <div className="min-w-0">
             <div className="text-base font-semibold text-(--color-text-primary) truncate">
               {profile.nickname || 'New user'}
@@ -311,14 +300,16 @@ function UserMenuContent({
               <button
                 className="flex items-center justify-center w-7 h-7 rounded-(--radius-sm) transition-colors text-(--color-text-secondary) hover:text-(--color-text-primary) hover:bg-(--color-hover) cursor-pointer"
                 onClick={() => {
-                  const isDark = themeMode === 'dark' || (themeMode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-                  onSetThemeMode(isDark ? 'light' : 'dark');
+                  const next: Record<string, 'light' | 'dark' | 'system'> = { light: 'dark', dark: 'system', system: 'light' };
+                  onSetThemeMode(next[themeMode] ?? 'system');
                 }}
-                title="Toggle dark mode"
+                title={themeMode === 'light' ? 'Light mode — click for dark' : themeMode === 'dark' ? 'Dark mode — click for auto' : 'Auto mode — click for light'}
               >
-                {(themeMode === 'dark' || (themeMode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches))
+                {themeMode === 'light'
                   ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" /><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" /><line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" /><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" /></svg>
-                  : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+                  : themeMode === 'dark'
+                  ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+                  : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg>
                 }
               </button>
               <div className="w-px h-4 bg-(--color-border) mx-0.5" />

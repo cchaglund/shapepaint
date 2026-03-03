@@ -34,6 +34,23 @@ function MoonIcon() {
   );
 }
 
+function MonitorIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+      <line x1="8" y1="21" x2="16" y2="21" />
+      <line x1="12" y1="17" x2="12" y2="21" />
+    </svg>
+  );
+}
+
+const MODE_CYCLE: Record<ThemeMode, ThemeMode> = { light: 'dark', dark: 'system', system: 'light' };
+const MODE_TITLE: Record<ThemeMode, string> = {
+  light: 'Light mode — click for dark',
+  dark: 'Dark mode — click for auto',
+  system: 'Auto mode — click for light',
+};
+
 function ThemePill({
   mode,
   onSetMode,
@@ -45,26 +62,18 @@ function ThemePill({
   theme: ThemeName;
   onSetTheme: (theme: ThemeName) => void;
 }) {
-  // Resolve effective mode for icon display
-  const isDark = mode === 'dark' || (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-
-  const toggleDarkMode = () => {
-    if (isDark) {
-      onSetMode('light');
-    } else {
-      onSetMode('dark');
-    }
-  };
+  const cycleMode = () => onSetMode(MODE_CYCLE[mode]);
+  const modeIcon = mode === 'light' ? <SunIcon /> : mode === 'dark' ? <MoonIcon /> : <MonitorIcon />;
 
   return (
     <div className="flex items-center gap-0 rounded-(--radius-pill) h-8 bg-(--color-card-bg)" style={{ border: 'var(--border-width, 2px) solid var(--color-border)', boxShadow: 'var(--shadow-btn)' }}>
       {/* Dark mode toggle */}
       <button
         className="flex items-center justify-center w-8 h-full rounded-l-(--radius-pill) transition-colors cursor-pointer text-(--color-text-secondary) hover:text-(--color-text-primary) hover:bg-(--color-hover)"
-        onClick={toggleDarkMode}
-        title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+        onClick={cycleMode}
+        title={MODE_TITLE[mode]}
       >
-        {isDark ? <SunIcon /> : <MoonIcon />}
+        {modeIcon}
       </button>
 
       {/* Divider */}
@@ -78,7 +87,7 @@ function ThemePill({
             theme === t
               ? 'bg-(--color-accent) text-(--color-accent-text)'
               : 'text-(--color-text-secondary) hover:text-(--color-text-primary) hover:bg-(--color-hover)'
-          } ${t === 'd' ? 'rounded-r-(--radius-pill)' : ''}`}
+          } ${t === THEMES[THEMES.length - 1] ? 'rounded-r-(--radius-pill)' : ''}`}
           onClick={() => onSetTheme(t)}
           title={`Theme ${t.toUpperCase()}`}
         >

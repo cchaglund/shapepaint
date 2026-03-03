@@ -260,10 +260,10 @@ export function CanvasEditorPage({ challenge, todayDate, themeMode, onSetThemeMo
   // Selected color for new shapes
   const [selectedColorIndex, setSelectedColorIndex] = useState<number>(0);
 
-  // Add shape at canvas center with currently selected color
-  const handleAddShape = useCallback((shapeIndex: number) => {
-    addShape(shapeIndex, selectedColorIndex);
-  }, [addShape, selectedColorIndex]);
+  // Add shape at canvas center with the given color
+  const handleAddShape = useCallback((shapeIndex: number, colorIndex: number) => {
+    addShape(shapeIndex, colorIndex);
+  }, [addShape]);
 
   // When a color is clicked, also recolor any selected shapes
   const handleSetSelectedColor = useCallback((colorIndex: number) => {
@@ -429,7 +429,6 @@ export function CanvasEditorPage({ challenge, todayDate, themeMode, onSetThemeMo
             challenge={challenge}
             selectedColorIndex={selectedColorIndex}
             backgroundColorIndex={canvasState.backgroundColorIndex}
-            selectedColor={challenge.colors[selectedColorIndex]}
             onAddShape={handleAddShape}
             onSetSelectedColor={handleSetSelectedColor}
             onSetBackground={setBackgroundColor}

@@ -22,7 +22,7 @@ export function useProfile(userId: string | undefined) {
     }
 
     setLoading(true);
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
@@ -32,6 +32,14 @@ export function useProfile(userId: string | undefined) {
       setError(error.message);
       setProfile(null);
     } else {
+      if (data.avatar_url?.includes('googleusercontent.com')) {
+        const { cacheGoogleAvatar } = await import('../../lib/avatarCache');
+        const cachedUrl = await cacheGoogleAvatar(supabase, userId, data.avatar_url);
+        if (cachedUrl) {
+          await supabase.from('profiles').update({ avatar_url: cachedUrl }).eq('id', userId);
+          data = { ...data, avatar_url: cachedUrl };
+        }
+      }
       setProfile(data);
       setError(null);
     }
