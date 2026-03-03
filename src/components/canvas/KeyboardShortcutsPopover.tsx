@@ -1,45 +1,25 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { KEYBOARD_ACTIONS, formatKeyBinding, type KeyMappings } from '../../constants/keyboardActions';
+import { KEYBOARD_ACTIONS, formatKeyBinding, type KeyMappings, type KeyboardActionId } from '../../constants/keyboardActions';
+import { useClickOutside } from '../../hooks/ui/useClickOutside';
+import { IS_MAC } from '../../utils/platform';
 
 interface KeyboardShortcutsPopoverProps {
   keyMappings: KeyMappings;
   onOpenSettings: () => void;
 }
 
-const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.userAgent);
-
 export function KeyboardShortcutsPopover({ keyMappings, onOpenSettings }: KeyboardShortcutsPopoverProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Close on click outside
-  useEffect(() => {
-    if (!open) return;
-    const handleClick = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [open]);
-
-  // Close on Escape
-  useEffect(() => {
-    if (!open) return;
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
-    };
-    document.addEventListener('keydown', handleKey);
-    return () => document.removeEventListener('keydown', handleKey);
-  }, [open]);
+  useClickOutside(containerRef, open, () => setOpen(false));
 
   // Format a binding by action ID, falling back to default
   const fmt = useMemo(() => {
     const actionMap = new Map(KEYBOARD_ACTIONS.map(a => [a.id, a]));
-    return (id: string) => {
-      const action = actionMap.get(id as any);
+    return (id: KeyboardActionId) => {
+      const action = actionMap.get(id);
       if (!action) return '?';
       const binding = keyMappings[action.id] ?? action.defaultBinding;
       return formatKeyBinding(binding);
@@ -58,7 +38,7 @@ export function KeyboardShortcutsPopover({ keyMappings, onOpenSettings }: Keyboa
     { key: fmt('toggleGrid'), action: 'Grid toggle' },
     { key: 'Shift+Click', action: 'Multi-select' },
     { key: `${fmt('pan')}+Drag`, action: 'Pan canvas' },
-    { key: isMac ? '⌘+Scroll' : 'Ctrl+Scroll', action: 'Zoom' },
+    { key: IS_MAC ? '⌘+Scroll' : 'Ctrl+Scroll', action: 'Zoom' },
   ], [fmt]);
 
   return (

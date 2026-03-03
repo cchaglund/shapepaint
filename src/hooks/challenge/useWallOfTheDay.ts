@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../../lib/supabase';
 import type { Shape, ShapeGroup } from '../../types';
 import { getTodayDateUTC } from '../../utils/dailyChallenge';
+import { getAdjacentDates, isDateWithinLastTwoDays } from '../../utils/calendarUtils';
 import { canViewCurrentDay as canViewCurrentDayUtil } from '../../utils/privacyRules';
 import { fisherYatesShuffle } from '../../utils/wallSorting';
 
@@ -65,42 +66,6 @@ export function invalidateWallCache(date: string): void {
  */
 export function clearAllWallCache(): void {
   wallCache.clear();
-}
-
-// =============================================================================
-// Date Utilities
-// =============================================================================
-
-function getAdjacentDates(date: string): { prev: string | null; next: string | null } {
-  const today = getTodayDateUTC();
-  const targetDate = new Date(date + 'T00:00:00Z');
-
-  // Previous day
-  const prevDate = new Date(targetDate);
-  prevDate.setUTCDate(prevDate.getUTCDate() - 1);
-  const prev = prevDate.toISOString().split('T')[0];
-
-  // Next day (only if not already today or in the future)
-  let next: string | null = null;
-  if (date < today) {
-    const nextDate = new Date(targetDate);
-    nextDate.setUTCDate(nextDate.getUTCDate() + 1);
-    const nextStr = nextDate.toISOString().split('T')[0];
-    if (nextStr <= today) {
-      next = nextStr;
-    }
-  }
-
-  return { prev, next };
-}
-
-function isDateWithinLastTwoDays(date: string): boolean {
-  const today = getTodayDateUTC();
-  const yesterday = new Date(today + 'T00:00:00Z');
-  yesterday.setUTCDate(yesterday.getUTCDate() - 1);
-  const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-  return date === today || date === yesterdayStr;
 }
 
 // =============================================================================

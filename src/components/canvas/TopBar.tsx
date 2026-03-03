@@ -1,19 +1,12 @@
-import logoSvg from '../../assets/logo.svg';
 import type { ThemeMode, ThemeName } from '../../hooks/ui/useThemeState';
 import type { Profile } from '../../hooks/auth/useProfile';
+import { THEME_META, MODE_CYCLE, MODE_TITLE } from '../../constants/themes';
 import { useAuth } from '../../hooks/auth/useAuth';
 import { UserMenuDropdown } from './UserMenuDropdown';
 import { Button } from '../shared/Button';
 import { useIsDesktop } from '../../hooks/ui/useBreakpoint';
 
 // --- Theme Pill (dark mode toggle + divider + theme buttons) ---
-
-/** Theme metadata for display — accent colors hardcoded so previews work regardless of active theme */
-const THEME_META: { key: ThemeName; label: string; accent: string }[] = [
-  { key: 'a', label: 'Pop', accent: '#FF3366' },
-  { key: 'b', label: 'Swiss', accent: '#E63322' },
-  { key: 'c', label: 'Cloud', accent: '#E07A5F' },
-];
 
 function SunIcon() {
   return (
@@ -48,13 +41,6 @@ function MonitorIcon() {
     </svg>
   );
 }
-
-const MODE_CYCLE: Record<ThemeMode, ThemeMode> = { light: 'dark', dark: 'system', system: 'light' };
-const MODE_TITLE: Record<ThemeMode, string> = {
-  light: 'Light mode — click for dark',
-  dark: 'Dark mode — click for auto',
-  system: 'Auto mode — click for light',
-};
 
 function ThemePill({
   mode,
@@ -160,8 +146,7 @@ export function TopBar({
       {/* Left group: logo + theme pill */}
       <div className="flex items-center gap-2 md:gap-3 shrink-0">
         <a href="/" className="flex items-center gap-2 no-underline text-(--color-text-primary)">
-          <img src={logoSvg} alt="" width="24" height="24" />
-          <span className="hidden md:inline text-base font-semibold">2colors</span>
+          <span className="hidden md:inline text-base font-semibold">shapepaint.com</span>
         </a>
 
         <div className="hidden md:block">
@@ -309,13 +294,3 @@ function DefaultRightContent({
   );
 }
 
-// --- Center content for canvas editor ---
-
-export function InspirationCenter({ word }: { word: string }) {
-  return (
-    <div className="flex flex-col items-center leading-tight min-w-0">
-      <span className="hidden md:block text-xs uppercase tracking-widest text-(--color-accent)">Today&apos;s Inspiration</span>
-      <span className="text-sm md:text-xl font-semibold text-(--color-text-primary) capitalize font-display truncate max-w-full">{word}</span>
-    </div>
-  );
-}

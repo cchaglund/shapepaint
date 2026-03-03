@@ -2,13 +2,10 @@ import { useState, useMemo } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import type { Shape, ShapeGroup } from '../../types';
 import { useIsTouchDevice } from '../../hooks/ui/useIsTouchDevice';
+import { IS_MAC } from '../../utils/platform';
 import type { LayerPanelProps, LayerItem } from './types';
 import { LayerItem as LayerItemComponent } from './LayerItem';
 import { GroupHeader } from './GroupHeader';
-
-
-// Detect if user is on macOS for modifier key instructions
-const isMac = typeof navigator !== 'undefined' && navigator.userAgent.includes('Mac');
 
 export function LayerPanel({
   shapes,
@@ -131,7 +128,7 @@ export function LayerPanel({
   }, [sortedShapes, groups]);
 
   // Modifier key hint text
-  const modifierKeyHint = isMac ? '⌘' : 'Ctrl';
+  const modifierKeyHint = IS_MAC ? '⌘' : 'Ctrl';
 
   // Hint text varies by device type and multi-select mode
   const getLayerHint = () => {
@@ -148,7 +145,7 @@ export function LayerPanel({
 
   // Handle layer click with modifier key support
   const handleLayerClick = (e: React.MouseEvent, shapeId: string) => {
-    const isToggleModifier = isMac ? e.metaKey : e.ctrlKey;
+    const isToggleModifier = IS_MAC ? e.metaKey : e.ctrlKey;
     const isRangeModifier = e.shiftKey;
 
     if (isTouchDevice && isMultiSelectMode) {
@@ -165,7 +162,7 @@ export function LayerPanel({
   // Handle group header click
   const handleGroupClick = (e: React.MouseEvent, groupId: string) => {
     e.stopPropagation();
-    const isToggleModifier = isMac ? e.metaKey : e.ctrlKey;
+    const isToggleModifier = IS_MAC ? e.metaKey : e.ctrlKey;
     const shouldToggle = (isTouchDevice && isMultiSelectMode) || isToggleModifier;
     onSelectGroup(groupId, { toggle: shouldToggle });
   };

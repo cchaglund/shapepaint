@@ -1,47 +1,54 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Canvas } from './Canvas';
-import { LayerPanel } from '../LayerPanel';
-import { ZoomControls } from './ZoomControls';
-import { ToolsPanel } from './ToolsPanel';
-import { BottomToolbar } from './BottomToolbar';
-import { BackgroundColorPicker } from './BackgroundColorPicker';
-import { TopBar, InspirationCenter } from './TopBar';
-import { KeyboardShortcutsPopover } from './KeyboardShortcutsPopover';
-import { OnboardingModal } from '../modals/OnboardingModal';
-import { WelcomeModal } from '../modals/WelcomeModal';
-import { FollowsProvider } from '../../contexts/FollowsContext';
-import { KeyboardSettingsModal } from './KeyboardSettingsModal';
-import { FriendsModal } from '../modals/FriendsModal';
-import { VotingModal } from '../voting';
-import { ResetConfirmModal } from './ResetConfirmModal';
-import { WinnerAnnouncementModal } from '../modals/WinnerAnnouncementModal';
-import { CongratulatoryModal } from '../modals/CongratulatoryModal';
-import { useCanvasState } from '../../hooks/canvas/useCanvasState';
-import { UndoRedoToast } from './UndoRedoToast';
-import { useViewportState } from '../../hooks/canvas/useViewportState';
-import { useSidebarState } from '../../hooks/ui/useSidebarState';
+import { supabase } from '../../lib/supabase';
+import type { DailyChallenge, Shape } from '../../types';
 import type { ThemeMode, ThemeName } from '../../hooks/ui/useThemeState';
-import { useGridState } from '../../hooks/canvas/useGridState';
-import { useOffCanvasState } from '../../hooks/canvas/useOffCanvasState';
+import { getYesterdayDateUTC } from '../../utils/dailyChallenge';
+import { invalidateWallCache } from '../../hooks/challenge/useWallOfTheDay';
 import { useAuth } from '../../hooks/auth/useAuth';
 import { useProfile } from '../../hooks/auth/useProfile';
-import { useSubmissions } from '../../hooks/submission/useSubmissions';
+import { useCanvasState } from '../../hooks/canvas/useCanvasState';
+import { useViewportState } from '../../hooks/canvas/useViewportState';
+import { useGridState } from '../../hooks/canvas/useGridState';
+import { useOffCanvasState } from '../../hooks/canvas/useOffCanvasState';
+import { useShapeActions } from '../../hooks/canvas/useShapeActions';
+import { useSidebarState } from '../../hooks/ui/useSidebarState';
+import { useAppModals } from '../../hooks/ui/useAppModals';
 import { useWelcomeModal } from '../../hooks/ui/useWelcomeModal';
 import { useKeyboardSettings } from '../../hooks/ui/useKeyboardSettings';
 import { useWinnerAnnouncement } from '../../hooks/ui/useWinnerAnnouncement';
-import { useShapeActions } from '../../hooks/canvas/useShapeActions';
 import { useIsTouchDevice } from '../../hooks/ui/useIsTouchDevice';
 import { useIsDesktop } from '../../hooks/ui/useBreakpoint';
-
-import { useAppModals } from '../../hooks/ui/useAppModals';
+import { useSubmissions } from '../../hooks/submission/useSubmissions';
 import { useSaveSubmission } from '../../hooks/submission/useSaveSubmission';
 import { useSubmissionSync } from '../../hooks/submission/useSubmissionSync';
-import { invalidateWallCache } from '../../hooks/challenge/useWallOfTheDay';
-import { getYesterdayDateUTC } from '../../utils/dailyChallenge';
-import { supabase } from '../../lib/supabase';
-import type { DailyChallenge, Shape } from '../../types';
-import { useMemo } from 'react';
+import { Canvas } from './Canvas';
+import { TopBar } from './TopBar';
+import { BottomToolbar } from './BottomToolbar';
+import { ToolsPanel } from './ToolsPanel';
+import { ZoomControls } from './ZoomControls';
+import { KeyboardShortcutsPopover } from './KeyboardShortcutsPopover';
+import { BackgroundColorPicker } from './BackgroundColorPicker';
+import { UndoRedoToast } from './UndoRedoToast';
+import { KeyboardSettingsModal } from './KeyboardSettingsModal';
+import { ResetConfirmModal } from './ResetConfirmModal';
+import { LayerPanel } from '../LayerPanel';
+import { OnboardingModal } from '../modals/OnboardingModal';
+import { WelcomeModal } from '../modals/WelcomeModal';
+import { FriendsModal } from '../modals/FriendsModal';
+import { WinnerAnnouncementModal } from '../modals/WinnerAnnouncementModal';
+import { CongratulatoryModal } from '../modals/CongratulatoryModal';
+import { VotingModal } from '../voting';
+import { FollowsProvider } from '../../contexts/FollowsContext';
+
+function InspirationCenter({ word }: { word: string }) {
+  return (
+    <div className="flex flex-col items-center leading-tight min-w-0">
+      <span className="hidden md:block text-xs uppercase tracking-widest text-(--color-accent)">Today&apos;s Inspiration</span>
+      <span className="text-sm md:text-xl font-semibold text-(--color-text-primary) capitalize font-display truncate max-w-full">{word}</span>
+    </div>
+  );
+}
 
 interface CanvasEditorPageProps {
   challenge: DailyChallenge;

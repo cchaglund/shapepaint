@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
+import { useClickOutside } from '../../hooks/ui/useClickOutside';
 
 export type SortMode = 'random' | 'newest' | 'oldest' | 'ranked' | 'likes';
 
@@ -39,23 +40,12 @@ export function WallSortControls({
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  useClickOutside(dropdownRef, isOpen, () => setIsOpen(false));
+
   const allOptions: SortMode[] = ['random', 'newest', 'oldest', 'ranked', 'likes'];
   const options = showLikesOption
     ? allOptions
     : allOptions.filter(o => o !== 'likes');
-
-  // Close on outside click
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [isOpen]);
 
   const handleSelect = (mode: SortMode) => {
     if (mode === 'ranked' && !isRankedAvailable) return;

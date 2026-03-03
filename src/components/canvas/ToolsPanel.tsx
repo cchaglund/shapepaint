@@ -148,30 +148,14 @@ function ToolButton({ icon, label, shortcut, onClick, disabled, active }: ToolBu
   return (
     <div className="relative">
       <button
-        className={`w-10 h-10 flex items-center justify-center rounded-(--radius-md) transition-all duration-150 cursor-pointer
+        className={`tool-btn-hover w-10 h-10 flex items-center justify-center rounded-(--radius-md) transition-all duration-150 cursor-pointer
           ${active
-            ? 'bg-(--color-selected) text-(--color-text-primary)'
+            ? 'bg-(--color-selected) text-(--color-text-primary) !border-(--color-border)'
             : 'bg-(--color-card-bg) text-(--color-text-secondary) hover:enabled:bg-(--color-selected) hover:enabled:text-(--color-text-primary)'
           }
           disabled:opacity-40 disabled:cursor-not-allowed`}
-        style={{
-          border: `var(--border-width, 2px) solid var(${active ? '--color-border' : '--color-border-light'})`,
-          boxShadow: 'none',
-        }}
-        onMouseEnter={(e) => {
-          setIsHovered(true);
-          if (!disabled && !active) {
-            e.currentTarget.style.borderColor = 'var(--color-border)';
-            e.currentTarget.style.boxShadow = 'var(--shadow-btn)';
-          }
-        }}
-        onMouseLeave={(e) => {
-          setIsHovered(false);
-          if (!disabled && !active) {
-            e.currentTarget.style.borderColor = 'var(--color-border-light)';
-            e.currentTarget.style.boxShadow = 'none';
-          }
-        }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         onClick={onClick}
         disabled={disabled}
         aria-label={label}

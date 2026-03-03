@@ -552,3 +552,16 @@ html.theme-transitioning *::after {
 .font-display {
   font-family: var(--font-display);
 }
+
+/* ── Tool button hover effect ──
+ * Elevates border and adds shadow on hover.
+ * Replaces inline onMouseEnter/onMouseLeave style manipulation.
+ */
+.tool-btn-hover {
+  border: var(--border-width, 2px) solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+}
+.tool-btn-hover:hover:not(:disabled) {
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-btn);
+}

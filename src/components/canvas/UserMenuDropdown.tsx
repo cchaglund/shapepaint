@@ -1,16 +1,16 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import type { Profile } from '../../hooks/auth/useProfile';
 import type { ThemeMode, ThemeName } from '../../hooks/ui/useThemeState';
 import { FollowsProvider } from '../../contexts/FollowsContext';
 import { useFollows } from '../../hooks/social/useFollows';
 import { useIsDesktop } from '../../hooks/ui/useBreakpoint';
+import { useClickOutside } from '../../hooks/ui/useClickOutside';
+import { THEME_NAMES, MODE_CYCLE, MODE_TITLE } from '../../constants/themes';
 import { supabase } from '../../lib/supabase';
 import { AvatarImage } from '../shared/AvatarImage';
 import { Button } from '../shared/Button';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
-
-const THEMES: ThemeName[] = ['a', 'b', 'c'];
 
 interface UserMenuDropdownProps {
   profile: Profile | null;
@@ -29,27 +29,7 @@ export function UserMenuDropdown({ profile, loading, isLoggedIn, onSignIn, onSig
   const containerRef = useRef<HTMLDivElement>(null);
   const isDesktop = useIsDesktop();
 
-  // Close on click outside
-  useEffect(() => {
-    if (!open) return;
-    const handleClick = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [open]);
-
-  // Close on Escape
-  useEffect(() => {
-    if (!open) return;
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
-    };
-    document.addEventListener('keydown', handleKey);
-    return () => document.removeEventListener('keydown', handleKey);
-  }, [open]);
+  useClickOutside(containerRef, open, () => setOpen(false));
 
   if (loading) {
     return <div className="h-8 px-3 flex items-center text-xs text-(--color-text-tertiary)">...</div>;
@@ -299,11 +279,8 @@ function UserMenuContent({
             <div className="flex items-center gap-1 px-2">
               <button
                 className="flex items-center justify-center w-7 h-7 rounded-(--radius-sm) transition-colors text-(--color-text-secondary) hover:text-(--color-text-primary) hover:bg-(--color-hover) cursor-pointer"
-                onClick={() => {
-                  const next: Record<string, 'light' | 'dark' | 'system'> = { light: 'dark', dark: 'system', system: 'light' };
-                  onSetThemeMode(next[themeMode] ?? 'system');
-                }}
-                title={themeMode === 'light' ? 'Light mode — click for dark' : themeMode === 'dark' ? 'Dark mode — click for auto' : 'Auto mode — click for light'}
+                onClick={() => onSetThemeMode(MODE_CYCLE[themeMode])}
+                title={MODE_TITLE[themeMode]}
               >
                 {themeMode === 'light'
                   ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" /><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" /><line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" /><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" /></svg>
@@ -313,7 +290,7 @@ function UserMenuContent({
                 }
               </button>
               <div className="w-px h-4 bg-(--color-border) mx-0.5" />
-              {THEMES.map((t) => (
+              {THEME_NAMES.map((t) => (
                 <button
                   key={t}
                   className={`flex items-center justify-center w-7 h-7 text-xs font-bold uppercase transition-colors rounded-(--radius-sm) cursor-pointer ${
