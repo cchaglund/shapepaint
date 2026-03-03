@@ -30,8 +30,6 @@ function applyThemeToDOM(theme: ThemeName, effectiveMode: 'light' | 'dark') {
   const root = document.documentElement;
   root.setAttribute('data-theme', theme);
   root.setAttribute('data-mode', effectiveMode);
-  // Remove legacy .dark class (no longer used)
-  root.classList.remove('dark');
 }
 
 /** Add transition class, remove after animation completes */

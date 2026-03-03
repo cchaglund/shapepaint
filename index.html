@@ -55,15 +55,20 @@
       }
     }
     </script>
-    <!-- Apply dark mode before first paint to prevent white flash -->
+    <!-- Apply theme + dark mode before first paint to prevent white flash -->
     <style>
-      html.dark { background-color: #161616; }
+      html[data-theme="a"][data-mode="dark"] { background-color: #1A1230; }
+      html[data-theme="b"][data-mode="dark"] { background-color: #1a1a1a; }
+      html[data-theme="c"][data-mode="dark"] { background-color: #2a2520; }
     </style>
     <script>
       (function() {
-        var t = localStorage.getItem('theme-preference');
-        var dark = t === 'dark' || (t !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
-        if (dark) document.documentElement.classList.add('dark');
+        var mode = localStorage.getItem('theme-mode') || 'system';
+        var theme = localStorage.getItem('theme-name') || 'a';
+        var dark = mode === 'dark' || (mode === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+        var el = document.documentElement;
+        el.setAttribute('data-theme', theme);
+        el.setAttribute('data-mode', dark ? 'dark' : 'light');
       })();
     </script>
   </head>
