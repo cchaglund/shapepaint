@@ -36,7 +36,7 @@ export type ShapeType =
   | 'fang'
   | 'claw'
   | 'fin'
-  | 'thorn'
+  | 'keyhole'
   | 'slant'
   | 'notch'
   | 'spike'

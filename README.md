@@ -243,7 +243,7 @@ A developer tool that displays all 41 available shape types with sample renderin
 - Curved: Semicircle, Quarter Circle, Ellipse, Blade, Lens, Drop
 - Special: Cross, Arrow, Arch
 - Abstract: Shard, Wedge, Fan, Hook, Wave, Crescent, Pill, Splinter, Chunk
-- Mixed (straight + curved): Fang, Claw, Fin, Thorn, Slant, Notch, Spike, Bulge, Scoop, Ridge
+- Mixed (straight + curved): Fang, Claw, Fin, Keyhole, Slant, Notch, Spike, Bulge, Scoop, Ridge
 
 **Access via URL parameter:**
 ```

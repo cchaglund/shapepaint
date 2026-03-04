@@ -10,7 +10,7 @@ export function Card({ children, className = '', style, ...rest }: CardProps) {
       className={`p-5 ${className}`}
       style={{
         background: 'var(--color-card-bg)',
-        border: 'var(--border-width, 2px) solid var(--color-border-light)',
+        border: 'var(--border-width, 2px) solid var(--color-border)',
         borderRadius: 'var(--radius-lg)',
         boxShadow: 'var(--shadow-card)',
         ...style,

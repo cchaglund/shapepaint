@@ -30,7 +30,7 @@ export {
   getFangPath,
   getClawPath,
   getFinPath,
-  getThornPath,
+  getKeyholePath,
   getSlantPath,
   getNotchPath,
   getSpikePath,

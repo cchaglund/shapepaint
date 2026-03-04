@@ -108,8 +108,8 @@ export function getFinPath(size: number): string {
   return `M 0,${size} L ${size * 0.35},${size * 0.7} L ${size * 0.25},${size * 0.2} L ${size},0 Q ${size},${size * 0.5} ${size * 0.85},${size} Z`;
 }
 
-// Generate thorn - sharp point with curved sides
-export function getThornPath(size: number): string {
+// Generate keyhole - sharp point with curved sides
+export function getKeyholePath(size: number): string {
   // Original x range: 0.1 to 0.9 (width 0.8), normalize to 0-1
   // Transform: newX = (oldX - 0.1) / 0.8
   return `M ${size * 0.5},0 Q ${size * 0.875},${size * 0.3} ${size * 0.75},${size * 0.6} L ${size},${size} L 0,${size} L ${size * 0.25},${size * 0.6} Q ${size * 0.125},${size * 0.3} ${size * 0.5},0 Z`;

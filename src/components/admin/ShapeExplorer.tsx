@@ -39,7 +39,7 @@ const SHAPE_TYPES: ShapeType[] = [
   'fang',
   'claw',
   'fin',
-  'thorn',
+  'keyhole',
   'slant',
   'notch',
   'spike',

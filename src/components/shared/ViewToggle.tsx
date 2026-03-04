@@ -23,7 +23,7 @@ const sizeConfig = {
     buttonRadius: '--radius-sm',
     containerRadius: '--radius-md',
     containerPadding: 'var(--space-1)',
-    activeBorder: '--color-border-light',
+    activeBorder: '--color-border',
     activeFontWeight: 'font-bold',
     inactiveFontWeight: 'font-bold',
     buttonPadding: 'px-3.5 py-1',

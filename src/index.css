@@ -242,7 +242,7 @@
     --shadow-modal: 8px 8px 0 rgba(0, 0, 0, 0.4);
     --shadow-panel: 4px 0 0 rgba(0, 0, 0, 0.2);
     --border-panel: 2px solid var(--color-border);
-    --border-card: 2px solid var(--color-border-light);
+    --border-card: 2px solid var(--color-border);
     --sel-border: #FF69B4;
     --sel-handle-fill: #FF69B4;
     --sel-handle-stroke: #1A1230;
@@ -314,7 +314,7 @@
     --shadow-modal: 0 2px 8px rgba(0, 0, 0, 0.12);
     --shadow-panel: none;
     --border-panel: 1px solid var(--color-border);
-    --border-card: 1px solid var(--color-border-light);
+    --border-card: 1px solid var(--color-border);
     --sel-border: #E63322;
     --sel-handle-fill: #ffffff;
     --sel-handle-stroke: #E63322;
@@ -359,7 +359,7 @@
     --shadow-modal: 0 4px 16px rgba(0, 0, 0, 0.4);
     --shadow-panel: none;
     --border-panel: 1px solid var(--color-border);
-    --border-card: 1px solid var(--color-border-light);
+    --border-card: 1px solid var(--color-border);
     --sel-border: #E63322;
     --sel-handle-fill: #2a2a2a;
     --sel-handle-stroke: #E63322;
@@ -428,7 +428,7 @@
     --shadow-modal: 0 8px 40px rgba(0, 0, 0, 0.08);
     --shadow-panel: 0 4px 20px rgba(0, 0, 0, 0.04);
     --border-panel: 1px solid var(--color-border);
-    --border-card: 1px solid var(--color-border-light);
+    --border-card: 1px solid var(--color-border);
     --sel-border: #9DC4B0;
     --sel-handle-fill: #ffffff;
     --sel-handle-stroke: #9DC4B0;
@@ -473,7 +473,7 @@
     --shadow-modal: 0 8px 40px rgba(0, 0, 0, 0.3);
     --shadow-panel: 0 4px 20px rgba(0, 0, 0, 0.1);
     --border-panel: 1px solid var(--color-border);
-    --border-card: 1px solid var(--color-border-light);
+    --border-card: 1px solid var(--color-border);
     --sel-border: #9DC4B0;
     --sel-handle-fill: #3d362f;
     --sel-handle-stroke: #9DC4B0;
@@ -534,7 +534,7 @@
     --shadow-modal: 0 2px 8px rgba(0, 0, 0, 0.12);
     --shadow-panel: none;
     --border-panel: 1px solid #222222;
-    --border-card: 1px solid #E0E0E0;
+    --border-card: 1px solid #222222;
     --sel-border: #E63322;
     --sel-handle-fill: #ffffff;
     --sel-handle-stroke: #E63322;

@@ -107,7 +107,7 @@ type ShapeType =
   | 'fang'
   | 'claw'
   | 'fin'
-  | 'thorn'
+  | 'keyhole'
   | 'slant'
   | 'notch'
   | 'spike'
@@ -183,7 +183,7 @@ const SHAPE_NAMES: Record<ShapeType, string> = {
   fang: 'Fang',
   claw: 'Claw',
   fin: 'Fin',
-  thorn: 'Thorn',
+  keyhole: 'Keyhole',
   slant: 'Slant',
   notch: 'Notch',
   spike: 'Spike',
@@ -341,7 +341,7 @@ function getShapeSVG(type: ShapeType): string {
       return `M ${size * 0.2},${size} L ${half},${size} L ${size * 0.6},${size * 0.7} Q ${size * 0.9},${size * 0.3} ${half},0 Q ${size * 0.3},${size * 0.2} ${size * 0.35},${half} L ${size * 0.2},${size} Z`;
     case 'fin':
       return `M 0,${size} L ${size * 0.3},${size * 0.7} L ${size * 0.2},${size * 0.2} L ${size * 0.8},0 Q ${size},${size * 0.4} ${size * 0.7},${size} Z`;
-    case 'thorn':
+    case 'keyhole':
       return `M ${half},0 Q ${size * 0.8},${size * 0.3} ${size * 0.7},${size * 0.6} L ${size * 0.9},${size} L ${size * 0.1},${size} L ${size * 0.3},${size * 0.6} Q ${size * 0.2},${size * 0.3} ${half},0 Z`;
     case 'slant':
       return `M ${size * 0.3},0 L ${size},0 L ${size * 0.7},${size} L 0,${size} Q ${size * 0.1},${half} ${size * 0.3},0 Z`;

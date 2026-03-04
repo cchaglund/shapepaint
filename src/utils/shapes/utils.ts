@@ -32,7 +32,7 @@ import {
   getFangPath,
   getClawPath,
   getFinPath,
-  getThornPath,
+  getKeyholePath,
   getSlantPath,
   getNotchPath,
   getSpikePath,
@@ -82,7 +82,7 @@ export const SHAPE_ASPECT_RATIOS: Record<ShapeType, number> = {
   fang: 0.8, // slightly taller
   claw: 0.8,
   fin: 1,
-  thorn: 1,
+  keyhole: 1,
   slant: 1,
   notch: 1,
   spike: 0.6, // taller than wide
@@ -355,10 +355,10 @@ export function getShapeSVGData(type: ShapeType, size: number) {
         viewBox: { width, height },
       };
 
-    case 'thorn':
+    case 'keyhole':
       return {
         element: 'path' as const,
-        props: { d: getThornPath(size) },
+        props: { d: getKeyholePath(size) },
         viewBox: { width, height },
       };
 
@@ -484,7 +484,7 @@ export const SHAPE_NAMES: Record<ShapeType, string> = {
   fang: 'Fang',
   claw: 'Claw',
   fin: 'Fin',
-  thorn: 'Thorn',
+  keyhole: 'Keyhole',
   slant: 'Slant',
   notch: 'Notch',
   spike: 'Spike',
