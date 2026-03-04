@@ -1,5 +1,4 @@
 import type { GroupHeaderProps } from './types';
-import { VisibilityToggle } from './VisibilityToggle';
 
 /**
  * Renders a group header in the layer panel
@@ -24,7 +23,7 @@ export function GroupHeader({
   onFinishEditing,
   onKeyDown,
   onToggleGroupCollapsed,
-  onToggleGroupVisibility,
+  onToggleGroupVisibility: _onToggleGroupVisibility,
   onDeleteGroup,
   onMoveGroup,
   onGroupDragStart,

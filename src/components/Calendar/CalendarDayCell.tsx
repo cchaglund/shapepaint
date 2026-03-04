@@ -40,12 +40,11 @@ export function CalendarDayCell({
   submission,
   ranking,
   dayWinners,
-  latestWinnersDate,
+  latestWinnersDate: _latestWinnersDate,
   href,
   onClick,
   canView = true,
   lockedContent,
-  hideEmptyDayIcon,
 }: CalendarDayCellProps) {
   const showWordTooltip = !isFuture && challenge?.word;
 
@@ -108,7 +107,6 @@ export function CalendarDayCell({
 
   // Winners view
   const hasWinner = dayWinners && dayWinners.length > 0;
-  const hasResults = dateStr <= latestWinnersDate;
   const hasWinnerArt = !!hasWinner && !!challenge;
 
   const cellContent = (

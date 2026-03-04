@@ -8,7 +8,7 @@ import { ShapeIcon } from '../shared/ShapeIcon';
 export function LayerItem({
   shape,
   index,
-  isInGroup,
+  isInGroup: _isInGroup,
   groupId,
   challenge,
   selectedShapeIds,
