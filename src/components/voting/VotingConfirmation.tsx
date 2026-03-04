@@ -77,16 +77,16 @@ export function VotingConfirmation({
         </div>
       )}
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col items-center gap-2">
         {canContinueVoting && (
-          <Button variant="secondary" onClick={onContinue} fullWidth>
+          <Button variant="secondary" size="md" onClick={onContinue}>
             Continue Voting
           </Button>
         )}
-        <Button variant="primary" onClick={onDone} fullWidth>
+        <Button variant="primary" size="md" onClick={onDone}>
           Done
         </Button>
-        <Button as="a" variant="secondary" href={wallUrl} fullWidth>
+        <Button as="a" variant="secondary" size="md" href={wallUrl}>
           See what others submitted
         </Button>
       </div>

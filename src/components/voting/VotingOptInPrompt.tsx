@@ -20,10 +20,10 @@ export function VotingOptInPrompt({ onOptIn, onSkip }: VotingOptInPromptProps) {
       <p className="text-sm text-(--color-text-secondary) mb-4">{message}</p>
       <p className="text-xs text-(--color-text-tertiary) mb-6">{message3}</p>
       <div className="flex gap-3">
-        <Button variant="secondary" onClick={onSkip} className="flex-1">
+        <Button variant="secondary" size="md" onClick={onSkip} className="flex-1">
           No thanks
         </Button>
-        <Button variant="primary" onClick={onOptIn} className="flex-1">
+        <Button variant="primary" size="md" onClick={onOptIn} className="flex-1">
           Yes, include me!
         </Button>
       </div>

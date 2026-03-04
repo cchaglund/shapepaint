@@ -29,12 +29,8 @@ export function WelcomeModal({ onDismiss, challenge }: WelcomeModalProps) {
               />
             ))}
             <div className="w-px h-5 bg-(--color-border) mx-1" />
-            <span className="text-(--color-text-tertiary)">
-              <ShapeIcon type={challenge.shapes[0].type} size={22} />
-            </span>
-            <span className="text-(--color-text-tertiary)">
-              <ShapeIcon type={challenge.shapes[1].type} size={22} />
-            </span>
+            <ShapeIcon type={challenge.shapes[0].type} size={22} fill="var(--color-text-tertiary)" stroke="var(--color-border)" strokeWidth={1.5} />
+            <ShapeIcon type={challenge.shapes[1].type} size={22} fill="var(--color-text-tertiary)" stroke="var(--color-border)" strokeWidth={1.5} />
           </div>
         </div>
       )}
@@ -87,9 +83,11 @@ export function WelcomeModal({ onDismiss, challenge }: WelcomeModalProps) {
         </p>
       </div>
 
-      <Button variant="primary" fullWidth onClick={onDismiss} className="mt-6">
-        Start creating
-      </Button>
+      <div className="flex justify-center mt-6">
+        <Button variant="primary" size="md" onClick={onDismiss}>
+          Start creating
+        </Button>
+      </div>
     </Modal>
   );
 }
