@@ -1,3 +1,4 @@
+import { navigate } from '../../lib/router';
 import { FollowButton } from '../social/FollowButton';
 
 interface FriendRowProps {
@@ -11,7 +12,7 @@ export function FriendRow({ userId, nickname, onNavigateToProfile }: FriendRowPr
     if (onNavigateToProfile) {
       onNavigateToProfile(userId);
     } else {
-      window.location.href = `?view=profile&user=${userId}`;
+      navigate(`?view=profile&user=${userId}`);
     }
   };
 

@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
+import { Link } from '../shared/Link';
 import { supabase } from '../../lib/supabase';
 
 // =============================================================================
@@ -214,12 +215,12 @@ export function ColorTester() {
 
         <footer className="mt-8 pt-6 border-t text-center text-sm border-(--color-border) text-(--color-text-tertiary)">
           <p>
-            <a
+            <Link
               href="/"
               className="underline hover:no-underline text-(--color-text-secondary)"
             >
               Return to main app
-            </a>
+            </Link>
           </p>
         </footer>
       </div>

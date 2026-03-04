@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
+import { navigate } from '../../lib/router';
 import { supabase } from '../../lib/supabase';
 import type { DailyChallenge, Shape } from '../../types';
 import type { ThemeMode, ThemeName } from '../../hooks/ui/useThemeState';
@@ -600,7 +601,7 @@ export function CanvasEditorPage({ challenge, todayDate, themeMode, onSetThemeMo
                 dismissWinner();
               }}
               onViewSubmission={(submissionId: string) => {
-                window.location.href = `?view=submission&id=${submissionId}`;
+                navigate(`?view=submission&id=${submissionId}`);
               }}
             />
           ) : null}

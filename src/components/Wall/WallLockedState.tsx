@@ -1,3 +1,4 @@
+import { Link } from '../shared/Link';
 import { EmptyState } from '../shared/EmptyState';
 
 export function WallLockedState() {
@@ -20,12 +21,12 @@ export function WallLockedState() {
       }
       message="Save your art first, in order to see today's submissions"
     >
-      <a
+      <Link
         href="/"
         className="text-sm text-(--color-accent) hover:underline"
       >
         ← Back to canvas
-      </a>
+      </Link>
     </EmptyState>
   );
 }

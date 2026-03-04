@@ -1,5 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
+import { navigate } from '../../lib/router';
 import { AnimatePresence, motion } from 'motion/react';
+import { Link } from '../shared/Link';
 import type { Profile } from '../../hooks/auth/useProfile';
 import type { ThemeMode, ThemeName } from '../../hooks/ui/useThemeState';
 import { FollowsProvider } from '../../contexts/FollowsContext';
@@ -130,7 +132,7 @@ function UserMenuContent({
 
   const handleNavigateToProfile = useCallback((userId: string) => {
     onClose();
-    window.location.href = `?view=profile&user=${userId}`;
+    navigate(`?view=profile&user=${userId}`);
   }, [onClose]);
 
   const handleAddByNickname = useCallback(async () => {
@@ -262,7 +264,7 @@ function UserMenuContent({
       {/* Mobile-only: Gallery link + theme switcher */}
       {!isDesktop && (
         <div className="px-3 py-2 border-t border-(--color-border-light) flex flex-col gap-2">
-          <a
+          <Link
             href="/?view=gallery"
             onClick={onClose}
             className="flex items-center gap-2 px-2 py-1.5 text-xs font-medium text-(--color-text-secondary) hover:text-(--color-text-primary) hover:bg-(--color-hover) rounded-(--radius-sm) transition-colors no-underline"
@@ -274,7 +276,7 @@ function UserMenuContent({
               <rect x="3" y="14" width="7" height="7" />
             </svg>
             Gallery
-          </a>
+          </Link>
           {themeMode !== undefined && onSetThemeMode && themeName && onSetThemeName && (
             <div className="flex items-center gap-1 px-2">
               <button

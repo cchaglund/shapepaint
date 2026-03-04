@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { Link } from '../shared/Link';
 import { useAuth } from '../../hooks/auth/useAuth';
 import { useSubmissions } from '../../hooks/submission/useSubmissions';
 import { useRanking } from '../../hooks/challenge/useRanking';
@@ -112,7 +113,7 @@ export function SubmissionDetailPage({ date, submissionId, themeMode, onSetTheme
         rightContent={
           <div className="flex items-center gap-2">
             {date && <SubmissionNavigation adjacentDates={adjacentDates} />}
-            <a
+            <Link
               href="/?view=gallery"
               className="h-9 md:h-8 px-2 md:px-3 rounded-(--radius-pill) text-xs font-medium transition-colors text-(--color-text-secondary) hover:bg-(--color-hover) hover:text-(--color-text-primary) no-underline flex items-center gap-1"
               style={{
@@ -125,7 +126,7 @@ export function SubmissionDetailPage({ date, submissionId, themeMode, onSetTheme
                 <polyline points="15 18 9 12 15 6" />
               </svg>
               <span className="hidden md:inline">Gallery</span>
-            </a>
+            </Link>
           </div>
         }
       />
@@ -139,12 +140,12 @@ export function SubmissionDetailPage({ date, submissionId, themeMode, onSetTheme
             <div className="flex items-center gap-2 text-sm">
               {nickname && submission?.user_id ? (
                 <>
-                  <a
+                  <Link
                     href={`?view=profile&user=${submission.user_id}`}
                     className="text-(--color-text-secondary) hover:text-(--color-accent) transition-colors"
                   >
                     @{nickname}
-                  </a>
+                  </Link>
                   <span className="text-(--color-text-tertiary)">·</span>
                   <span className="text-(--color-text-secondary)">Submission</span>
                   {user && user.id !== submission.user_id && (

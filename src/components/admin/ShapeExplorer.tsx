@@ -1,5 +1,6 @@
 import type { ShapeType } from '../../types';
 import { getShapeSVGData, SHAPE_NAMES } from '../../utils/shapes';
+import { Link } from '../shared/Link';
 
 const SHAPE_TYPES = Object.keys(SHAPE_NAMES) as ShapeType[];
 const SAMPLE_SIZE = 100;
@@ -82,12 +83,12 @@ export function ShapeExplorer() {
             Total shapes available: <strong>{SHAPE_TYPES.length}</strong>
           </p>
           <p className="mt-2">
-            <a
+            <Link
               href="/"
               className="underline hover:no-underline text-(--color-text-secondary)"
             >
               Return to main app
-            </a>
+            </Link>
           </p>
         </footer>
       </div>

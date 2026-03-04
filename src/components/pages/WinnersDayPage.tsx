@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { navigate } from '../../lib/router';
+import { Link } from '../shared/Link';
 import { useRanking } from '../../hooks/challenge/useRanking';
 import { useDailyChallenge } from '../../hooks/challenge/useDailyChallenge';
 import { WinnerCard } from '../submission/WinnerCard';
@@ -34,12 +36,7 @@ export function WinnersDayPage({ date, themeMode, onSetThemeMode, themeName, onS
     : 'Loading...';
 
   const handleViewSubmission = (submissionId: string) => {
-    const url = new URL(window.location.href);
-    url.searchParams.delete('view');
-    url.searchParams.delete('date');
-    url.searchParams.set('view', 'submission');
-    url.searchParams.set('id', submissionId);
-    window.location.href = url.toString();
+    navigate(`?view=submission&id=${submissionId}`);
   };
 
   // Group entries by rank
@@ -83,9 +80,7 @@ export function WinnersDayPage({ date, themeMode, onSetThemeMode, themeName, onS
             <button
               onClick={() => {
                 if (adjacentDates.prev) {
-                  const url = new URL(window.location.href);
-                  url.searchParams.set('date', adjacentDates.prev);
-                  window.location.href = url.toString();
+                  navigate(`?view=winners-day&date=${adjacentDates.prev}`);
                 }
               }}
               disabled={!adjacentDates.prev}
@@ -104,9 +99,7 @@ export function WinnersDayPage({ date, themeMode, onSetThemeMode, themeName, onS
             <button
               onClick={() => {
                 if (adjacentDates.next) {
-                  const url = new URL(window.location.href);
-                  url.searchParams.set('date', adjacentDates.next);
-                  window.location.href = url.toString();
+                  navigate(`?view=winners-day&date=${adjacentDates.next}`);
                 }
               }}
               disabled={!adjacentDates.next}
@@ -123,7 +116,7 @@ export function WinnersDayPage({ date, themeMode, onSetThemeMode, themeName, onS
               </svg>
             </button>
             {/* Back to gallery */}
-            <a
+            <Link
               href="/?view=gallery&tab=winners"
               className="h-8 px-3 rounded-(--radius-pill) text-xs font-medium transition-colors text-(--color-text-secondary) hover:bg-(--color-hover) hover:text-(--color-text-primary) no-underline flex items-center gap-1"
               style={{
@@ -136,7 +129,7 @@ export function WinnersDayPage({ date, themeMode, onSetThemeMode, themeName, onS
                 <polyline points="15 18 9 12 15 6" />
               </svg>
               <span className="hidden md:inline">Back to gallery</span>
-            </a>
+            </Link>
           </div>
         }
       />

@@ -5,6 +5,7 @@ import { THEME_META, MODE_CYCLE, MODE_TITLE } from '../../constants/themes';
 import { useAuth } from '../../hooks/auth/useAuth';
 import { UserMenuDropdown } from './UserMenuDropdown';
 import { Button } from '../shared/Button';
+import { Link } from '../shared/Link';
 import { LoginPromptModal } from '../social/LoginPromptModal';
 import { useIsDesktop } from '../../hooks/ui/useBreakpoint';
 
@@ -147,9 +148,9 @@ export function TopBar({
     <header className="h-14 flex items-center justify-between px-4 bg-(--color-card-bg) shrink-0 z-30 relative" style={{ borderBottom: 'var(--border-width, 2px) solid var(--color-border)', paddingLeft: 'max(1rem, env(safe-area-inset-left))', paddingRight: 'max(1rem, env(safe-area-inset-right))', paddingTop: 'env(safe-area-inset-top)' }}>
       {/* Left group: logo + theme pill */}
       <div className="flex items-center gap-2 md:gap-3 shrink-0">
-        <a href="/" className="flex items-center gap-2 no-underline text-(--color-text-primary)">
+        <Link href="/" className="flex items-center gap-2 no-underline text-(--color-text-primary)">
           <span className="hidden md:inline text-base font-semibold">shapepaint.com</span>
-        </a>
+        </Link>
 
         <div className="hidden md:block">
           <ThemePill

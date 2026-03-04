@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import { useAuth } from '../../hooks/auth/useAuth';
 import { useAdmin } from '../../hooks/auth/useAdmin';
+import { Link } from '../shared/Link';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
 
 function formatDate(dateStr: string): string {
@@ -67,12 +68,12 @@ export function Dashboard() {
           <p className="mb-6 text-(--color-text-secondary)">
             You don't have permission to view this page.
           </p>
-          <a
+          <Link
             href="/"
             className="px-6 py-3 bg-(--color-accent) text-(--color-accent-text) rounded-lg hover:bg-(--color-accent-hover) transition-colors font-medium inline-block"
           >
             Go to Home
-          </a>
+          </Link>
         </div>
       </div>
     );
@@ -112,12 +113,12 @@ export function Dashboard() {
           <h1 className="text-3xl font-bold text-(--color-text-primary)">
             Admin Dashboard
           </h1>
-          <a
+          <Link
             href="/"
             className="px-4 py-2 rounded-lg transition-colors bg-(--color-bg-tertiary) text-(--color-text-primary)"
           >
             Back to App
-          </a>
+          </Link>
         </div>
 
         {/* Stats Cards */}

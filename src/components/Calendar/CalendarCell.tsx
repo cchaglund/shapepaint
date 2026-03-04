@@ -1,3 +1,5 @@
+import { Link } from '../shared/Link';
+
 interface CalendarCellProps {
   day: number;
   isToday: boolean;
@@ -78,7 +80,7 @@ export function CalendarCell({
   const dataAttrs = { 'data-testid': dataTestId, 'data-date': dataDate };
 
   if (href) {
-    return <a href={href} className={`block ${classes}`} {...dataAttrs}>{content}</a>;
+    return <Link href={href} className={`block ${classes}`} {...dataAttrs}>{content}</Link>;
   }
 
   if (onClick && !disabled) {

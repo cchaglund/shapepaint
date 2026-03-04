@@ -1,3 +1,5 @@
+import { navigate } from '../../lib/router';
+
 interface SubmissionNavigationProps {
   adjacentDates: { prev: string | null; next: string | null };
 }
@@ -6,7 +8,7 @@ export function SubmissionNavigation({ adjacentDates }: SubmissionNavigationProp
   const navigateTo = (date: string) => {
     const url = new URL(window.location.href);
     url.searchParams.set('date', date);
-    window.location.href = url.toString();
+    navigate(url.toString());
   };
 
   return (

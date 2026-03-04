@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
+import { navigate } from '../../lib/router';
+import { Link } from '../shared/Link';
 import { useAuth } from '../../hooks/auth/useAuth';
 import { useSubmissions, type Submission } from '../../hooks/submission/useSubmissions';
 import { getTodayDateUTC, getTwoDaysAgoDateUTC } from '../../utils/dailyChallenge';
@@ -73,7 +75,7 @@ export function GalleryPage({ tab: initialTab, year: initialYear, month: initial
     }
 
     if (url.toString() !== window.location.href) {
-      history.replaceState(null, '', url.toString());
+      navigate(url.toString(), { replace: true });
     }
   }, [effectiveViewMode, currentYear, currentMonth, wallDate, friendsFeedDate]);
 
@@ -307,7 +309,7 @@ export function GalleryPage({ tab: initialTab, year: initialYear, month: initial
           <span className="text-lg font-semibold text-(--color-text-primary) font-display">Gallery</span>
         }
         rightContent={
-          <a
+          <Link
             href="/"
             className="h-9 md:h-8 px-2 md:px-3 rounded-(--radius-pill) text-xs font-medium transition-colors text-(--color-text-secondary) hover:bg-(--color-hover) hover:text-(--color-text-primary) no-underline flex items-center gap-1"
             style={{
@@ -320,7 +322,7 @@ export function GalleryPage({ tab: initialTab, year: initialYear, month: initial
               <polyline points="15 18 9 12 15 6" />
             </svg>
             <span className="hidden md:inline">Back to canvas</span>
-          </a>
+          </Link>
         }
       />
       <div className="flex-1 overflow-auto p-4 md:p-8 theme-pattern">

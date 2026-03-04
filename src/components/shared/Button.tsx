@@ -1,4 +1,5 @@
 import type { ComponentPropsWithoutRef, CSSProperties, ElementType, ReactNode } from 'react';
+import { Link } from './Link';
 
 /**
  * Themed button used across the UI.
@@ -63,7 +64,7 @@ export function Button<T extends ElementType = 'button'>({
   children,
   ...rest
 }: ButtonProps<T>) {
-  const Tag = as || 'button';
+  const Tag = as === 'a' ? Link : (as || 'button');
   const hasShadow = shadowVariants.has(variant);
   const hasBorder = borderVariants.has(variant);
 

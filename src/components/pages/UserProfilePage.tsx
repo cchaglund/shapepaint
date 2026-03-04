@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
+import { Link } from '../shared/Link';
 import { useUserProfile } from '../../hooks/social/useUserProfile';
 import { useAuth } from '../../hooks/auth/useAuth';
 import { useSubmissions } from '../../hooks/submission/useSubmissions';
@@ -143,7 +144,7 @@ export function UserProfilePage({ userId }: UserProfilePageProps) {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <a
+          <Link
             href="/"
             className="inline-flex items-center gap-1 text-base hover:underline text-(--color-text-secondary) mb-4"
           >
@@ -160,7 +161,7 @@ export function UserProfilePage({ userId }: UserProfilePageProps) {
               <polyline points="15 18 9 12 15 6" />
             </svg>
             Back to app
-          </a>
+          </Link>
 
           {/* Profile header */}
           <div className="flex items-start justify-between gap-4 mb-2">

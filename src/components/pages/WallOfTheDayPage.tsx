@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { navigate } from '../../lib/router';
 import { WallContent } from '../Wall/WallContent';
 import { useAuth } from '../../hooks/auth/useAuth';
 import { useSubmissions } from '../../hooks/submission/useSubmissions';
@@ -17,7 +18,7 @@ export function WallOfTheDayPage({ date }: WallOfTheDayPageProps) {
   const handleDateChange = (newDate: string) => {
     const url = new URL(window.location.href);
     url.searchParams.set('date', newDate);
-    window.location.href = url.toString();
+    navigate(url.toString());
   };
 
   // Format date for display

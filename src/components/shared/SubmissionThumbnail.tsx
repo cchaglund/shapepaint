@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from './Link';
 import type { Shape, ShapeGroup, DailyChallenge } from '../../types';
 import { CANVAS_SIZE } from '../../types/canvas';
 import { SVGShape } from './SVGShape';
@@ -112,9 +113,9 @@ export function SubmissionThumbnail({
 
     if (href) {
       return (
-        <a href={href} style={cardStyle} className="block no-underline" {...hoverHandlers}>
+        <Link href={href} style={cardStyle} className="block no-underline" {...hoverHandlers}>
           {cardInner}
-        </a>
+        </Link>
       );
     }
 

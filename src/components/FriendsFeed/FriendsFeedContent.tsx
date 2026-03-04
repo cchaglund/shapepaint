@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Link } from '../shared/Link';
 import { useFriendsFeed, type SortMode } from '../../hooks/social/useFriendsFeed';
 import { useDailyChallenge } from '../../hooks/challenge/useDailyChallenge';
 import { useCalendarMonth } from '../../hooks/challenge/useCalendarMonth';
@@ -283,9 +284,9 @@ export function FriendsFeedContent({
             }
             message="Save your art first, in order to see friends' submissions for today"
           >
-            <a href="/" className="text-sm text-(--color-accent) hover:underline">
+            <Link href="/" className="text-sm text-(--color-accent) hover:underline">
               ← Back to canvas
-            </a>
+            </Link>
           </EmptyState>
         ) : (
           <>

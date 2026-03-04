@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { navigate } from '../../lib/router';
 import { useAuth } from '../../hooks/auth/useAuth';
 import { useFollows } from '../../hooks/social/useFollows';
 import { Modal } from '../shared/Modal';
@@ -18,7 +19,7 @@ export function FriendsModal({ onClose }: FriendsModalProps) {
 
   const handleNavigateToProfile = useCallback((userId: string) => {
     onClose();
-    window.location.href = `?view=profile&user=${userId}`;
+    navigate(`?view=profile&user=${userId}`);
   }, [onClose]);
 
   // Not logged in state
