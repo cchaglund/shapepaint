@@ -38,8 +38,8 @@ export function LoginPromptModal({
       <p className="m-0 mb-7 text-lg text-(--color-text-secondary)">
         {message}
       </p>
-      <div className="flex flex-col gap-3">
-        <Button variant="primary" fullWidth onClick={handleLogin} className="gap-2">
+      <div className="flex flex-col items-center gap-3">
+        <Button variant="primary" size="md" fullWidth onClick={handleLogin} className="gap-2">
           <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path
               fill="currentColor"
@@ -60,7 +60,7 @@ export function LoginPromptModal({
           </svg>
           Sign in with Google
         </Button>
-        <Button variant="ghost" fullWidth onClick={onClose}>
+        <Button variant="link" onClick={onClose}>
           Cancel
         </Button>
       </div>

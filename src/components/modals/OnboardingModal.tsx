@@ -91,6 +91,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
 
         <Button
           variant="primary"
+          size="md"
           fullWidth
           type="submit"
           disabled={submitting || !nickname}

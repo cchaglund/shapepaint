@@ -98,7 +98,7 @@ export function WinnerAnnouncementModal({
         </div>
       ) : null}
 
-      <Button variant="primary" fullWidth onClick={onDismiss}>
+      <Button variant="primary" size="md" fullWidth onClick={onDismiss}>
         Awesome!
       </Button>
     </Modal>

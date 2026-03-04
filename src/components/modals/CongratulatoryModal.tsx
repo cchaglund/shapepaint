@@ -111,7 +111,7 @@ export function CongratulatoryModal({
         />
       </div>
 
-      <Button variant="primary" fullWidth onClick={handleDismiss}>
+      <Button variant="primary" size="md" fullWidth onClick={handleDismiss}>
         Yay!
       </Button>
     </Modal>

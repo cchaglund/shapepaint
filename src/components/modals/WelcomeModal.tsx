@@ -83,11 +83,9 @@ export function WelcomeModal({ onDismiss, challenge }: WelcomeModalProps) {
         </p>
       </div>
 
-      <div className="flex justify-center mt-6">
-        <Button variant="primary" size="md" onClick={onDismiss}>
-          Start creating
-        </Button>
-      </div>
+      <Button variant="primary" size="md" fullWidth onClick={onDismiss} className="mt-6">
+        Start creating
+      </Button>
     </Modal>
   );
 }

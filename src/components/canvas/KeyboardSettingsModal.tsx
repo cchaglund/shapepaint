@@ -230,7 +230,7 @@ export function KeyboardSettingsModal({
                 Saving...
               </span>
             )}
-            <Button variant="primary" onClick={onClose}>
+            <Button variant="primary" size="md" onClick={onClose}>
               Done
             </Button>
           </div>
@@ -263,12 +263,12 @@ export function KeyboardSettingsModal({
             </span>
             . Replace it?
           </p>
-          <div className="flex gap-3 justify-center">
-            <Button variant="ghost" onClick={() => handleResolveConflict(false)}>
-              Cancel
-            </Button>
-            <Button variant="primary" onClick={() => handleResolveConflict(true)}>
+          <div className="flex flex-col items-center gap-3">
+            <Button variant="primary" size="md" fullWidth onClick={() => handleResolveConflict(true)}>
               Replace
+            </Button>
+            <Button variant="link" onClick={() => handleResolveConflict(false)}>
+              Cancel
             </Button>
           </div>
         </Modal>

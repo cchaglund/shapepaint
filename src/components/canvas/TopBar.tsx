@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import type { ThemeMode, ThemeName } from '../../hooks/ui/useThemeState';
 import type { Profile } from '../../hooks/auth/useProfile';
 import { THEME_META, MODE_CYCLE, MODE_TITLE } from '../../constants/themes';
 import { useAuth } from '../../hooks/auth/useAuth';
 import { UserMenuDropdown } from './UserMenuDropdown';
 import { Button } from '../shared/Button';
+import { LoginPromptModal } from '../social/LoginPromptModal';
 import { useIsDesktop } from '../../hooks/ui/useBreakpoint';
 
 // --- Theme Pill (dark mode toggle + divider + theme buttons) ---
@@ -220,6 +222,7 @@ function DefaultRightContent({
 }) {
   const { user, loading: authLoading, signInWithGoogle, signOut } = useAuth();
   const isDesktop = useIsDesktop();
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   const saveLabel = isSaving
     ? 'Saving...'
@@ -260,14 +263,23 @@ function DefaultRightContent({
           {saveLabel}
         </Button>
       ) : onSave ? (
-        <Button
-          variant="primary"
-          className="px-4 font-bold"
-          onClick={onSave}
-          title="Sign in to submit"
-        >
-          Submit!
-        </Button>
+        <>
+          <Button
+            variant="primary"
+            className="px-4 font-bold"
+            onClick={() => setShowLoginPrompt(true)}
+            title="Sign in to submit"
+          >
+            Submit!
+          </Button>
+          {showLoginPrompt && (
+            <LoginPromptModal
+              onClose={() => setShowLoginPrompt(false)}
+              title="Submit Your Creation"
+              message="Sign in to submit your artwork and join today's challenge."
+            />
+          )}
+        </>
       ) : null}
 
       {/* Divider + Gallery — hidden on mobile (available in UserMenuDropdown) */}

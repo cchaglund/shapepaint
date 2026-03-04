@@ -27,12 +27,12 @@ export function ResetConfirmModal({ onConfirm, onCancel }: ResetConfirmModalProp
       <p className="m-0 mb-5 text-sm text-(--color-text-secondary)">
         This will delete all shapes and cannot be undone.
       </p>
-      <div className="flex gap-3 justify-center">
-        <Button variant="ghost" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button variant="danger" onClick={onConfirm}>
+      <div className="flex flex-col items-center gap-3">
+        <Button variant="danger" size="md" fullWidth onClick={onConfirm}>
           Reset
+        </Button>
+        <Button variant="link" onClick={onCancel}>
+          Cancel
         </Button>
       </div>
     </Modal>
