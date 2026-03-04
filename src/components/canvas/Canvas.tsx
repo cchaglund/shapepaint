@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useMemo } from 'react';
+import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { motion } from 'motion/react';
 import type { Shape, ShapeGroup, DailyChallenge, ViewportState } from '../../types';
 import { CANVAS_SIZE } from '../../types/canvas';
@@ -101,19 +101,20 @@ export function Canvas({
   // First render seeds with all current IDs (no animation for loaded shapes).
   // Subsequent renders detect new IDs (user-placed shapes → animate).
   // Bulk loads (>3 new shapes, e.g. Supabase hydration) skip animation.
+  // NOTE: ref is updated in useEffect (not during render) to survive StrictMode double-renders.
   const knownShapeIdsRef = useRef<Set<string> | null>(null);
-  const newShapeIds: ReadonlySet<string> = (() => {
-    if (knownShapeIdsRef.current === null) {
-      knownShapeIdsRef.current = new Set(shapes.map(s => s.id));
-      return new Set<string>();
-    }
+  const newShapeIds: ReadonlySet<string> = useMemo(() => {
+    if (knownShapeIdsRef.current === null) return new Set<string>();
     const added = new Set<string>();
     for (const s of shapes) {
       if (!knownShapeIdsRef.current.has(s.id)) added.add(s.id);
     }
-    knownShapeIdsRef.current = new Set(shapes.map(s => s.id));
     return added.size > 3 ? new Set<string>() : added;
-  })();
+  }, [shapes]);
+
+  useEffect(() => {
+    knownShapeIdsRef.current = new Set(shapes.map(s => s.id));
+  }, [shapes]);
 
   // Use extracted hooks
   const { getSVGPoint, getClientPoint } = useCanvasCoordinates(svgRef);

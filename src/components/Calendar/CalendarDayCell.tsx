@@ -100,7 +100,7 @@ export function CalendarDayCell({
     );
 
     if (showWordTooltip) {
-      return <Tooltip text={`"${challenge.word}"`} capitalize={true}>{cellContent}</Tooltip>;
+      return <Tooltip content={`"${challenge.word}"`} capitalize={true}>{cellContent}</Tooltip>;
     }
     return cellContent;
   }
@@ -142,7 +142,7 @@ export function CalendarDayCell({
   );
 
   if (showWordTooltip) {
-    return <Tooltip text={`"${challenge.word}"`} capitalize={true}>{cellContent}</Tooltip>;
+    return <Tooltip content={`"${challenge.word}"`} capitalize={true}>{cellContent}</Tooltip>;
   }
   return cellContent;
 }

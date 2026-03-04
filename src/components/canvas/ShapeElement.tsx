@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'motion/react';
 import type { Shape } from '../../types';
 import { SVGShape } from '../shared/SVGShape';
@@ -18,6 +19,12 @@ export function ShapeElement({
   color,
   animateEntrance,
 }: ShapeElementProps) {
+  // Latch: once we decide to animate on mount, keep animating until complete.
+  // This prevents re-renders (e.g. auto-select) from unmounting motion.g mid-animation.
+  const [animating, setAnimating] = useState(
+    () => !!animateEntrance && !prefersReducedMotion
+  );
+
   const svgShape = (
     <SVGShape
       type={shape.type}
@@ -33,7 +40,7 @@ export function ShapeElement({
     />
   );
 
-  if (!animateEntrance || prefersReducedMotion) return svgShape;
+  if (!animating) return svgShape;
 
   // Scale from center of shape in SVG coordinates
   const cx = shape.x + shape.size / 2;
@@ -41,10 +48,11 @@ export function ShapeElement({
 
   return (
     <motion.g
-      initial={{ scale: 0, rotate: -180 }}
-      animate={{ scale: 1, rotate: 0 }}
+      initial={{ scale: 0 }}
+      animate={{ scale: 1 }}
       transition={{ type: 'spring', stiffness: 400, damping: 15, mass: 0.8 }}
       style={{ transformOrigin: `${cx}px ${cy}px` }}
+      onAnimationComplete={() => setAnimating(false)}
     >
       {svgShape}
     </motion.g>

@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import cn from "classnames";
+import type { Placement } from '@floating-ui/react';
 import {
   useFloating,
   useHover,
@@ -11,22 +12,29 @@ import {
 } from '@floating-ui/react';
 
 interface TooltipProps {
-  text: string;
+  content: ReactNode;
   children: ReactNode;
   capitalize?: boolean;
+  placement?: Placement;
+  delay?: number;
+  disabled?: boolean;
+  gap?: number;
+  /** @deprecated Use `content` instead */
+  text?: string;
 }
 
-export function Tooltip({ text, children, capitalize }: TooltipProps) {
+export function Tooltip({ content, text, children, capitalize, placement: placementProp = 'top', delay, disabled, gap: gapProp = 8 }: TooltipProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const resolvedContent = content ?? text;
 
   const { refs, floatingStyles, context } = useFloating({
-    open: isOpen,
-    onOpenChange: setIsOpen,
-    middleware: [offset(8), flip(), shift()],
-    placement: 'top',
+    open: disabled ? false : isOpen,
+    onOpenChange: disabled ? undefined : setIsOpen,
+    middleware: [offset(gapProp), flip(), shift()],
+    placement: placementProp,
   });
 
-  const hover = useHover(context);
+  const hover = useHover(context, { delay: delay ? { open: delay } : undefined });
   const { getReferenceProps, getFloatingProps } = useInteractions([hover]);
 
   // These are callback refs from floating-ui, safe to use during render
@@ -55,7 +63,7 @@ export function Tooltip({ text, children, capitalize }: TooltipProps) {
               { "capitalize": capitalize }
             )}
           >
-            {text}
+            {resolvedContent}
           </div>
         </FloatingPortal>
       )}
@@ -65,7 +73,7 @@ export function Tooltip({ text, children, capitalize }: TooltipProps) {
 
 export function InfoTooltip({ text }: { text: string }) {
   return (
-    <Tooltip text={text}>
+    <Tooltip content={text}>
       <span
         className="lowercase align-middle inline-flex items-center justify-center w-4 h-4 ml-1.5 text-xs rounded-(--radius-pill) bg-(--color-border) text-(--color-text-tertiary) cursor-help hover:bg-(--color-accent) hover:text-(--color-accent-text) transition-colors"
         aria-label="More information"

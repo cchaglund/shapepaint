@@ -1,6 +1,6 @@
-import { useState } from 'react';
 import type { KeyMappings } from '../../constants/keyboardActions';
 import { formatKeyBinding, getDefaultMappings } from '../../constants/keyboardActions';
+import { Tooltip } from '../shared/InfoTooltip';
 
 // --- SVG Icon components (18x18, viewBox 0 0 24 24) ---
 
@@ -143,10 +143,19 @@ interface ToolButtonProps {
 }
 
 function ToolButton({ icon, label, shortcut, onClick, disabled, active }: ToolButtonProps) {
-  const [isHovered, setIsHovered] = useState(false);
-
   return (
-    <div className="relative">
+    <Tooltip
+      placement="right"
+      delay={500}
+      disabled={disabled}
+      gap={14}
+      content={
+        <div className="whitespace-nowrap">
+          <div className="font-medium">{label}</div>
+          {shortcut && <div className="opacity-70">{shortcut}</div>}
+        </div>
+      }
+    >
       <button
         className={`tool-btn-hover w-10 h-10 flex items-center justify-center rounded-(--radius-md) transition-all duration-150 cursor-pointer
           ${active
@@ -154,22 +163,12 @@ function ToolButton({ icon, label, shortcut, onClick, disabled, active }: ToolBu
             : 'bg-(--color-card-bg) text-(--color-text-secondary) hover:enabled:bg-(--color-selected) hover:enabled:text-(--color-text-primary)'
           }
           disabled:opacity-40 disabled:cursor-not-allowed`}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
         onClick={onClick}
         disabled={disabled}
-        aria-label={label}
       >
         {icon}
       </button>
-
-      {isHovered && (
-        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1.5 rounded-(--radius-sm) text-xs whitespace-nowrap z-50 pointer-events-none bg-(--color-bg-primary) text-(--color-text-primary) border border-(--color-border) shadow-(--shadow-btn)">
-          <div className="font-medium">{label}</div>
-          {shortcut && <div className="text-(--color-text-tertiary)">{shortcut}</div>}
-        </div>
-      )}
-    </div>
+    </Tooltip>
   );
 }
 
