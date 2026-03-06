@@ -29,9 +29,7 @@ interface MultiSelectInteractionLayerProps {
 
 // Base sizes at 100% zoom
 const BASE_HANDLE_SIZE = 10;
-const BASE_ROTATE_HANDLE_OFFSET = 30;
-const BASE_ROTATE_HANDLE_RADIUS = 6;
-const BASE_INTERACTION_RADIUS = 8;
+const BASE_ROTATION_ZONE_PAD = 12;
 const BASE_STROKE_WIDTH = 1;
 const BASE_DASH_STROKE_WIDTH = 2;
 
@@ -47,19 +45,6 @@ function getResizeHandles(width: number, height: number) {
     { id: 'sw', x: 0, y: height },
     { id: 'w', x: 0, y: height / 2 },
   ];
-}
-
-/** Single rotation handle at top center with stem line */
-function getRotationHandle(width: number, _height: number, offset: number) {
-  return {
-    id: 'rotate',
-    cx: width / 2,
-    cy: -offset,
-    x1: width / 2,
-    y1: 0,
-    x2: width / 2,
-    y2: -offset,
-  };
 }
 
 // Get the effective cursor for a resize handle, accounting for rotation and flip transforms
@@ -124,16 +109,50 @@ function getHandleStyle(isHovered: boolean): React.CSSProperties {
   };
 }
 
-/** Shared style for rotation handle circle */
-function getRotateHandleStyle(isHovered: boolean): React.CSSProperties {
-  return {
-    fill: 'var(--sel-handle-fill)',
-    stroke: 'var(--sel-rotate-color)',
-    transformBox: 'fill-box' as const,
-    transformOrigin: 'center',
-    transform: isHovered ? 'scale(1.3)' : undefined,
-    transition: 'transform 0.15s ease',
+
+/** Generate a rotation cursor SVG rotated to a given angle (Figma-style curved arrow) */
+const _cursorCache = new Map<number, string>();
+const ROTATION_CURSOR_PATH = "M13.1785 16.0527C13.3737 16.248 13.6903 16.248 13.8856 16.0527L17.0676 12.8707C17.2628 12.6755 17.2628 12.3589 17.0676 12.1636C16.8723 11.9684 16.5557 11.9684 16.3604 12.1636L13.532 14.992L10.7036 12.1636C10.5083 11.9684 10.1917 11.9684 9.99649 12.1636C9.80122 12.3589 9.80122 12.6755 9.99649 12.8707L13.1785 16.0527ZM0.146446 3.32932C-0.0488161 3.52459 -0.0488161 3.84117 0.146446 4.03643L3.32843 7.21841C3.52369 7.41367 3.84027 7.41367 4.03553 7.21841C4.2308 7.02315 4.2308 6.70657 4.03553 6.51131L1.20711 3.68288L4.03553 0.854451C4.2308 0.659189 4.2308 0.342606 4.03553 0.147344C3.84027 -0.0479175 3.52369 -0.0479175 3.32843 0.147344L0.146446 3.32932ZM13.532 15.6991L14.032 15.6991C14.032 12.192 14.0328 9.6453 13.8252 7.82323C13.6186 6.01068 13.1931 4.76521 12.2064 4.01202C11.2463 3.2791 9.86525 3.10596 8.04128 3.07989C7.11347 3.06662 6.03373 3.09271 4.78995 3.12167C3.54284 3.1507 2.12262 3.18288 0.499999 3.18288L0.499999 3.68288L0.499999 4.18288C2.13539 4.18288 3.56592 4.15043 4.81322 4.1214C6.06385 4.09228 7.12218 4.06685 8.02699 4.07978C9.86828 4.10611 10.9307 4.29626 11.5996 4.80688C12.242 5.29724 12.6309 6.17558 12.8316 7.93647C13.0312 9.68784 13.032 12.1642 13.032 15.6991L13.532 15.6991Z";
+function makeRotationCursor(angleDeg: number): string {
+  const key = Math.round(((angleDeg % 360) + 360) % 360);
+  const cached = _cursorCache.get(key);
+  if (cached) return cached;
+  // SVG viewBox is 18x17; center at (9, 8.5); pad to 24x24 with offset (3, 3.5)
+  const svg = [
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'>",
+    `<g transform='rotate(${key}, 12, 12)'>`,
+    // white outline for contrast
+    `<path d='${ROTATION_CURSOR_PATH}' fill='white' transform='translate(3, 3.5)' stroke='white' stroke-width='2.5' stroke-linejoin='round'/>`,
+    // black foreground
+    `<path d='${ROTATION_CURSOR_PATH}' fill='black' transform='translate(3, 3.5)'/>`,
+    "</g>",
+    "</svg>",
+  ].join('');
+  const cursor = `url("data:image/svg+xml,${encodeURIComponent(svg)}") 12 12, crosshair`;
+  _cursorCache.set(key, cursor);
+  return cursor;
+}
+
+/** Compute rotation angle for a corner's cursor, accounting for shape rotation */
+function getRotationCursorAngle(cornerId: string, rotation: number): number {
+  // Base angles per corner (cursor independent of flips)
+  const baseAngles: Record<string, number> = {
+    'rotate-ne': 0,
+    'rotate-se': 90,
+    'rotate-sw': 180,
+    'rotate-nw': 270,
   };
+  return (baseAngles[cornerId] ?? 0) + rotation;
+}
+
+/** 4 corner rotation zones positioned diagonally outside the bounding box */
+function getRotationCorners(width: number, height: number, pad: number) {
+  return [
+    { id: 'rotate-nw' as const, x: -pad, y: -pad },
+    { id: 'rotate-ne' as const, x: width, y: -pad },
+    { id: 'rotate-se' as const, x: width, y: height },
+    { id: 'rotate-sw' as const, x: -pad, y: height },
+  ];
 }
 
 /** Build SVG transform string matching ShapeElement's flip + rotation order */
@@ -155,20 +174,35 @@ export function TransformInteractionLayer({
   // Scale handle sizes inversely with zoom to maintain constant visual size
   const scale = 1 / zoom;
   const handleSize = BASE_HANDLE_SIZE * scale;
-  const rotateOffset = BASE_ROTATE_HANDLE_OFFSET * scale;
-  const interactionRadius = BASE_INTERACTION_RADIUS * scale;
+  const rotationPad = BASE_ROTATION_ZONE_PAD * scale;
 
   const { viewBox, dimensions } = getShapeSVGData(shape.type, shape.size);
   const renderW = dimensions?.width ?? viewBox.width;
   const renderH = dimensions?.height ?? viewBox.height;
   const resizeHandles = getResizeHandles(renderW, renderH);
-  const rotationHandle = getRotationHandle(renderW, renderH, rotateOffset);
   const centerX = renderW / 2;
   const centerY = renderH / 2;
   const transform = buildShapeTransform(shape, centerX, centerY);
 
   return (
     <g transform={transform} style={{ pointerEvents: 'all' }}>
+      {/* Rotation corner zones — diagonal squares outside each corner */}
+      {getRotationCorners(renderW, renderH, rotationPad).map((corner) => (
+        <rect
+          key={corner.id}
+          x={corner.x}
+          y={corner.y}
+          width={rotationPad}
+          height={rotationPad}
+          fill="transparent"
+          style={{ cursor: makeRotationCursor(getRotationCursorAngle(corner.id, shape.rotation)), touchAction: 'none' }}
+          onMouseDown={onRotateStart}
+          onTouchStart={onRotateStart}
+          onMouseEnter={() => onHandleHover?.('rotate')}
+          onMouseLeave={() => onHandleHover?.(null)}
+        />
+      ))}
+
       {/* Invisible fill rect for dragging */}
       <rect
         x={0}
@@ -197,19 +231,6 @@ export function TransformInteractionLayer({
           onMouseLeave={() => onHandleHover?.(null)}
         />
       ))}
-
-      {/* Invisible rotation handle (top center only) */}
-      <circle
-        cx={rotationHandle.cx}
-        cy={rotationHandle.cy}
-        r={interactionRadius}
-        fill="transparent"
-        style={{ cursor: 'grab', touchAction: 'none' }}
-        onMouseDown={onRotateStart}
-        onTouchStart={onRotateStart}
-        onMouseEnter={() => onHandleHover?.('rotate')}
-        onMouseLeave={() => onHandleHover?.(null)}
-      />
     </g>
   );
 }
@@ -227,8 +248,6 @@ export function TransformVisualLayer({
   // Scale sizes inversely with zoom
   const scale = 1 / zoom;
   const handleSize = BASE_HANDLE_SIZE * scale;
-  const rotateOffset = BASE_ROTATE_HANDLE_OFFSET * scale;
-  const rotateRadius = BASE_ROTATE_HANDLE_RADIUS * scale;
   const strokeWidth = BASE_STROKE_WIDTH * scale;
   const dashStrokeWidth = BASE_DASH_STROKE_WIDTH * scale;
 
@@ -236,7 +255,6 @@ export function TransformVisualLayer({
   const renderW = dimensions?.width ?? viewBox.width;
   const renderH = dimensions?.height ?? viewBox.height;
   const resizeHandles = getResizeHandles(renderW, renderH);
-  const rotationHandle = getRotationHandle(renderW, renderH, rotateOffset);
   const centerX = renderW / 2;
   const centerY = renderH / 2;
   const transform = buildShapeTransform(shape, centerX, centerY);
@@ -303,22 +321,6 @@ export function TransformVisualLayer({
         />
       ))}
 
-      {/* Rotation handle — top center with stem line */}
-      <line
-        x1={rotationHandle.x1}
-        y1={rotationHandle.y1}
-        x2={rotationHandle.x2}
-        y2={rotationHandle.y2}
-        style={{ stroke: 'var(--sel-rotate-color)' }}
-        strokeWidth={strokeWidth}
-      />
-      <circle
-        cx={rotationHandle.cx}
-        cy={rotationHandle.cy}
-        r={rotateRadius}
-        style={getRotateHandleStyle(hoveredHandleId === 'rotate')}
-        strokeWidth={strokeWidth}
-      />
     </g>
   );
 }
@@ -334,8 +336,6 @@ export function MultiSelectTransformLayer({
   // Scale sizes inversely with zoom
   const scale = 1 / zoom;
   const handleSize = BASE_HANDLE_SIZE * scale;
-  const rotateOffset = BASE_ROTATE_HANDLE_OFFSET * scale;
-  const rotateRadius = BASE_ROTATE_HANDLE_RADIUS * scale;
   const strokeWidth = BASE_STROKE_WIDTH * scale;
   const dashStrokeWidth = BASE_DASH_STROKE_WIDTH * scale;
 
@@ -348,7 +348,6 @@ export function MultiSelectTransformLayer({
     const renderW = dimensions?.width ?? viewBox.width;
     const renderH = dimensions?.height ?? viewBox.height;
     const resizeHandles = getResizeHandles(renderW, renderH);
-    const rotationHandle = getRotationHandle(renderW, renderH, rotateOffset);
     const centerX = renderW / 2;
     const centerY = renderH / 2;
     const transform = buildShapeTransform(shape, centerX, centerY);
@@ -413,29 +412,12 @@ export function MultiSelectTransformLayer({
           />
         ))}
 
-        {/* Rotation handle — top center with stem line */}
-        <line
-          x1={rotationHandle.x1}
-          y1={rotationHandle.y1}
-          x2={rotationHandle.x2}
-          y2={rotationHandle.y2}
-          style={{ stroke: 'var(--sel-rotate-color)' }}
-          strokeWidth={strokeWidth}
-        />
-        <circle
-          cx={rotationHandle.cx}
-          cy={rotationHandle.cy}
-          r={rotateRadius}
-          style={getRotateHandleStyle(hoveredHandleId === 'rotate')}
-          strokeWidth={strokeWidth}
-        />
       </g>
     );
   }
 
   // For multiple shapes, show combined bounding box and individual dashed outlines
   const resizeHandles = getResizeHandles(bounds.width, bounds.height);
-  const rotationHandle = getRotationHandle(bounds.width, bounds.height, rotateOffset);
 
   return (
     <g style={{ pointerEvents: 'none' }}>
@@ -512,22 +494,6 @@ export function MultiSelectTransformLayer({
         />
       ))}
 
-      {/* Rotation handle — top center with stem line */}
-      <line
-        x1={bounds.x + rotationHandle.x1}
-        y1={bounds.y + rotationHandle.y1}
-        x2={bounds.x + rotationHandle.x2}
-        y2={bounds.y + rotationHandle.y2}
-        style={{ stroke: 'var(--sel-rotate-color)' }}
-        strokeWidth={strokeWidth}
-      />
-      <circle
-        cx={bounds.x + rotationHandle.cx}
-        cy={bounds.y + rotationHandle.cy}
-        r={rotateRadius}
-        style={getRotateHandleStyle(hoveredHandleId === 'rotate')}
-        strokeWidth={strokeWidth}
-      />
     </g>
   );
 }
@@ -579,14 +545,29 @@ export function MultiSelectInteractionLayer({
   // Scale sizes inversely with zoom
   const scale = 1 / zoom;
   const handleSize = BASE_HANDLE_SIZE * scale;
-  const rotateOffset = BASE_ROTATE_HANDLE_OFFSET * scale;
-  const interactionRadius = BASE_INTERACTION_RADIUS * scale;
+  const rotationPad = BASE_ROTATION_ZONE_PAD * scale;
 
   const resizeHandles = getResizeHandles(bounds.width, bounds.height);
-  const rotationHandle = getRotationHandle(bounds.width, bounds.height, rotateOffset);
 
   return (
     <g style={{ pointerEvents: 'all' }}>
+      {/* Rotation corner zones — diagonal squares outside each corner */}
+      {getRotationCorners(bounds.width, bounds.height, rotationPad).map((corner) => (
+        <rect
+          key={corner.id}
+          x={bounds.x + corner.x}
+          y={bounds.y + corner.y}
+          width={rotationPad}
+          height={rotationPad}
+          fill="transparent"
+          style={{ cursor: makeRotationCursor(getRotationCursorAngle(corner.id, 0)), touchAction: 'none' }}
+          onMouseDown={onRotateStart}
+          onTouchStart={onRotateStart}
+          onMouseEnter={() => onHandleHover?.('rotate')}
+          onMouseLeave={() => onHandleHover?.(null)}
+        />
+      ))}
+
       {/* Invisible resize handles (8: corners + midpoints) */}
       {resizeHandles.map((handle) => (
         <rect
@@ -603,19 +584,6 @@ export function MultiSelectInteractionLayer({
           onMouseLeave={() => onHandleHover?.(null)}
         />
       ))}
-
-      {/* Invisible rotation handle (top center only) */}
-      <circle
-        cx={bounds.x + rotationHandle.cx}
-        cy={bounds.y + rotationHandle.cy}
-        r={interactionRadius}
-        fill="transparent"
-        style={{ cursor: 'grab', touchAction: 'none' }}
-        onMouseDown={onRotateStart}
-        onTouchStart={onRotateStart}
-        onMouseEnter={() => onHandleHover?.('rotate')}
-        onMouseLeave={() => onHandleHover?.(null)}
-      />
     </g>
   );
 }
