@@ -1,22 +1,22 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Link } from '../shared/Link';
-import { useUserProfile } from '../../hooks/social/useUserProfile';
-import { useAuth } from '../../hooks/auth/useAuth';
-import { useSubmissions } from '../../hooks/submission/useSubmissions';
+import { useUserProfile } from '../hooks/social/useUserProfile';
+import { useAuth } from '../hooks/auth/useAuth';
+import { useSubmissions } from '../hooks/submission/useSubmissions';
 import { FollowButton } from '../social/FollowButton';
-import { getTodayDateUTC } from '../../utils/dailyChallenge';
-import { fetchChallengesBatch } from '../../hooks/challenge/useDailyChallenge';
-import { canViewCurrentDay } from '../../utils/privacyRules';
+import { getTodayDateUTC } from '../utils/dailyChallenge';
+import { fetchChallengesBatch } from '../hooks/challenge/useDailyChallenge';
+import { canViewCurrentDay } from '../utils/privacyRules';
 import {
   MONTHS,
   formatDate,
   getDaysInMonth,
   getFirstDayOfMonth,
-} from '../../utils/calendarUtils';
+} from '../utils/calendarUtils';
 import { CalendarGrid } from '../Calendar/CalendarGrid';
 import { CalendarDayCell } from '../Calendar/CalendarDayCell';
 import { ContentNavigation } from '../Calendar/ContentNavigation';
-import type { DailyChallenge } from '../../types';
+import type { DailyChallenge } from '../types';
 import { BackToCanvasLink } from '../shared/BackToCanvasLink';
 
 interface UserProfilePageProps {

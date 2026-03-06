@@ -1,14 +1,14 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { navigate } from '../../lib/router';
+import { navigate } from '../lib/router';
 import { Link } from '../shared/Link';
-import { useAuth } from '../../hooks/auth/useAuth';
-import { useSubmissions, type Submission } from '../../hooks/submission/useSubmissions';
-import { getTodayDateUTC, getTwoDaysAgoDateUTC } from '../../utils/dailyChallenge';
-import { fetchChallengesBatch } from '../../hooks/challenge/useDailyChallenge';
-import { fetchRankingsBySubmissionIds, fetchMonthlyWinners } from '../../lib/api';
-import type { DailyChallenge } from '../../types';
-import { formatDate, getDaysInMonth, getFirstDayOfMonth, MONTHS } from '../../utils/calendarUtils';
+import { useAuth } from '../hooks/auth/useAuth';
+import { useSubmissions, type Submission } from '../hooks/submission/useSubmissions';
+import { getTodayDateUTC, getTwoDaysAgoDateUTC } from '../utils/dailyChallenge';
+import { fetchChallengesBatch } from '../hooks/challenge/useDailyChallenge';
+import { fetchRankingsBySubmissionIds, fetchMonthlyWinners } from '../lib/api';
+import type { DailyChallenge } from '../types';
+import { formatDate, getDaysInMonth, getFirstDayOfMonth, MONTHS } from '../utils/calendarUtils';
 import type { ViewMode, WinnerEntry } from '../Calendar/types';
 import { CalendarViewToggle } from '../Calendar/CalendarViewToggle';
 import { ContentNavigation } from '../Calendar/ContentNavigation';
@@ -18,7 +18,7 @@ import { CalendarStats } from '../Calendar/CalendarStats';
 import { WallTab } from '../Calendar/tabs/WallTab';
 import { FriendsFeedTab } from '../Calendar/tabs/FriendsFeedTab';
 import { TopBar } from '../canvas/TopBar';
-import type { ThemeMode, ThemeName } from '../../hooks/ui/useThemeState';
+import type { ThemeMode, ThemeName } from '../hooks/ui/useThemeState';
 
 interface GalleryPageProps {
   tab?: string;

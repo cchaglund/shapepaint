@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { navigate } from '../../lib/router';
+import { navigate } from '../lib/router';
 import { Link } from '../shared/Link';
-import { useRanking } from '../../hooks/challenge/useRanking';
-import { useDailyChallenge } from '../../hooks/challenge/useDailyChallenge';
+import { useRanking } from '../hooks/challenge/useRanking';
+import { useDailyChallenge } from '../hooks/challenge/useDailyChallenge';
 import { WinnerCard } from '../submission/WinnerCard';
-import { getShapeSVGData } from '../../utils/shapes';
+import { getShapeSVGData } from '../utils/shapes';
 import { TopBar } from '../canvas/TopBar';
-import type { ThemeMode, ThemeName } from '../../hooks/ui/useThemeState';
+import type { ThemeMode, ThemeName } from '../hooks/ui/useThemeState';
 
 interface WinnersDayPageProps {
   date: string;

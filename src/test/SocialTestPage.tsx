@@ -10,7 +10,7 @@
 import { useState } from 'react';
 
 import { SubmissionThumbnail } from '../components/shared/SubmissionThumbnail';
-import { UserProfilePage } from '../components/pages/UserProfilePage';
+import { UserProfilePage } from '../pages/UserProfilePage';
 import { FriendsFeedContent } from '../components/FriendsFeed/FriendsFeedContent';
 import { FriendsModal } from '../components/modals/FriendsModal';
 import { FriendsModalTabs, type FriendsTab } from '../components/modals/FriendsModalTabs';

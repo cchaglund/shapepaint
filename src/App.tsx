@@ -11,14 +11,14 @@ import { LoadingSpinner } from './components/shared/LoadingSpinner';
 const ShapeExplorer = lazy(() => import('./components/admin/ShapeExplorer').then(m => ({ default: m.ShapeExplorer })));
 const ColorTester = lazy(() => import('./components/admin/ColorTester').then(m => ({ default: m.ColorTester })));
 const Dashboard = lazy(() => import('./components/admin/Dashboard').then(m => ({ default: m.Dashboard })));
-const GalleryPage = lazy(() => import('./components/pages/GalleryPage').then(m => ({ default: m.GalleryPage })));
-const SubmissionDetailPage = lazy(() => import('./components/pages/SubmissionDetailPage').then(m => ({ default: m.SubmissionDetailPage })));
-const WinnersDayPage = lazy(() => import('./components/pages/WinnersDayPage').then(m => ({ default: m.WinnersDayPage })));
-const WallOfTheDayPage = lazy(() => import('./components/pages/WallOfTheDayPage').then(m => ({ default: m.WallOfTheDayPage })));
-const UserProfilePage = lazy(() => import('./components/pages/UserProfilePage').then(m => ({ default: m.UserProfilePage })));
+const GalleryPage = lazy(() => import('./pages/GalleryPage').then(m => ({ default: m.GalleryPage })));
+const SubmissionDetailPage = lazy(() => import('./pages/SubmissionDetailPage').then(m => ({ default: m.SubmissionDetailPage })));
+const WinnersDayPage = lazy(() => import('./pages/WinnersDayPage').then(m => ({ default: m.WinnersDayPage })));
+const WallOfTheDayPage = lazy(() => import('./pages/WallOfTheDayPage').then(m => ({ default: m.WallOfTheDayPage })));
+const UserProfilePage = lazy(() => import('./pages/UserProfilePage').then(m => ({ default: m.UserProfilePage })));
 const VotingTestPage = lazy(() => import('./test/VotingTestPage').then(m => ({ default: m.VotingTestPage })));
 const SocialTestPage = lazy(() => import('./test/SocialTestPage').then(m => ({ default: m.SocialTestPage })));
-const CanvasEditorPage = lazy(() => import('./components/canvas/CanvasEditorPage').then(m => ({ default: m.CanvasEditorPage })));
+const CanvasEditorPage = lazy(() => import('./pages/CanvasEditorPage').then(m => ({ default: m.CanvasEditorPage })));
 
 function AppContent() {
   // Apply theme globally so all pages respect the selected theme + dark mode
