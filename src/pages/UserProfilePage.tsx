@@ -1,9 +1,9 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { Link } from '../shared/Link';
+import { Link } from '../components/shared/Link';
 import { useUserProfile } from '../hooks/social/useUserProfile';
 import { useAuth } from '../hooks/auth/useAuth';
 import { useSubmissions } from '../hooks/submission/useSubmissions';
-import { FollowButton } from '../social/FollowButton';
+import { FollowButton } from '../components/social/FollowButton';
 import { getTodayDateUTC } from '../utils/dailyChallenge';
 import { fetchChallengesBatch } from '../hooks/challenge/useDailyChallenge';
 import { canViewCurrentDay } from '../utils/privacyRules';
@@ -13,11 +13,11 @@ import {
   getDaysInMonth,
   getFirstDayOfMonth,
 } from '../utils/calendarUtils';
-import { CalendarGrid } from '../Calendar/CalendarGrid';
-import { CalendarDayCell } from '../Calendar/CalendarDayCell';
-import { ContentNavigation } from '../Calendar/ContentNavigation';
+import { CalendarGrid } from '../components/Calendar/CalendarGrid';
+import { CalendarDayCell } from '../components/Calendar/CalendarDayCell';
+import { ContentNavigation } from '../components/Calendar/ContentNavigation';
 import type { DailyChallenge } from '../types';
-import { BackToCanvasLink } from '../shared/BackToCanvasLink';
+import { BackToCanvasLink } from '../components/shared/BackToCanvasLink';
 
 interface UserProfilePageProps {
   userId: string;

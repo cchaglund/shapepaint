@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
 import { navigate } from '../lib/router';
-import { WallContent } from '../Wall/WallContent';
+import { WallContent } from '../components/Wall/WallContent';
 import { useAuth } from '../hooks/auth/useAuth';
 import { useSubmissions } from '../hooks/submission/useSubmissions';
 import { getTodayDateUTC } from '../utils/dailyChallenge';
-import { BackToCanvasLink } from '../shared/BackToCanvasLink';
+import { BackToCanvasLink } from '../components/shared/BackToCanvasLink';
 
 interface WallOfTheDayPageProps {
   date: string;

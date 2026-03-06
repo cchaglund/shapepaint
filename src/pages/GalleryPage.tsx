@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { navigate } from '../lib/router';
-import { Link } from '../shared/Link';
+import { Link } from '../components/shared/Link';
 import { useAuth } from '../hooks/auth/useAuth';
 import { useSubmissions, type Submission } from '../hooks/submission/useSubmissions';
 import { getTodayDateUTC, getTwoDaysAgoDateUTC } from '../utils/dailyChallenge';
@@ -9,15 +9,15 @@ import { fetchChallengesBatch } from '../hooks/challenge/useDailyChallenge';
 import { fetchRankingsBySubmissionIds, fetchMonthlyWinners } from '../lib/api';
 import type { DailyChallenge } from '../types';
 import { formatDate, getDaysInMonth, getFirstDayOfMonth, MONTHS } from '../utils/calendarUtils';
-import type { ViewMode, WinnerEntry } from '../Calendar/types';
-import { CalendarViewToggle } from '../Calendar/CalendarViewToggle';
-import { ContentNavigation } from '../Calendar/ContentNavigation';
-import { CalendarGrid } from '../Calendar/CalendarGrid';
-import { CalendarDayCell } from '../Calendar/CalendarDayCell';
-import { CalendarStats } from '../Calendar/CalendarStats';
-import { WallTab } from '../Calendar/tabs/WallTab';
-import { FriendsFeedTab } from '../Calendar/tabs/FriendsFeedTab';
-import { TopBar } from '../canvas/TopBar';
+import type { ViewMode, WinnerEntry } from '../components/Calendar/types';
+import { CalendarViewToggle } from '../components/Calendar/CalendarViewToggle';
+import { ContentNavigation } from '../components/Calendar/ContentNavigation';
+import { CalendarGrid } from '../components/Calendar/CalendarGrid';
+import { CalendarDayCell } from '../components/Calendar/CalendarDayCell';
+import { CalendarStats } from '../components/Calendar/CalendarStats';
+import { WallTab } from '../components/Calendar/tabs/WallTab';
+import { FriendsFeedTab } from '../components/Calendar/tabs/FriendsFeedTab';
+import { TopBar } from '../components/canvas/TopBar';
 import type { ThemeMode, ThemeName } from '../hooks/ui/useThemeState';
 
 interface GalleryPageProps {

@@ -1,12 +1,12 @@
 import { useRef } from 'react';
-import { Link } from '../shared/Link';
+import { Link } from '../components/shared/Link';
 import { useAuth } from '../hooks/auth/useAuth';
 import { useSubmissions } from '../hooks/submission/useSubmissions';
 import { useRanking } from '../hooks/challenge/useRanking';
 import { useDailyChallenge } from '../hooks/challenge/useDailyChallenge';
 import { useSubmissionDetail } from '../hooks/submission/useSubmissionDetail';
 import { useExportActions } from '../hooks/submission/useExportActions';
-import { FollowButton } from '../social/FollowButton';
+import { FollowButton } from '../components/social/FollowButton';
 import {
   SubmissionCanvas,
   SubmissionNavigation,
@@ -15,9 +15,9 @@ import {
   SubmissionStatsCard,
   ExportActionsCard,
   LikeButton,
-} from '../submission';
-import { TopBar } from '../canvas/TopBar';
-import { LoadingSpinner } from '../shared/LoadingSpinner';
+} from '../components/submission';
+import { TopBar } from '../components/canvas/TopBar';
+import { LoadingSpinner } from '../components/shared/LoadingSpinner';
 import type { ThemeMode, ThemeName } from '../hooks/ui/useThemeState';
 
 interface SubmissionDetailPageProps {

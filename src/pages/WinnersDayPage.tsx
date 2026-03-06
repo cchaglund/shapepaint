@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { navigate } from '../lib/router';
-import { Link } from '../shared/Link';
+import { Link } from '../components/shared/Link';
 import { useRanking } from '../hooks/challenge/useRanking';
 import { useDailyChallenge } from '../hooks/challenge/useDailyChallenge';
-import { WinnerCard } from '../submission/WinnerCard';
+import { WinnerCard } from '../components/submission/WinnerCard';
 import { getShapeSVGData } from '../utils/shapes';
-import { TopBar } from '../canvas/TopBar';
+import { TopBar } from '../components/canvas/TopBar';
 import type { ThemeMode, ThemeName } from '../hooks/ui/useThemeState';
 
 interface WinnersDayPageProps {
