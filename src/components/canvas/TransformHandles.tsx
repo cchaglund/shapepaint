@@ -133,16 +133,25 @@ function makeRotationCursor(angleDeg: number): string {
   return cursor;
 }
 
-/** Compute rotation angle for a corner's cursor, accounting for shape rotation */
-function getRotationCursorAngle(cornerId: string, rotation: number): number {
-  // Base angles per corner (cursor independent of flips)
-  const baseAngles: Record<string, number> = {
-    'rotate-ne': 0,
-    'rotate-se': 90,
-    'rotate-sw': 180,
-    'rotate-nw': 270,
+/** Compute screen-space rotation angle for a corner's cursor */
+function getRotationCursorAngle(cornerId: string, flipX: boolean, flipY: boolean, rotation: number): number {
+  const vectors: Record<string, { x: number; y: number }> = {
+    'rotate-ne': { x: 1, y: -1 },
+    'rotate-se': { x: 1, y: 1 },
+    'rotate-sw': { x: -1, y: 1 },
+    'rotate-nw': { x: -1, y: -1 },
   };
-  return (baseAngles[cornerId] ?? 0) + rotation;
+  const v = vectors[cornerId] ?? { x: 1, y: -1 };
+  // Apply rotation then flip (matching SVG transform order)
+  const rad = (rotation * Math.PI) / 180;
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+  const rx = v.x * cos - v.y * sin;
+  const ry = v.x * sin + v.y * cos;
+  const sx = rx * (flipX ? -1 : 1);
+  const sy = ry * (flipY ? -1 : 1);
+  // Base cursor (0°) points NE (-45° in math coords), so offset +45°
+  return Math.atan2(sy, sx) * (180 / Math.PI) + 45;
 }
 
 /** 4 corner rotation zones positioned diagonally outside the bounding box */
@@ -195,7 +204,7 @@ export function TransformInteractionLayer({
           width={rotationPad}
           height={rotationPad}
           fill="transparent"
-          style={{ cursor: makeRotationCursor(getRotationCursorAngle(corner.id, shape.rotation)), touchAction: 'none' }}
+          style={{ cursor: makeRotationCursor(getRotationCursorAngle(corner.id, shape.flipX ?? false, shape.flipY ?? false, shape.rotation)), touchAction: 'none' }}
           onMouseDown={onRotateStart}
           onTouchStart={onRotateStart}
           onMouseEnter={() => onHandleHover?.('rotate')}
@@ -560,7 +569,7 @@ export function MultiSelectInteractionLayer({
           width={rotationPad}
           height={rotationPad}
           fill="transparent"
-          style={{ cursor: makeRotationCursor(getRotationCursorAngle(corner.id, 0)), touchAction: 'none' }}
+          style={{ cursor: makeRotationCursor(getRotationCursorAngle(corner.id, false, false, 0)), touchAction: 'none' }}
           onMouseDown={onRotateStart}
           onTouchStart={onRotateStart}
           onMouseEnter={() => onHandleHover?.('rotate')}
