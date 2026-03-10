@@ -165,7 +165,8 @@ export function useVoting(userId: string | undefined, challengeDate: string): Us
 
         setVoteCount(result.voteCount);
         if (result.requiredVotes !== undefined) setRequiredVotes(result.requiredVotes);
-        setHasEnteredRanking(result.enteredRanking);
+        const effectiveRequired = result.requiredVotes ?? requiredVotes;
+        setHasEnteredRanking(result.enteredRanking || result.voteCount >= effectiveRequired);
 
         await fetchNextPair();
       } catch (error) {

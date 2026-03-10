@@ -257,20 +257,30 @@ serve(async (req: Request) => {
     } else {
       // Create new status
       const voteCount = isActualVote ? 1 : 0;
+      const enteredRanking = voteCount >= requiredVotes;
 
       await supabaseAdmin.from('user_voting_status').insert({
         user_id: user.id,
         challenge_date: challengeDate,
         vote_count: voteCount,
-        entered_ranking: false,
+        entered_ranking: enteredRanking,
       });
+
+      // If entered on first vote, mark today's submission as included in ranking
+      if (enteredRanking) {
+        await supabaseAdmin
+          .from('submissions')
+          .update({ included_in_ranking: true })
+          .eq('user_id', user.id)
+          .eq('challenge_date', todayDate);
+      }
 
       return new Response(
         JSON.stringify({
           success: true,
           voteCount,
           requiredVotes,
-          enteredRanking: false,
+          enteredRanking,
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
