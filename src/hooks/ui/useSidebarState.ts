@@ -22,7 +22,7 @@ function loadState(): SidebarState {
       const parsed = JSON.parse(stored);
       return {
         leftOpen: isMobile ? false : (parsed.leftOpen ?? true),
-        rightOpen: isMobile ? false : (parsed.rightOpen ?? true),
+        rightOpen: isMobile ? false : (parsed.rightOpen ?? false),
         leftWidth: parsed.leftWidth ?? DEFAULT_LEFT_WIDTH,
         rightWidth: parsed.rightWidth ?? DEFAULT_RIGHT_WIDTH,
       };
@@ -32,7 +32,7 @@ function loadState(): SidebarState {
   }
   return {
     leftOpen: !isMobile,
-    rightOpen: !isMobile,
+    rightOpen: false,
     leftWidth: DEFAULT_LEFT_WIDTH,
     rightWidth: DEFAULT_RIGHT_WIDTH,
   };
