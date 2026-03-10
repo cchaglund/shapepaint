@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import type { Shape } from '../../types';
 import type { DragState } from '../../types/canvas';
+import { getShapeDimensions } from '../../utils/shapes';
 
 interface UseShapeDragOptions {
   shapes: Shape[];
@@ -70,9 +71,11 @@ export function useShapeDrag({
         // Pure screen-space resize logic
         // We completely ignore rotation/flip - just use where the mouse actually is
 
-        // Shape center in screen space
-        const centerX = ds.startShapeX + ds.startSize / 2;
-        const centerY = ds.startShapeY + ds.startSize / 2;
+        // Shape center in screen space (use actual rendered dimensions)
+        const startW = ds.startWidth ?? ds.startSize;
+        const startH = ds.startHeight ?? ds.startSize;
+        const centerX = ds.startShapeX + startW / 2;
+        const centerY = ds.startShapeY + startH / 2;
 
         // Where the drag started (the grabbed corner's screen position)
         const grabX = ds.startX;
@@ -134,9 +137,11 @@ export function useShapeDrag({
           const newCenterX = anchorX + (centerX - anchorX) * ratio;
           const newCenterY = anchorY + (centerY - anchorY) * ratio;
 
-          // Convert center to top-left position
-          const newX = newCenterX - newSize / 2;
-          const newY = newCenterY - newSize / 2;
+          // Convert center to top-left using actual dimensions (scale proportionally)
+          const newW = startW * ratio;
+          const newH = startH * ratio;
+          const newX = newCenterX - newW / 2;
+          const newY = newCenterY - newH / 2;
 
           onUpdateShapeRef.current(ds.shapeId, {
             size: newSize,
@@ -204,8 +209,9 @@ export function useShapeDrag({
           const draggedShape = shapesRef.current.find((s) => s.id === ds.shapeId);
           if (!draggedShape) return;
 
-          const centerX = draggedShape.x + draggedShape.size / 2;
-          const centerY = draggedShape.y + draggedShape.size / 2;
+          const rotDims = getShapeDimensions(draggedShape.type, draggedShape.size);
+          const centerX = draggedShape.x + rotDims.width / 2;
+          const centerY = draggedShape.y + rotDims.height / 2;
 
           const startAngle = Math.atan2(
             ds.startY - centerY,
@@ -269,8 +275,10 @@ export function useShapeDrag({
           }, false);
         }
       } else if (ds.mode === 'resize') {
-        const centerX = ds.startShapeX + ds.startSize / 2;
-        const centerY = ds.startShapeY + ds.startSize / 2;
+        const tStartW = ds.startWidth ?? ds.startSize;
+        const tStartH = ds.startHeight ?? ds.startSize;
+        const centerX = ds.startShapeX + tStartW / 2;
+        const centerY = ds.startShapeY + tStartH / 2;
         const grabX = ds.startX;
         const grabY = ds.startY;
         const outDirX = grabX - centerX;
@@ -308,8 +316,10 @@ export function useShapeDrag({
           const ratio = newSize / ds.startSize;
           const newCenterX = anchorX + (centerX - anchorX) * ratio;
           const newCenterY = anchorY + (centerY - anchorY) * ratio;
-          const newX = newCenterX - newSize / 2;
-          const newY = newCenterY - newSize / 2;
+          const newW = tStartW * ratio;
+          const newH = tStartH * ratio;
+          const newX = newCenterX - newW / 2;
+          const newY = newCenterY - newH / 2;
           onUpdateShapeRef.current(ds.shapeId, { size: newSize, x: newX, y: newY }, false);
         }
       } else if (ds.mode === 'rotate') {
@@ -358,8 +368,9 @@ export function useShapeDrag({
           const draggedShape = shapesRef.current.find((s) => s.id === ds.shapeId);
           if (!draggedShape) return;
 
-          const centerX = draggedShape.x + draggedShape.size / 2;
-          const centerY = draggedShape.y + draggedShape.size / 2;
+          const tRotDims = getShapeDimensions(draggedShape.type, draggedShape.size);
+          const centerX = draggedShape.x + tRotDims.width / 2;
+          const centerY = draggedShape.y + tRotDims.height / 2;
 
           const startAngle = Math.atan2(ds.startY - centerY, ds.startX - centerX);
           const currentAngle = Math.atan2(point.y - centerY, point.x - centerX);

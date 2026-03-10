@@ -1,5 +1,7 @@
 import { useCallback } from 'react';
 import type { Shape, CanvasState } from '../../types';
+import { getShapeAABB } from '../../utils/shapeBounds';
+import { getShapeDimensions } from '../../utils/shapes';
 
 type SetCanvasState = (
   updater: CanvasState | ((prev: CanvasState) => CanvasState),
@@ -421,17 +423,20 @@ export function useShapeLayering(setCanvasState: SetCanvasState) {
           const shape = shapesToMirror[0];
           updates.set(shape.id, { flipX: !shape.flipX });
         } else {
+          // Use AABB to find the visual group bounds (accounts for rotation + actual dimensions)
           let minX = Infinity, maxX = -Infinity;
           for (const shape of shapesToMirror) {
-            minX = Math.min(minX, shape.x);
-            maxX = Math.max(maxX, shape.x + shape.size);
+            const aabb = getShapeAABB(shape);
+            minX = Math.min(minX, aabb.minX);
+            maxX = Math.max(maxX, aabb.maxX);
           }
           const centerX = (minX + maxX) / 2;
 
           for (const shape of shapesToMirror) {
-            const shapeCenterX = shape.x + shape.size / 2;
+            const dims = getShapeDimensions(shape.type, shape.size);
+            const shapeCenterX = shape.x + dims.width / 2;
             const newShapeCenterX = centerX + (centerX - shapeCenterX);
-            const newX = newShapeCenterX - shape.size / 2;
+            const newX = newShapeCenterX - dims.width / 2;
             updates.set(shape.id, { x: newX, flipX: !shape.flipX });
           }
         }
@@ -462,17 +467,20 @@ export function useShapeLayering(setCanvasState: SetCanvasState) {
           const shape = shapesToMirror[0];
           updates.set(shape.id, { flipY: !shape.flipY });
         } else {
+          // Use AABB to find the visual group bounds (accounts for rotation + actual dimensions)
           let minY = Infinity, maxY = -Infinity;
           for (const shape of shapesToMirror) {
-            minY = Math.min(minY, shape.y);
-            maxY = Math.max(maxY, shape.y + shape.size);
+            const aabb = getShapeAABB(shape);
+            minY = Math.min(minY, aabb.minY);
+            maxY = Math.max(maxY, aabb.maxY);
           }
           const centerY = (minY + maxY) / 2;
 
           for (const shape of shapesToMirror) {
-            const shapeCenterY = shape.y + shape.size / 2;
+            const dims = getShapeDimensions(shape.type, shape.size);
+            const shapeCenterY = shape.y + dims.height / 2;
             const newShapeCenterY = centerY + (centerY - shapeCenterY);
-            const newY = newShapeCenterY - shape.size / 2;
+            const newY = newShapeCenterY - dims.height / 2;
             updates.set(shape.id, { y: newY, flipY: !shape.flipY });
           }
         }

@@ -12,6 +12,9 @@ export interface DragState {
   startSize: number;
   startRotation: number;
   resizeCorner: string;
+  // Actual rendered dimensions (accounts for aspect ratio)
+  startWidth?: number;
+  startHeight?: number;
   // Store flip state to compensate for inverted coordinates
   flipX?: boolean;
   flipY?: boolean;

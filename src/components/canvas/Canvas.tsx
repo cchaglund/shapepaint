@@ -230,6 +230,7 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
       const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
       const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
       const point = getSVGPoint(clientX, clientY);
+      const dims = getShapeDimensions(singleSelectedShape.type, singleSelectedShape.size);
       setDragState({
         mode: 'resize',
         shapeId: singleSelectedShape.id,
@@ -238,6 +239,8 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
         startShapeX: singleSelectedShape.x,
         startShapeY: singleSelectedShape.y,
         startSize: singleSelectedShape.size,
+        startWidth: dims.width,
+        startHeight: dims.height,
         startRotation: singleSelectedShape.rotation,
         resizeCorner: corner,
         flipX: singleSelectedShape.flipX,
@@ -255,6 +258,7 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
       const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
       const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
       const point = getSVGPoint(clientX, clientY);
+      const rotDims = getShapeDimensions(singleSelectedShape.type, singleSelectedShape.size);
       setDragState({
         mode: 'rotate',
         shapeId: singleSelectedShape.id,
@@ -263,6 +267,8 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
         startShapeX: singleSelectedShape.x,
         startShapeY: singleSelectedShape.y,
         startSize: singleSelectedShape.size,
+        startWidth: rotDims.width,
+        startHeight: rotDims.height,
         startRotation: singleSelectedShape.rotation,
         resizeCorner: '',
         flipX: singleSelectedShape.flipX,

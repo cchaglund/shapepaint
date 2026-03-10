@@ -115,9 +115,9 @@ export function useCanvasTouchGestures({
       const sortedByZ = [...shapes].sort((a, b) => b.zIndex - a.zIndex);
       for (const shape of sortedByZ) {
         if (!isShapeVisible(shape, groups)) continue;
-        const halfSize = shape.size / 2;
-        const centerX = shape.x + halfSize;
-        const centerY = shape.y + halfSize;
+        const dims = getShapeDimensions(shape.type, shape.size);
+        const centerX = shape.x + dims.width / 2;
+        const centerY = shape.y + dims.height / 2;
 
         // Rotate the test point around the shape center (inverse rotation)
         const angleRad = (-shape.rotation * Math.PI) / 180;
@@ -131,9 +131,9 @@ export function useCanvasTouchGestures({
         // Check if point is within shape bounds
         if (
           rotatedX >= shape.x &&
-          rotatedX <= shape.x + shape.size &&
+          rotatedX <= shape.x + dims.width &&
           rotatedY >= shape.y &&
-          rotatedY <= shape.y + shape.size
+          rotatedY <= shape.y + dims.height
         ) {
           return shape;
         }

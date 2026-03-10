@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import type { Shape } from '../../types';
+import { getShapeDimensions } from '../../utils/shapes';
 import { SVGShape } from '../shared/SVGShape';
 
 const prefersReducedMotion =
@@ -43,8 +44,9 @@ export function ShapeElement({
   if (!animating) return svgShape;
 
   // Scale from center of shape in SVG coordinates
-  const cx = shape.x + shape.size / 2;
-  const cy = shape.y + shape.size / 2;
+  const dims = getShapeDimensions(shape.type, shape.size);
+  const cx = shape.x + dims.width / 2;
+  const cy = shape.y + dims.height / 2;
 
   return (
     <motion.g
