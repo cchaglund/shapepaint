@@ -1,4 +1,4 @@
-import { navigate } from '../../lib/router';
+
 import type { RankingEntry } from '../../types';
 import type { KeyMappings, KeyboardActionId, KeyBinding } from '../../constants/keyboardActions';
 import { KeyboardSettingsModal } from './KeyboardSettingsModal';
@@ -105,9 +105,7 @@ export function CanvasModals({
                 onDismissWinnerAnnouncement();
                 onDismissWinner();
               }}
-              onViewSubmission={(submissionId: string) => {
-                navigate(`?view=submission&id=${submissionId}`);
-              }}
+
             />
           ) : null}
         </>

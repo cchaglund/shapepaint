@@ -35,9 +35,6 @@ export function WinnersDayPage({ date, themeMode, onSetThemeMode, themeName, onS
       })
     : 'Loading...';
 
-  const handleViewSubmission = (submissionId: string) => {
-    navigate(`?view=submission&id=${submissionId}`);
-  };
 
   // Group entries by rank
   const winners = topThree.filter((e) => e.rank === 1);
@@ -142,7 +139,7 @@ export function WinnersDayPage({ date, themeMode, onSetThemeMode, themeName, onS
                             key={winner.submission_id}
                             entry={winner}
                             challenge={challenge}
-                            onView={handleViewSubmission}
+
                             size={winners.length > 2 ? 'sm' : winners.length > 1 ? 'md' : 'lg'}
                           />
                         ))}
@@ -158,7 +155,7 @@ export function WinnersDayPage({ date, themeMode, onSetThemeMode, themeName, onS
                           key={entry.submission_id}
                           entry={entry}
                           challenge={challenge}
-                          onView={handleViewSubmission}
+
                           size="sm"
                         />
                       ))}
@@ -167,7 +164,7 @@ export function WinnersDayPage({ date, themeMode, onSetThemeMode, themeName, onS
                           key={entry.submission_id}
                           entry={entry}
                           challenge={challenge}
-                          onView={handleViewSubmission}
+
                           size="sm"
                         />
                       ))}

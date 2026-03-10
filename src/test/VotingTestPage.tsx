@@ -214,9 +214,6 @@ export function VotingTestPage() {
       challengeDate={MOCK_CHALLENGE.date}
       topThree={topThree}
       onDismiss={() => setShowModal(false)}
-      onViewSubmission={(submissionId) => {
-        alert(`View submission: ${submissionId}`);
-      }}
     />
   );
 

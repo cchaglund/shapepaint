@@ -21,12 +21,6 @@ const HEADINGS: Record<number, string> = {
   3: '3rd Place!',
 };
 
-const SUBTEXTS: Record<number, string> = {
-  1: '1st place — Congratulations!',
-  2: 'Congratulations!',
-  3: 'Congratulations!',
-};
-
 export function CongratulatoryModal({
   userEntry,
   challengeDate,
@@ -91,8 +85,18 @@ export function CongratulatoryModal({
     );
   }
 
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr + 'T12:00:00');
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
   const heading = HEADINGS[userEntry.rank] ?? `#${userEntry.rank}`;
-  const subtext = SUBTEXTS[userEntry.rank] ?? 'Congratulations!';
+  const placeLabel = userEntry.rank === 1 ? 'won' : `placed ${userEntry.rank === 2 ? '2nd' : '3rd'}`;
+  const subtext = `The community has voted and your submission for ${formatDate(challengeDate)} ${placeLabel}!`;
 
   return (
     <Modal onClose={handleDismiss} ariaLabelledBy="congrats-title" dataTestId="congratulatory-modal">

@@ -9,14 +9,12 @@ interface WinnerAnnouncementModalProps {
   challengeDate: string;
   topThree: RankingEntry[];
   onDismiss: () => void;
-  onViewSubmission?: (submissionId: string) => void;
 }
 
 export function WinnerAnnouncementModal({
   challengeDate,
   topThree,
   onDismiss,
-  onViewSubmission,
 }: WinnerAnnouncementModalProps) {
   const { challenge, loading: challengeLoading } = useDailyChallenge(challengeDate);
 
@@ -65,7 +63,7 @@ export function WinnerAnnouncementModal({
               key={winner.submission_id}
               entry={winner}
               challenge={challenge}
-              onView={onViewSubmission}
+
               size={winners.length > 2 ? 'sm' : 'lg'}
             />
           ))}
@@ -81,7 +79,7 @@ export function WinnerAnnouncementModal({
               key={runnerUp.submission_id}
               entry={runnerUp}
               challenge={challenge}
-              onView={onViewSubmission}
+
               size="sm"
             />
           ))}
@@ -91,7 +89,7 @@ export function WinnerAnnouncementModal({
               key={thirdPlace.submission_id}
               entry={thirdPlace}
               challenge={challenge}
-              onView={onViewSubmission}
+
               size="sm"
             />
           ))}

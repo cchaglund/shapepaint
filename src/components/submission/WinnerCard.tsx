@@ -1,30 +1,28 @@
 import { SubmissionThumbnail } from '../shared/SubmissionThumbnail';
 import { TrophyBadge } from '../shared/TrophyBadge';
+import { Link } from '../shared/Link';
 import type { RankingEntry, DailyChallenge } from '../../types';
 
 interface WinnerCardProps {
   entry: RankingEntry;
   challenge: DailyChallenge;
-  onView?: (submissionId: string) => void;
   size?: 'sm' | 'md' | 'lg';
-  /** Use page variant styling (larger borders, shadows, consistent nickname style) */
-  /** Override the default thumbnail size */
 }
 
 export function WinnerCard({
   entry,
   challenge,
-  onView,
   size = 'md',
 }: WinnerCardProps) {
 
   // Page uses different thumbnail sizes than modal
   const thumbnailSize = (size === 'lg' ? 240 : size === 'md' ? 180 : 150)
+  const href = `?view=submission&id=${entry.submission_id}`;
 
   return (
-    <button
-      className={`flex flex-col items-center bg-transparent border-0 p-0 cursor-pointer transition-transform hover:scale-102`}
-      onClick={() => onView?.(entry.submission_id)}
+    <Link
+      href={href}
+      className={`flex flex-col items-center no-underline cursor-pointer transition-transform hover:scale-102`}
       title="View submission"
     >
       <div className="relative">
@@ -42,6 +40,6 @@ export function WinnerCard({
         </div>
       </div>
       <p className="mt-2 text-sm font-medium text-(--color-text-primary)">@{entry.nickname}</p>
-    </button>
+    </Link>
   );
 }
