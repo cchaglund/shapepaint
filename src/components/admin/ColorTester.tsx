@@ -1,53 +1,21 @@
 import { useState, useCallback } from 'react';
 import { Link } from '../shared';
-import { PALETTES } from '../../data/palettes';
+import { PALETTES, PALETTE_COUNT } from '../../../supabase/functions/_shared/palettes';
+import { pick3WithContrast } from '../../../supabase/functions/_shared/colorPicking';
 
 // =============================================================================
-// ColorTester - Palette-based color selection from Coolors.co palettes
+// ColorTester - Preview palette-based color selection
 // =============================================================================
-// Uses 365 pre-scraped 5-color palettes and picks 3 colors deterministically
-// based on a day index + year, so the same palette yields different picks
-// across years. This matches the edge function's color generation algorithm.
+// Uses the same palettes and contrast-aware picking logic as the edge function.
+// Day index determines the palette row; 3 of 5 colors are picked randomly,
+// ensuring at least one pair has sufficient contrast.
 // =============================================================================
 
-const PALETTE_COUNT = PALETTES.length; // 365
-
-/** Simple seeded PRNG (mulberry32) */
-function seededRandom(seed: number): () => number {
-  let s = seed | 0;
-  return () => {
-    s = (s + 0x6d2b79f5) | 0;
-    let t = Math.imul(s ^ (s >>> 15), 1 | s);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-/** Pick 3 unique indices from [0..4] using seeded random */
-function pick3From5(random: () => number): [number, number, number] {
-  const indices = [0, 1, 2, 3, 4];
-  // Fisher-Yates shuffle first 3
-  for (let i = 0; i < 3; i++) {
-    const j = i + Math.floor(random() * (5 - i));
-    [indices[i], indices[j]] = [indices[j], indices[i]];
-  }
-  return [indices[0], indices[1], indices[2]];
-}
-
-/** Get 3 colors for a given day-of-year (0-364) and year */
-function getColorsForDay(dayIndex: number, year: number): { colors: string[]; paletteIndex: number; fullPalette: string[]; pickedIndices: number[] } {
+function getColorsForDay(dayIndex: number): { colors: string[]; paletteIndex: number; fullPalette: string[]; pickedIndices: number[] } {
   const paletteIndex = dayIndex % PALETTE_COUNT;
   const palette = PALETTES[paletteIndex];
-  // Seed from both day and year so picks differ across years
-  const seed = dayIndex * 1000 + year;
-  const random = seededRandom(seed);
-  const picked = pick3From5(random);
-  return {
-    colors: picked.map(i => palette[i]),
-    paletteIndex,
-    fullPalette: palette,
-    pickedIndices: picked,
-  };
+  const { colors, pickedIndices } = pick3WithContrast(palette, Math.random);
+  return { colors, paletteIndex, fullPalette: palette, pickedIndices };
 }
 
 interface HistoryEntry {
@@ -56,31 +24,29 @@ interface HistoryEntry {
   fullPalette: string[];
   pickedIndices: number[];
   dayIndex: number;
-  year: number;
 }
 
 export function ColorTester() {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [simulatedDay, setSimulatedDay] = useState(0);
-  const [simulatedYear, setSimulatedYear] = useState(2026);
 
   const handleGenerate = useCallback(() => {
-    const result = getColorsForDay(simulatedDay, simulatedYear);
-    setHistory(prev => [{ ...result, dayIndex: simulatedDay, year: simulatedYear }, ...prev]);
+    const result = getColorsForDay(simulatedDay);
+    setHistory(prev => [{ ...result, dayIndex: simulatedDay }, ...prev]);
     setSimulatedDay(prev => (prev + 1) % PALETTE_COUNT);
-  }, [simulatedDay, simulatedYear]);
+  }, [simulatedDay]);
 
   const handleGenerateBatch = useCallback((count: number) => {
     const entries: HistoryEntry[] = [];
     let day = simulatedDay;
     for (let i = 0; i < count; i++) {
-      const result = getColorsForDay(day, simulatedYear);
-      entries.push({ ...result, dayIndex: day, year: simulatedYear });
+      const result = getColorsForDay(day);
+      entries.push({ ...result, dayIndex: day });
       day = (day + 1) % PALETTE_COUNT;
     }
     setHistory(prev => [...entries, ...prev]);
     setSimulatedDay(day);
-  }, [simulatedDay, simulatedYear]);
+  }, [simulatedDay]);
 
   const handleClear = useCallback(() => {
     setHistory([]);
@@ -95,9 +61,8 @@ export function ColorTester() {
         <header className="mb-8 text-center">
           <h1 className="text-3xl font-bold mb-2 text-(--color-text-primary)">Color Tester</h1>
           <p className="text-sm text-(--color-text-secondary)">
-            Tests palette-based color selection from <strong>365 Coolors.co palettes</strong>.
-            Each day picks a palette, then selects 3 of 5 colors using a seeded random
-            that varies by year.
+            Preview palette-based color selection from <strong>{PALETTE_COUNT} Coolors.co palettes</strong>.
+            Each day picks a palette, then 3 of 5 colors are selected randomly.
           </p>
         </header>
 
@@ -105,32 +70,19 @@ export function ColorTester() {
           {/* Settings */}
           <div className="w-full p-4 rounded-lg bg-(--color-bg-secondary)">
             <h3 className="text-sm font-semibold mb-3 text-(--color-text-primary)">Settings</h3>
-            <div className="flex gap-4 items-end">
-              <div className="flex-1">
-                <label className="text-xs text-(--color-text-tertiary) block mb-1">Day Index</label>
-                <input
-                  type="number"
-                  min={0}
-                  max={PALETTE_COUNT - 1}
-                  value={simulatedDay}
-                  onChange={e => setSimulatedDay(Math.max(0, Math.min(PALETTE_COUNT - 1, Number(e.target.value))))}
-                  className="w-full px-3 py-1.5 rounded border text-sm bg-(--color-bg-primary) border-(--color-border) text-(--color-text-primary)"
-                />
-              </div>
-              <div className="flex-1">
-                <label className="text-xs text-(--color-text-tertiary) block mb-1">Year</label>
-                <input
-                  type="number"
-                  min={2024}
-                  max={2100}
-                  value={simulatedYear}
-                  onChange={e => setSimulatedYear(Number(e.target.value))}
-                  className="w-full px-3 py-1.5 rounded border text-sm bg-(--color-bg-primary) border-(--color-border) text-(--color-text-primary)"
-                />
-              </div>
+            <div>
+              <label className="text-xs text-(--color-text-tertiary) block mb-1">Day Index</label>
+              <input
+                type="number"
+                min={0}
+                max={PALETTE_COUNT - 1}
+                value={simulatedDay}
+                onChange={e => setSimulatedDay(Math.max(0, Math.min(PALETTE_COUNT - 1, Number(e.target.value))))}
+                className="w-full px-3 py-1.5 rounded border text-sm bg-(--color-bg-primary) border-(--color-border) text-(--color-text-primary)"
+              />
             </div>
             <p className="text-xs text-(--color-text-tertiary) mt-2">
-              {PALETTE_COUNT} palettes available. Same palette + different year = different 3-color pick.
+              {PALETTE_COUNT} palettes available. Each generate picks a random 3 of 5 from the palette.
             </p>
           </div>
 
@@ -179,7 +131,7 @@ export function ColorTester() {
                 <div className="flex items-center gap-2 mb-3">
                   <h3 className="text-sm font-semibold text-(--color-text-primary)">Details</h3>
                   <span className="text-xs px-2 py-0.5 rounded-full bg-(--color-bg-tertiary) text-(--color-text-secondary)">
-                    Palette #{current.paletteIndex} &middot; Day {current.dayIndex} &middot; Year {current.year}
+                    Palette #{current.paletteIndex} &middot; Day {current.dayIndex}
                   </span>
                 </div>
 

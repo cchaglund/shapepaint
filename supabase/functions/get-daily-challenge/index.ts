@@ -16,6 +16,7 @@ import { serve } from 'std/http/server.ts';
 import { createClient } from '@supabase/supabase-js';
 import { PALETTES, PALETTE_COUNT } from '../_shared/palettes.ts';
 import { WORDS_ORDER, WORDS_LIST } from '../_shared/words.ts';
+import { pick3WithContrast } from '../_shared/colorPicking.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -186,19 +187,10 @@ function getYear(dateStr: string): number {
   return new Date(dateStr + 'T12:00:00Z').getUTCFullYear();
 }
 
-/** Pick 3 unique indices from [0..4] using seeded random (Fisher-Yates) */
-function pick3From5(random: () => number): [number, number, number] {
-  const indices = [0, 1, 2, 3, 4];
-  for (let i = 0; i < 3; i++) {
-    const j = i + Math.floor(random() * (5 - i));
-    [indices[i], indices[j]] = [indices[j], indices[i]];
-  }
-  return [indices[0], indices[1], indices[2]];
-}
-
 /**
  * Get 3 colors for a given date from curated palettes.
  * Day-of-year determines which palette, seed from day+year determines which 3 colors.
+ * Ensures at least one pair has sufficient contrast so one color stands out.
  */
 function getColorsForDate(dateStr: string): string[] {
   const dayIndex = getDayOfYear(dateStr) - 1; // 0-364
@@ -207,8 +199,7 @@ function getColorsForDate(dateStr: string): string[] {
   const palette = PALETTES[paletteIndex];
   const seed = dayIndex * 1000 + year;
   const random = seededRandom(seed);
-  const picked = pick3From5(random);
-  return picked.map(i => palette[i]);
+  return pick3WithContrast(palette, random).colors;
 }
 
 // =============================================================================

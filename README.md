@@ -418,24 +418,18 @@ See [docs/adding-shapes.md](docs/adding-shapes.md) for full instructions.
 
 1. The current date (YYYY-MM-DD) is hashed to create a numeric seed
 2. A seeded random number generator (mulberry32) ensures deterministic output
-3. Colors are generated in HSL space with a minimum perceptual distance check
+3. 3 of 5 colors are picked from the day's palette with a contrast check (see below)
 4. Two shapes are randomly selected from the available set
-5. **Smart randomness** checks the previous 3 days to avoid repeating similar combinations
-   - If both shapes AND colors are too similar to recent days, a new challenge is generated
-   - Uses a modified seed for re-rolling while maintaining determinism
+5. Shape selection avoids repeating yesterday's pair
 
-## Color Generation
+## Color System
 
-Color generation runs **SERVER-SIDE ONLY** in `supabase/functions/get-daily-challenge/index.ts`.
+Colors come from 365 curated Coolors.co palettes, with contrast-aware picking to ensure usable color combinations. See [docs/color-system.md](docs/color-system.md) for full details on how palettes are sourced, filtered, and how color picking works.
 
 After updating color generation code, you **MUST** deploy:
 ```bash
 supabase functions deploy get-daily-challenge
 ```
-
-- **ColorTester** (`?colors`) calls the server API - changes won't appear until deployed
-- Client-side code in `src/utils/dailyChallenge.ts` is an offline fallback only
-- The server is the source of truth; client code should be kept in sync for offline consistency
 
 
 ## License
