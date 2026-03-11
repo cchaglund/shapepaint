@@ -32,6 +32,7 @@ const TOOLTIP_LIGHT_MODE: TourTooltipStyle = {
   box: {
     background: '#241B3D',
     color: '#E8E0FF',
+    letterSpacing: '0.02em',
     borderRadius: 'var(--radius-lg)',
     boxShadow: '4px 4px 0 #1A1230',
   },
@@ -42,6 +43,7 @@ const TOOLTIP_DARK_MODE: TourTooltipStyle = {
   box: {
     background: '#FFFFFF',
     color: '#2D1B69',
+    letterSpacing: '0.02em',
     border: '2px solid #2D1B69',
     borderRadius: 'var(--radius-lg)',
     boxShadow: '4px 4px 0 #2D1B69',
