@@ -7,6 +7,7 @@ import { useAppRoute, isStandaloneRoute } from './hooks/useAppRoute';
 import { useThemeState } from './hooks/ui/useThemeState';
 import { useAuth } from './hooks/auth/useAuth';
 import { useAdmin } from './hooks/auth/useAdmin';
+import { useDateChangeReload } from './hooks/ui/useDateChangeReload';
 import { LoadingSpinner } from './components/shared/LoadingSpinner';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
 
@@ -40,6 +41,9 @@ function AppContent() {
 
   // Only fetch today's challenge for the canvas editor (standalone pages fetch their own)
   const todayDate = useMemo(() => getTodayDateUTC(), []);
+
+  // Reload the page when the server confirms a new day's challenge exists
+  useDateChangeReload(todayDate);
   const needsChallenge = route.type === 'canvas';
   const { challenge, loading: challengeLoading } = useDailyChallenge(needsChallenge ? todayDate : '');
 

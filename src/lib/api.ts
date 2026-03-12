@@ -206,6 +206,16 @@ export async function fetchChallengeRow(date: string): Promise<ChallengeRow | nu
   return data as ChallengeRow | null;
 }
 
+export async function fetchLatestChallengeDate(): Promise<string | null> {
+  const { data } = await supabase
+    .from('challenges')
+    .select('challenge_date')
+    .order('challenge_date', { ascending: false })
+    .limit(1)
+    .single();
+  return (data as { challenge_date: string } | null)?.challenge_date ?? null;
+}
+
 export async function fetchChallengeRows(dates: string[]): Promise<ChallengeRow[]> {
   if (dates.length === 0) return [];
   const { data } = await supabase
