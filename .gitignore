@@ -31,3 +31,6 @@ supabase/.temp
 
 # Playwright MCP snaps
 .playwright-mcp
+
+# codemogger db
+.codemogger/
