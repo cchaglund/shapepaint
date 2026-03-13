@@ -75,10 +75,14 @@ export function InfoTooltip({ text }: { text: string }) {
   return (
     <Tooltip content={text}>
       <span
-        className="lowercase align-middle inline-flex items-center justify-center w-4 h-4 ml-1.5 text-xs rounded-(--radius-pill) bg-(--color-border) text-(--color-text-tertiary) cursor-help hover:bg-(--color-accent) hover:text-(--color-accent-text) transition-colors"
+        className="align-middle inline-flex items-center justify-center w-4 h-4 ml-1.5 cursor-help text-(--color-text-tertiary) hover:text-(--color-accent) transition-colors"
         aria-label="More information"
       >
-        i
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M8 7v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <circle cx="8" cy="5" r="0.75" fill="currentColor" />
+        </svg>
       </span>
     </Tooltip>
   );

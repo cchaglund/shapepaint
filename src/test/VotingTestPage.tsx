@@ -130,10 +130,6 @@ export function VotingTestPage() {
     setCurrentPairIndex((prev) => Math.min(prev + 1, MOCK_VOTING_PAIRS.length - 1));
   };
 
-  const handleSkip = () => {
-    setCurrentPairIndex((prev) => Math.min(prev + 1, MOCK_VOTING_PAIRS.length - 1));
-  };
-
   const currentPair = MOCK_VOTING_PAIRS[currentPairIndex];
 
   // Interactive flow handlers
@@ -150,10 +146,6 @@ export function VotingTestPage() {
     }
   };
 
-  const handleFlowSkip = () => {
-    // Skip doesn't increment vote count
-    setFlowPairIndex((prev) => prev + 1);
-  };
 
   const handleFlowContinueVoting = () => {
     setFlowShowConfirmation(false);
@@ -225,12 +217,10 @@ export function VotingTestPage() {
             <VotingPairView
               currentPair={currentPair}
               challenge={MOCK_CHALLENGE}
-              challengeDate={MOCK_CHALLENGE.date}
               voteCount={voteCount}
               requiredVotes={5}
               submitting={false}
               onVote={handleVote}
-              onSkip={handleSkip}
               onSkipVoting={() => {}}
             />
           </div>
@@ -303,12 +293,10 @@ export function VotingTestPage() {
                 <VotingPairView
                   currentPair={flowPair}
                   challenge={MOCK_CHALLENGE}
-                  challengeDate={MOCK_CHALLENGE.date}
                   voteCount={flowVoteCount}
                   requiredVotes={flowRequiredVotes}
                   submitting={false}
                   onVote={handleFlowVote}
-                  onSkip={handleFlowSkip}
                   onSkipVoting={() => {}}
                 />
               )}

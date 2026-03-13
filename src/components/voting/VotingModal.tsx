@@ -45,7 +45,6 @@ export function VotingModal({
     noSubmissions,
     submissionCount,
     vote,
-    skip,
     fetchNextPair,
     initializeVoting,
   } = useVoting(userId, challengeDate);
@@ -66,10 +65,6 @@ export function VotingModal({
 
   const handleVote = async (winnerId: string) => {
     await vote(winnerId);
-  };
-
-  const handleSkip = async () => {
-    await skip();
   };
 
   const handleContinueVoting = () => {
@@ -151,12 +146,10 @@ export function VotingModal({
       <VotingPairView
         currentPair={currentPair}
         challenge={challenge}
-        challengeDate={challengeDate}
         voteCount={voteCount}
         requiredVotes={requiredVotes}
         submitting={submitting}
         onVote={handleVote}
-        onSkip={handleSkip}
         onSkipVoting={onSkipVoting}
       />
     );

@@ -4,82 +4,30 @@ import { SubmissionThumbnail } from '../shared/SubmissionThumbnail';
 import { useIsDesktop } from '../../hooks/ui/useBreakpoint';
 import type { VotingPairViewProps } from './types';
 
-function formatDate(dateStr: string) {
-  const date = new Date(dateStr + 'T12:00:00');
-  return date.toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  });
-}
-
 export function VotingPairView({
   currentPair,
   challenge,
-  challengeDate,
   voteCount,
   requiredVotes,
   submitting,
   onVote,
-  onSkip,
   onSkipVoting,
 }: VotingPairViewProps) {
   const isDesktop = useIsDesktop();
   const thumbnailSize = isDesktop ? 260 : undefined; // undefined = full width
+  const remaining = Math.max(0, requiredVotes - voteCount);
+  const percentage = requiredVotes > 0 ? Math.min((voteCount / requiredVotes) * 100, 100) : 100;
 
   return (
-    <div className="bg-(--color-bg-primary) border border-(--color-border) rounded-(--radius-lg) shadow-(--shadow-modal) w-full max-w-3xl">
-      {/* Header banner */}
-      <div className="px-4 py-4 md:px-6 md:py-5 border-b border-(--color-border-light) bg-(--color-bg-tertiary)">
-        <h2 className="text-center text-xl font-semibold text-(--color-text-primary) mb-2">
-          Your art has been saved!
-        </h2>
-        <p className="text-sm text-(--color-text-secondary) text-center max-w-md mx-auto mb-4">
-          Compete for the leaderboard by voting on others' submissions. Vote to participate, or skip if you prefer not to enter today.
-        </p>
-        <div className="flex justify-center">
-          <Button variant="danger" onClick={onSkipVoting}>
-            Skip participation
-          </Button>
-        </div>
-      </div>
-
-      {/* Main content */}
+    <div className="bg-(--color-bg-primary) border border-(--color-border) rounded-(--radius-lg) shadow-(--shadow-modal) w-full max-w-3xl overflow-hidden">
+      {/* Voting section */}
       <div className="p-4 md:p-6">
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <h3 id="voting-title" className="text-lg font-semibold text-(--color-text-primary) flex items-center gap-1">
-              Vote on Yesterday's Submissions
-              <InfoTooltip text="By voting you submit your artwork for the competition and it will be visible for others to vote on tomorrow. Winners are announced the following day." />
-            </h3>
-            <p className="text-sm text-(--color-text-secondary)">{formatDate(challengeDate)}</p>
-            <p className="text-sm text-(--color-text-tertiary) mt-0.5">
-              Word of the day was: <span className="font-medium">"{challenge.word}"</span>
-            </p>
-          </div>
-          <div className="text-right">
-            <div className="text-sm font-medium text-(--color-text-primary) tabular-nums">
-              {voteCount} of {requiredVotes} votes
-            </div>
-            <div className="text-xs text-(--color-text-tertiary)">
-              {requiredVotes - voteCount > 0
-                ? `${requiredVotes - voteCount} more to enter ranking`
-                : 'Entered in ranking!'}
-            </div>
-          </div>
-        </div>
-
-        {/* Progress bar */}
-        <div className="w-full h-1.5 bg-(--color-bg-tertiary) rounded-(--radius-pill) mb-6 overflow-hidden">
-          <div
-            className="h-full bg-(--color-accent) transition-all duration-300"
-            style={{ width: `${requiredVotes > 0 ? Math.min((voteCount / requiredVotes) * 100, 100) : 100}%` }}
-          />
-        </div>
-
-        {/* Voting guidance */}
-        <p className="text-sm text-center font-medium text-(--color-text-secondary) py-4">
-          Which of these two submissions do you prefer?
+        <h2 id="voting-title" className="text-2xl md:text-3xl font-semibold text-(--color-text-primary) text-center flex items-center justify-center gap-1.5 mb-2">
+          Vote on yesterday's submissions
+          <InfoTooltip text="By voting you submit your artwork for the competition and it will be visible for others to vote on tomorrow. Winners are announced the following day." />
+        </h2>
+        <p className="text-sm text-(--color-text-secondary) text-center mb-6">
+          Word of the day was "<span className="font-medium">{challenge.word}</span>"
         </p>
 
         {/* Side by side comparison (stacks vertically on mobile) */}
@@ -119,15 +67,35 @@ export function VotingPairView({
           </button>
         </div>
 
-        {/* Actions */}
-        <div className="flex justify-end">
-          <button
-            onClick={onSkip}
-            disabled={submitting}
-            className="cursor-pointer px-3 py-1.5 text-sm text-(--color-text-tertiary) hover:text-(--color-text-secondary) transition-colors disabled:opacity-50"
-          >
-            Can't decide, skip this pair
-          </button>
+        {/* Vote progress */}
+        <p className="text-sm text-center text-(--color-text-secondary) mb-3">
+          {remaining > 0
+            ? `${remaining} more vote${remaining !== 1 ? 's' : ''} to enter competition`
+            : 'Entered in competition!'}
+        </p>
+        <div className="w-full h-2 bg-(--color-border-light) rounded-(--radius-pill) overflow-hidden mb-1.5">
+          <div
+            className="h-full bg-(--color-accent) transition-all duration-300"
+            style={{ width: `${percentage}%` }}
+          />
+        </div>
+        <div className="text-right text-xs text-(--color-text-tertiary) tabular-nums">
+          {voteCount} of {requiredVotes} votes
+        </div>
+      </div>
+
+      {/* Footer banner */}
+      <div className="px-4 py-4 md:px-6 md:py-5 border-t border-(--color-border-light) bg-(--color-bg-tertiary)">
+        <h3 className="text-center text-xl font-semibold text-(--color-text-primary) mb-2">
+          Your art has been saved!
+        </h3>
+        <p className="text-sm text-(--color-text-secondary) text-center max-w-md mx-auto mb-4">
+          Compete for the leaderboard by voting on others' submissions. Vote to participate, or skip if you prefer not to enter today.
+        </p>
+        <div className="flex justify-center">
+          <Button variant="danger" onClick={onSkipVoting}>
+            Skip participation
+          </Button>
         </div>
       </div>
     </div>

@@ -8,12 +8,10 @@ export interface VotingProgressProps {
 export interface VotingPairViewProps {
   currentPair: VotingPair;
   challenge: DailyChallenge;
-  challengeDate: string;
   voteCount: number;
   requiredVotes: number;
   submitting: boolean;
   onVote: (winnerId: string) => void;
-  onSkip: () => void;
   onSkipVoting: () => void;
 }
 
