@@ -3,9 +3,11 @@ import type { Shape, ShapeType } from '../../types';
 import { getShapeSVGData, SHAPE_NAMES } from '../../utils/shapes';
 import { MultiSelectTransformLayer } from '../canvas/TransformHandles';
 import { Link } from '../shared/Link';
+import { SHAPE_SIMILARITY_GROUPS } from '../../../supabase/functions/_shared/shapeSimilarityGroups';
 
 const SHAPE_TYPES = Object.keys(SHAPE_NAMES) as ShapeType[];
 const SAMPLE_SIZE = 100;
+const GROUP_PREVIEW_SIZE = 64;
 
 function makeShape(type: ShapeType, size: number): Shape {
   return {
@@ -24,12 +26,14 @@ function makeShape(type: ShapeType, size: number): Shape {
 interface ShapePreviewProps {
   type: ShapeType;
   size: number;
-  showBoundingRect: boolean;
-  showOutline: boolean;
+  showBoundingRect?: boolean;
+  showOutline?: boolean;
 }
 
-function ShapePreview({ type, size, showBoundingRect, showOutline }: ShapePreviewProps) {
-  const { element, props, viewBox, dimensions } = getShapeSVGData(type, size);
+function ShapePreview({ type, size, showBoundingRect = false, showOutline = false }: ShapePreviewProps) {
+  const data = getShapeSVGData(type, size);
+  if (!data) return null;
+  const { element, props, viewBox, dimensions } = data;
 
   // Scale to fit within size while preserving aspect ratio
   const scale = Math.min(size / viewBox.width, size / viewBox.height);
@@ -71,6 +75,12 @@ function ShapePreview({ type, size, showBoundingRect, showOutline }: ShapePrevie
     </svg>
   );
 }
+
+// Filter similarity groups to only include shapes that exist in the frontend
+const validGroups = SHAPE_SIMILARITY_GROUPS.map((group) => ({
+  ...group,
+  shapes: group.shapes.filter((s) => SHAPE_TYPES.includes(s as ShapeType)),
+})).filter((group) => group.shapes.length >= 2);
 
 export function ShapeExplorer() {
   const [showBoundingRect, setShowBoundingRect] = useState(false);
@@ -114,35 +124,76 @@ export function ShapeExplorer() {
           </div>
         </header>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-          {SHAPE_TYPES.map((type) => (
-            <div
-              key={type}
-              className="p-6 rounded-lg border bg-(--color-bg-secondary) border-(--color-border)"
-            >
-              <div className="flex flex-col items-center gap-4">
-                <h2 className="text-lg font-semibold text-(--color-text-primary)">
-                  {SHAPE_NAMES[type]}
-                </h2>
-
-                <div className="p-3 rounded bg-(--color-bg-tertiary)">
-                  <ShapePreview
-                    type={type}
-                    size={SAMPLE_SIZE}
-                    showBoundingRect={showBoundingRect}
-                    showOutline={showOutline}
-                  />
-                </div>
-
-                <div className="text-center">
-                  <code className="text-xs px-2 py-1 rounded bg-(--color-bg-tertiary) text-(--color-text-secondary)">
-                    type: '{type}'
-                  </code>
+        {/* Similarity Groups */}
+        <section className="mb-12">
+          <h2 className="text-xl font-semibold mb-1 text-(--color-text-primary)">
+            Similarity Groups
+          </h2>
+          <p className="text-sm mb-4 text-(--color-text-secondary)">
+            Shapes within the same group will never be paired together in a daily challenge.
+            These groups are shared with the edge function — this is the live production config.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {validGroups.map((group) => (
+              <div
+                key={group.name}
+                className="p-4 rounded-lg border bg-(--color-bg-secondary) border-(--color-border)"
+              >
+                <h3 className="text-sm font-medium mb-3 text-(--color-text-primary)">
+                  {group.name}
+                </h3>
+                <div className="flex flex-wrap gap-3">
+                  {group.shapes.map((shapeType) => (
+                    <div key={shapeType} className="flex flex-col items-center gap-1">
+                      <div className="p-2 rounded bg-(--color-bg-tertiary)">
+                        <ShapePreview type={shapeType as ShapeType} size={GROUP_PREVIEW_SIZE} />
+                      </div>
+                      <span className="text-xs text-(--color-text-tertiary)">
+                        {SHAPE_NAMES[shapeType as ShapeType]}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </section>
+
+        {/* All Shapes */}
+        <section>
+          <h2 className="text-xl font-semibold mb-4 text-(--color-text-primary)">
+            All Shapes
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+            {SHAPE_TYPES.map((type) => (
+              <div
+                key={type}
+                className="p-6 rounded-lg border bg-(--color-bg-secondary) border-(--color-border)"
+              >
+                <div className="flex flex-col items-center gap-4">
+                  <h3 className="text-lg font-semibold text-(--color-text-primary)">
+                    {SHAPE_NAMES[type]}
+                  </h3>
+
+                  <div className="p-3 rounded bg-(--color-bg-tertiary)">
+                    <ShapePreview
+                      type={type}
+                      size={SAMPLE_SIZE}
+                      showBoundingRect={showBoundingRect}
+                      showOutline={showOutline}
+                    />
+                  </div>
+
+                  <div className="text-center">
+                    <code className="text-xs px-2 py-1 rounded bg-(--color-bg-tertiary) text-(--color-text-secondary)">
+                      type: '{type}'
+                    </code>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
 
         <footer className="mt-8 pt-6 border-t text-center text-sm border-(--color-border) text-(--color-text-tertiary)">
           <p>

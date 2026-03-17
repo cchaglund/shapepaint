@@ -17,6 +17,7 @@ import { createClient } from '@supabase/supabase-js';
 import { PALETTES, PALETTE_COUNT } from '../_shared/palettes.ts';
 import { WORDS_ORDER, WORDS_LIST } from '../_shared/words.ts';
 import { pick3WithContrast } from '../_shared/colorPicking.ts';
+import { areShapesTooSimilar } from '../_shared/shapeSimilarityGroups.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -232,13 +233,18 @@ function generateChallengeForDate(
   const word = getWordForDate(dateStr);
   const colors = getColorsForDate(dateStr);
 
-  // Try to find shapes that don't repeat yesterday's pair
+  // Try to find shapes that don't repeat yesterday's pair and aren't too similar
   for (let attempt = 0; attempt < 50; attempt++) {
     const random = seededRandom(baseSeed + attempt * 1000003);
     const shapes = generateShapes(random);
 
     // Don't repeat the same two shapes as yesterday
     if (previousChallenges.length > 0 && haveSameShapes(shapes, previousChallenges[0].shapes)) {
+      continue;
+    }
+
+    // Don't pair shapes that are too similar (e.g. ellipse + lens, hexagon + heptagon)
+    if (areShapesTooSimilar(shapes[0], shapes[1])) {
       continue;
     }
 
