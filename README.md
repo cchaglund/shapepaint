@@ -5,8 +5,24 @@ A daily art challenge app where you create art using only 3 colors and 2 geometr
 https://shapepaint.com
 
 - **Domain**: `shapepaint.com` registered at [Loopia.se](https://loopia.se), using Netlify DNS (nameservers pointed from Loopia → Netlify)
-- **Previous domain**: `2colors2shapes.com` (also Loopia, same setup) — redirects to shapepaint.com
+- **Previous domain**: `2colors2shapes.com` (also Loopia, same setup) — 301 redirects to shapepaint.com via `netlify.toml`
 - **Hosting**: [Netlify](https://netlify.com) with automatic SSL via Let's Encrypt
+- **Auth**: Google OAuth via Supabase — consent screen configured in [Google Cloud Console](https://console.cloud.google.com)
+- **SEO**: [Google Search Console](https://search.google.com/search-console) — domain verified via DNS TXT record in Netlify DNS
+
+### Changing the domain
+
+If migrating to a new domain, update all of these:
+
+1. **Loopia** — register new domain, point nameservers to Netlify (found in Netlify → Domain management → Netlify DNS)
+2. **Netlify** — add new domain to site, set as primary domain. Renew SSL cert if needed (Domain management → HTTPS → Renew certificate). Rename project to match.
+3. **Supabase** (Authentication → URL Configuration) — add new domain to Redirect URLs, then once live: update Site URL, swap netlify.app redirect URL to new project name
+4. **Google Cloud Console** (APIs & Services):
+   - OAuth consent screen → Branding: update app name, home page, privacy policy URL, add authorized domain
+   - Clients → OAuth client: add new domain to Authorized JavaScript origins, update netlify.app origin if project renamed
+5. **Google Search Console** — add new domain property, verify via DNS TXT record (added in Netlify DNS), submit sitemap
+6. **Codebase** — update URLs in `index.html` (OG/Twitter/canonical/structured data), `public/robots.txt`, `public/sitemap.xml`, `README.md`. Add 301 redirect from old domain in `netlify.toml`
+7. **Deploy** — build and deploy via `netlify deploy --prod --dir=dist`
 
 ## Concept
 
