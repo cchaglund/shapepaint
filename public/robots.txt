@@ -1,7 +1,7 @@
-# robots.txt for 2colors2shapes.com
+# robots.txt for shapepaint.com
 
 User-agent: *
 Allow: /
 
 # Sitemap location
-Sitemap: https://2colors2shapes.com/sitemap.xml
+Sitemap: https://shapepaint.com/sitemap.xml

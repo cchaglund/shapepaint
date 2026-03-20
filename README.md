@@ -2,9 +2,10 @@
 
 A daily art challenge app where you create art using only 3 colors and 2 geometric shapes.
 
-https://2colors2shapes.com
+https://shapepaint.com
 
-- **Domain**: Registered at [Loopia.se](https://loopia.se), using Netlify DNS
+- **Domain**: `shapepaint.com` registered at [Loopia.se](https://loopia.se), using Netlify DNS (nameservers pointed from Loopia → Netlify)
+- **Previous domain**: `2colors2shapes.com` (also Loopia, same setup) — redirects to shapepaint.com
 - **Hosting**: [Netlify](https://netlify.com) with automatic SSL via Let's Encrypt
 
 ## Concept

@@ -11,6 +11,13 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "geolocation=(), microphone=(), camera=()"
 
+# Redirect old domain to new domain
+[[redirects]]
+  from = "https://2colors2shapes.com/*"
+  to = "https://shapepaint.com/:splat"
+  status = 301
+  force = true
+
 # SPA fallback - all routes serve index.html
 [[redirects]]
   from = "/*"
