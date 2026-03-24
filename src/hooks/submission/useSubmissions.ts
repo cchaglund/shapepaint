@@ -70,9 +70,13 @@ export function useSubmissions(userId: string | undefined, todayDate?: string) {
         mySubmissionsCache.current = null;
         monthCache.current.clear();
         return { success: true };
-      } catch (err) {
+      } catch (err: unknown) {
         setSaving(false);
-        return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+        const message = err instanceof Error ? err.message
+          : typeof err === 'object' && err !== null && 'message' in err ? String((err as { message: unknown }).message)
+          : 'Unknown error';
+        console.error('[saveSubmission] Upsert failed:', err);
+        return { success: false, error: message };
       }
     },
     [userId]
