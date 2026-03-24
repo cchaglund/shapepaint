@@ -28,6 +28,7 @@ interface TopBarProps {
   onSave?: () => void;
   isSaving?: boolean;
   saveStatus?: 'idle' | 'saved' | 'error';
+  saveError?: string | null;
   hasSubmittedToday?: boolean;
   isLoggedIn?: boolean;
   profile?: Profile | null;
@@ -52,6 +53,7 @@ export function TopBar({
   onSave,
   isSaving,
   saveStatus,
+  saveError,
   hasSubmittedToday,
   isLoggedIn,
   profile: profileProp,
@@ -89,6 +91,7 @@ export function TopBar({
           onSave={onSave}
           isSaving={isSaving}
           saveStatus={saveStatus}
+          saveError={saveError}
           hasSubmittedToday={hasSubmittedToday}
           isLoggedIn={isLoggedIn}
           showGallery={isWide}
@@ -166,6 +169,7 @@ function DefaultRightContent({
   onSave,
   isSaving,
   saveStatus,
+  saveError,
   hasSubmittedToday,
   isLoggedIn,
   showGallery,
@@ -174,6 +178,7 @@ function DefaultRightContent({
   onSave?: () => void;
   isSaving?: boolean;
   saveStatus?: 'idle' | 'saved' | 'error';
+  saveError?: string | null;
   hasSubmittedToday?: boolean;
   isLoggedIn?: boolean;
   showGallery?: boolean;
@@ -183,11 +188,13 @@ function DefaultRightContent({
 
   const saveLabel = isSaving
     ? 'Saving...'
-    : saveStatus === 'saved'
-      ? 'Saved'
-      : hasSubmittedToday
-        ? 'Submitted'
-        : 'Submit!';
+    : saveStatus === 'error'
+      ? 'Failed'
+      : saveStatus === 'saved'
+        ? 'Saved'
+        : hasSubmittedToday
+          ? 'Submitted'
+          : 'Submit!';
 
   return (
     <>
@@ -207,11 +214,11 @@ function DefaultRightContent({
       <div data-tour="submit">
         {onSave && isLoggedIn ? (
           <Button
-            variant="primary"
-            className="px-4 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+            variant={saveStatus === 'error' ? 'secondary' : 'primary'}
+            className={`px-4 font-bold disabled:opacity-50 disabled:cursor-not-allowed ${saveStatus === 'error' ? 'text-(--color-danger)' : ''}`}
             onClick={onSave}
             disabled={isSaving || hasSubmittedToday}
-            title={hasSubmittedToday ? 'Already submitted today' : 'Submit your creation'}
+            title={saveStatus === 'error' && saveError ? saveError : hasSubmittedToday ? 'Already submitted today' : 'Submit your creation'}
           >
             {saveLabel}
           </Button>

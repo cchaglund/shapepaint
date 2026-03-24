@@ -45,10 +45,14 @@ export function useSubmissions(userId: string | undefined, todayDate?: string) {
 
   const saveSubmission = useCallback(
     async (params: SaveSubmissionParams): Promise<{ success: boolean; error?: string }> => {
-      if (!userId) return { success: false, error: 'Not authenticated' };
+      if (!userId) {
+        console.error('[saveSubmission] No userId — user session may have expired');
+        return { success: false, error: 'Not authenticated — try refreshing the page' };
+      }
 
       const MAX_SHAPES = 200;
       if (params.shapes.length > MAX_SHAPES) {
+        console.error(`[saveSubmission] Shape limit exceeded: ${params.shapes.length}/${MAX_SHAPES}`);
         return { success: false, error: `Maximum ${MAX_SHAPES} shapes per canvas` };
       }
 

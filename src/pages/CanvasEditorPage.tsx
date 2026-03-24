@@ -160,7 +160,7 @@ export function CanvasEditorPage({ challenge, todayDate, themeMode, onSetThemeMo
   } = useSidebarState();
 
   // Save submission
-  const { saveStatus, handleSave } = useSaveSubmission({
+  const { saveStatus, saveError, handleSave } = useSaveSubmission({
     challenge,
     shapes: canvasState.shapes,
     groups: canvasState.groups,
@@ -295,6 +295,7 @@ export function CanvasEditorPage({ challenge, todayDate, themeMode, onSetThemeMo
         onSave={handleSave}
         isSaving={saving}
         saveStatus={saveStatus}
+        saveError={saveError}
         hasSubmittedToday={hasSubmittedToday}
         isLoggedIn={!!user}
         profile={profile}

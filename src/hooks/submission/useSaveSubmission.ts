@@ -13,7 +13,7 @@ interface UseSaveSubmissionOptions {
     shapes: Shape[];
     groups: ShapeGroup[];
     backgroundColorIndex: number | null;
-  }) => Promise<{ success: boolean }>;
+  }) => Promise<{ success: boolean; error?: string }>;
   onSaveSuccess?: () => void;
 }
 
@@ -30,10 +30,15 @@ export function useSaveSubmission({
   onSaveSuccess,
 }: UseSaveSubmissionOptions) {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saved' | 'error'>('idle');
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const handleSave = useCallback(async () => {
-    if (!challenge) return;
+    if (!challenge) {
+      console.error('[handleSave] No challenge data available');
+      return;
+    }
     setSaveStatus('idle');
+    setSaveError(null);
     const result = await saveSubmission({
       challengeDate: challenge.date,
       shapes,
@@ -42,19 +47,24 @@ export function useSaveSubmission({
     });
     if (result.success) {
       setSaveStatus('saved');
-      // Reset to idle after 2 seconds
       setTimeout(() => setSaveStatus('idle'), 2000);
-      // Call success callback if user is logged in
       if (user) {
         onSaveSuccess?.();
       }
     } else {
+      console.error('[handleSave] Save failed:', result.error);
       setSaveStatus('error');
+      setSaveError(result.error ?? 'Something went wrong');
+      setTimeout(() => {
+        setSaveStatus('idle');
+        setSaveError(null);
+      }, 4000);
     }
   }, [saveSubmission, challenge, shapes, groups, backgroundColorIndex, user, onSaveSuccess]);
 
   return {
     saveStatus,
+    saveError,
     handleSave,
   };
 }
