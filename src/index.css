@@ -103,6 +103,13 @@
 /* Map Tailwind's dark: variant to our data-mode attribute */
 @custom-variant dark (&:is([data-mode="dark"] *));
 
+@utility scrollbar-hide {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @layer base {
   /*
    * Multi-Theme Design System

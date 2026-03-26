@@ -150,7 +150,7 @@ export function ToolsPanel({
 
   return (
     <div
-      className="flex flex-col items-center gap-1.5 py-1.5 px-1.5 bg-(--color-card-bg) overflow-y-auto"
+      className="flex flex-col items-center gap-1.5 py-1.5 px-1.5 bg-(--color-card-bg) overflow-y-auto scrollbar-hide"
       style={{
         border: 'var(--border-width, 2px) solid var(--color-border)',
         borderRadius: 'var(--radius-lg)',
