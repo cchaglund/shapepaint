@@ -41,16 +41,9 @@ export function getWavePath(size: number): string {
   return `M 0,${size} Q 0,${size * 0.444} ${size * 0.444},${size * 0.111} L ${size},0 Q ${size * 0.556},${size * 0.444} ${size * 0.889},${size} Z`;
 }
 
-// Generate hook - curved hook shape
+// Generate hook - curved hook shape (solid, no inner hole)
 export function getHookPath(size: number): string {
-  // Original x range: 0.3 to 1.0 (width 0.7), normalize to 0-1
-  // Transform: newX = (oldX - 0.3) / 0.7
-  return `M 0,0 L ${size * 0.286},0 Q ${size},0 ${size},${size * 0.4} Q ${size},${size * 0.7} ${size * 0.429},${size * 0.7} L ${size * 0.429},${size} L 0,${size} L 0,${size * 0.5} Q 0,${size * 0.2} ${size * 0.429},${size * 0.2} Q ${size * 0.643},${size * 0.2} ${size * 0.643},${size * 0.4} Q ${size * 0.643},${size * 0.5} ${size * 0.429},${size * 0.5} L 0,${size * 0.5} Z`;
-}
-
-// Outer-only outline for hook (no inner hole stroke)
-export function getHookOutlinePath(size: number): string {
-  return `M 0,0 L ${size * 0.286},0 Q ${size},0 ${size},${size * 0.4} Q ${size},${size * 0.7} ${size * 0.429},${size * 0.7} L ${size * 0.429},${size} L 0,${size} L 0,${size * 0.5} Z`;
+  return `M 0,0 L ${size * 0.286},0 Q ${size},0 ${size},${size * 0.4} Q ${size},${size * 0.7} ${size * 0.429},${size * 0.7} L ${size * 0.429},${size} L 0,${size} Z`;
 }
 
 // Claw — fixed Figma export (native viewBox: 275×287)

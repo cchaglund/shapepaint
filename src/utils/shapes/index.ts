@@ -18,7 +18,6 @@ export {
   getArchPath,
   getWavePath,
   getHookPath,
-  getHookOutlinePath,
   CLAW_PATH,
   CLAW_NATIVE_VIEWBOX,
   CRESCENT_PATH,

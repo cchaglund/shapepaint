@@ -19,7 +19,6 @@ import {
   getArchOutlinePath,
   getWavePath,
   getHookPath,
-  getHookOutlinePath,
   CLAW_PATH,
   CLAW_NATIVE_VIEWBOX,
   CRESCENT_PATH,
@@ -253,7 +252,6 @@ export function getShapeSVGData(type: ShapeType, size: number) {
         element: 'path' as const,
         props: { d: getHookPath(size) },
         viewBox: { width, height },
-        outlineD: getHookOutlinePath(size),
       };
 
     case 'crescent':
