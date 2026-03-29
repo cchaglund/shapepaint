@@ -11,10 +11,11 @@ import { Link } from './Link';
  * - ghost:     selected/tinted bg, no shadow (Gallery, subtle actions)
  * - inverse:   dark bg (text-primary as bg), shadow (Log in)
  * - danger:    danger bg + shadow (destructive actions)
+ * - muted:     tertiary bg, light border, turns danger on hover (Unfollow, Remove)
  * - link:      text-only, no bg/border/shadow (Cancel, dismiss, escape hatches)
  */
 
-export type ButtonVariant = 'secondary' | 'primary' | 'ghost' | 'inverse' | 'danger' | 'link' | 'tooltipPrimary' | 'tooltipSecondary' | 'tooltipDanger';
+export type ButtonVariant = 'secondary' | 'primary' | 'ghost' | 'inverse' | 'danger' | 'muted' | 'link' | 'tooltipPrimary' | 'tooltipSecondary' | 'tooltipDanger';
 
 const variantClasses: Record<ButtonVariant, string> = {
   secondary:
@@ -22,11 +23,13 @@ const variantClasses: Record<ButtonVariant, string> = {
   primary:
     'bg-(--color-accent) text-(--color-accent-text) hover:bg-(--color-accent-hover) hover:translate-y-px active:translate-y-0.5',
   ghost:
-    'bg-(--color-selected) text-(--color-text-primary) hover:bg-(--color-selected-hover) hover:-translate-y-px active:translate-y-0',
+    'bg-(--color-selected) text-(--color-text-primary) hover:bg-(--color-selected-hover) hover:translate-y-px active:translate-y-0.5',
   inverse:
     'hover:translate-y-px active:translate-y-0.5',
   danger:
     'bg-(--color-danger) text-(--color-accent-text) hover:bg-(--color-danger-hover) hover:translate-y-px active:translate-y-0.5',
+  muted:
+    'bg-(--color-bg-tertiary) text-(--color-text-secondary) border-(--color-border-light) hover:bg-(--color-danger)/10 hover:text-(--color-danger) hover:border-(--color-danger) hover:translate-y-px active:translate-y-0.5',
   link:
     'text-(--color-text-secondary) hover:text-(--color-text-primary) hover:underline',
   tooltipPrimary:
@@ -112,11 +115,16 @@ export function Button<T extends ElementType = 'button'>({
       }
     : {};
 
+  // Muted variant: set border-width/style inline, color via Tailwind classes (so hover can override)
+  const isMuted = variant === 'muted';
+
   return (
     <Tag
       className={`${sizeClasses[size][variant === 'link' ? 'link' : 'default']} rounded-(--radius-pill) font-semibold transition-all duration-150 cursor-pointer inline-flex items-center justify-center no-underline ${fullWidth ? 'w-full' : ''} ${variantClasses[variant]} ${className}`}
       style={{
-        ...(hasBorder ? { border: 'var(--border-width, 2px) solid var(--color-border)' } : { border: 'none' }),
+        ...(isMuted
+          ? { borderWidth: 'var(--border-width, 2px)', borderStyle: 'solid' }
+          : hasBorder ? { border: 'var(--border-width, 2px) solid var(--color-border)' } : { border: 'none' }),
         ...(hasShadow ? { boxShadow: 'var(--shadow-btn)' } : {}),
         ...inverseStyle,
         ...tooltipBtnStyle,

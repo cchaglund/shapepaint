@@ -117,7 +117,7 @@ function UserMenuContent({
   themeName?: ThemeName;
   onSetThemeName?: (name: ThemeName) => void;
 }) {
-  const { following, followers, followingCount, followersCount, loading, follow } = useFollows();
+  const { following, followers, followingCount, followersCount, loading, follow, unfollow, isFollowing } = useFollows();
   const [activeTab, setActiveTab] = useState<'following' | 'followers'>('following');
   const [addNickname, setAddNickname] = useState('');
   const [addStatus, setAddStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -200,7 +200,7 @@ function UserMenuContent({
       </div>
 
       {/* Friend list (scrollable) */}
-      <div className="flex-1 overflow-y-auto min-h-0">
+      <div className="flex-1 overflow-y-auto min-h-0 pb-1">
         {loading ? (
           <LoadingSpinner size="sm" inline />
         ) : friends.length === 0 ? (
@@ -209,16 +209,38 @@ function UserMenuContent({
           </div>
         ) : (
           friends.map(friend => (
-            <button
+            <div
               key={friend.id}
-              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-(--color-text-primary) hover:bg-(--color-hover) transition-colors cursor-pointer text-left"
-              onClick={() => handleNavigateToProfile(friend.id)}
+              className="group w-full flex items-center gap-2 px-4 py-2 text-sm text-(--color-text-primary) hover:bg-(--color-hover) transition-colors"
             >
-              <div className="w-6 h-6 rounded-(--radius-pill) bg-(--color-accent)/20 text-(--color-accent) flex items-center justify-center text-xs font-semibold shrink-0 leading-none">
-                {(friend.nickname || 'U')[0].toUpperCase()}
-              </div>
-              <span className="truncate">@{friend.nickname}</span>
-            </button>
+              <button
+                className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer text-left"
+                onClick={() => handleNavigateToProfile(friend.id)}
+              >
+                <div className="w-6 h-6 rounded-(--radius-pill) bg-(--color-accent)/20 text-(--color-accent) flex items-center justify-center text-xs font-semibold shrink-0 leading-none">
+                  {(friend.nickname || 'U')[0].toUpperCase()}
+                </div>
+                <span className="truncate">@{friend.nickname}</span>
+              </button>
+              {activeTab === 'following' && (
+                <Button
+                  variant="muted"
+                  className="shrink-0 h-6! px-2! text-xs! opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={(e: React.MouseEvent) => { e.stopPropagation(); unfollow(friend.id); }}
+                >
+                  Remove
+                </Button>
+              )}
+              {activeTab === 'followers' && !isFollowing(friend.id) && (
+                <Button
+                  variant="muted"
+                  className="shrink-0 h-6! px-2! text-xs!"
+                  onClick={(e: React.MouseEvent) => { e.stopPropagation(); follow(friend.id); }}
+                >
+                  Follow back
+                </Button>
+              )}
+            </div>
           ))
         )}
       </div>
