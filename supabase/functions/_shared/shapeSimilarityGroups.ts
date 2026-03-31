@@ -15,9 +15,9 @@ export interface ShapeSimilarityGroup {
 }
 
 export const SHAPE_SIMILARITY_GROUPS: ShapeSimilarityGroup[] = [
-  { name: 'Curved Segments', shapes: ['quarterCircle', 'semicircle', 'crescent'] },
+  { name: 'Curved Segments', shapes: ['quarterCircle', 'semicircle', 'crescent', 'circle'] },
   { name: 'Triangular', shapes: ['triangle', 'rightTriangle', 'fang'] },
-  { name: 'Curved Pointed', shapes: ['crescent', 'fin', 'claw'] },
+  { name: 'Curved Pointed', shapes: ['crescent', 'fin', 'claw', 'circle'] },
   { name: 'Concave/Convex', shapes: ['scoop', 'ridge'] },
   { name: 'Rectangular', shapes: ['square', 'parallelogram', 'trapezoid'] },
   { name: 'Oval', shapes: ['ellipse', 'bean', 'lens'] },
