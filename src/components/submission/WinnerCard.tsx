@@ -16,7 +16,7 @@ export function WinnerCard({
 }: WinnerCardProps) {
 
   // Page uses different thumbnail sizes than modal
-  const thumbnailSize = (size === 'lg' ? 240 : size === 'md' ? 180 : 150)
+  const thumbnailSize = (size === 'lg' ? 360 : size === 'md' ? 280 : 220)
   const href = `?view=submission&id=${entry.submission_id}`;
 
   return (

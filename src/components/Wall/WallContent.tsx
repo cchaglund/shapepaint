@@ -144,6 +144,15 @@ export function WallContent({
         />
       )}
 
+      {/* Word of the day */}
+      {challenge?.word && (
+        <div className="flex justify-center">
+          <span className="text-sm font-medium text-(--color-text-secondary)">
+            Word of the day: &ldquo;{challenge.word}&rdquo;
+          </span>
+        </div>
+      )}
+
       {/* View toggle and sort controls */}
       <div className="flex items-center justify-between">
         <ViewToggle

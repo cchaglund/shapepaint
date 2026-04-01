@@ -105,7 +105,7 @@ export function WinnersDayPage({ date, themeMode, onSetThemeMode, themeName, onS
         }
       />
       <div className="flex-1 overflow-auto p-4 md:p-8 theme-pattern">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           {/* Date heading */}
           <div className="mb-6">
             <h1 className="text-2xl font-bold mb-2 text-(--color-text-primary) font-display">

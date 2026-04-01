@@ -127,8 +127,10 @@ async function fetchSortedSubmissions(date: string, sortMode: WallSortMode, limi
 
 export async function fetchWallSubmissions(date: string, sortMode: SortMode = 'newest'): Promise<WallSubmission[]> {
   const cacheKey = `wall-${date}-${sortMode}`;
+  const isToday = date === getTodayDateUTC();
 
-  if (wallCache.has(cacheKey)) {
+  // Always refetch today's wall so users see new submissions
+  if (!isToday && wallCache.has(cacheKey)) {
     return wallCache.get(cacheKey)!;
   }
 
