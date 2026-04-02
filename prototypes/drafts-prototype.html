@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Draft Pills — Interactive Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Lilita+One&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Fredoka', sans-serif;
+    background: #FFFBF7;
+    color: #2D1B69;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  :root {
+    --accent: #FF3366;
+    --accent-subtle: rgba(255, 51, 102, 0.12);
+    --danger: #c45c4a;
+    --danger-hover: #a84a3a;
+    --bg-secondary: #FFF8F2;
+    --text-primary: #2D1B69;
+    --text-secondary: #5a4880;
+    --text-tertiary: #8B7EC8;
+    --text-faint: #b5a8c8;
+    --border: #2D1B69;
+    --border-light: #E8E8E8;
+    --selected: #F0EDFF;
+    --card-bg: #ffffff;
+    --shadow-btn: 2px 2px 0 #2D1B69;
+    --shadow-card: 4px 4px 0 #2D1B69;
+    --radius-sm: 0.5rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-pill: 1.25rem;
+    --border-width: 2px;
+
+    /* animation curves */
+    --ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-out-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+    --duration-fast: 0.18s;
+    --duration-normal: 0.28s;
+    --duration-slow: 0.38s;
+  }
+
+  /* ——— Top bar ——— */
+  .topbar {
+    height: 56px;
+    background: var(--card-bg);
+    border-bottom: var(--border-width) solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .topbar .left { font-weight: 600; font-size: 16px; color: var(--text-primary); }
+  .topbar .center { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--accent); }
+  .topbar .right { display: flex; align-items: center; gap: 8px; }
+
+  .top-btn {
+    font-family: 'Fredoka', sans-serif;
+    height: 32px;
+    padding: 0 14px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: var(--radius-pill);
+    border: var(--border-width) solid var(--border);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .top-btn.secondary { background: var(--card-bg); color: var(--text-primary); box-shadow: var(--shadow-btn); }
+  .top-btn.secondary:hover { background: var(--bg-secondary); }
+  .top-btn.secondary:active { transform: translateY(1px); box-shadow: 1px 1px 0 var(--border); }
+  .top-btn.primary { background: var(--accent); color: #fff; box-shadow: var(--shadow-btn); }
+  .top-btn.primary:hover { background: #e6204d; }
+  .top-btn.primary:active { transform: translateY(1px); box-shadow: 1px 1px 0 var(--border); }
+
+  /* ——— Canvas area ——— */
+  .canvas-area {
+    flex: 1;
+    position: relative;
+    background:
+      radial-gradient(circle at 20px 20px, rgba(255,51,102,0.03) 2px, transparent 2px),
+      radial-gradient(circle at 60px 60px, rgba(51,204,255,0.02) 1.5px, transparent 1.5px);
+    background-size: 80px 80px;
+    background-color: var(--bg-secondary);
+  }
+
+  /* ——— Draft container ——— */
+  .draft-container {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 3px;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: var(--radius-pill);
+    border: 1px solid rgba(45, 27, 105, 0.1);
+    box-shadow: 0 2px 8px rgba(45, 27, 105, 0.06);
+    z-index: 10;
+  }
+
+  /* ——— Draft pill ——— */
+  .draft-pill {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: calc(var(--radius-pill) - 2px);
+    border: var(--border-width) solid transparent;
+    background: transparent;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    height: 26px;
+    overflow: hidden;
+    padding: 3px 10px;
+    gap: 0px;
+    /* THE key transition — every visual property animates */
+    transition:
+      background var(--duration-normal) var(--ease-out-smooth),
+      color var(--duration-normal) var(--ease-out-smooth),
+      border-color var(--duration-normal) var(--ease-out-smooth),
+      box-shadow var(--duration-normal) var(--ease-out-smooth),
+      padding var(--duration-normal) var(--ease-out-smooth),
+      gap var(--duration-normal) var(--ease-out-smooth),
+      transform var(--duration-fast) ease,
+      max-width var(--duration-normal) var(--ease-out-smooth),
+      opacity var(--duration-normal) var(--ease-out-smooth),
+      margin var(--duration-normal) var(--ease-out-smooth);
+  }
+
+  .draft-pill:hover:not(.active):not(.confirming) {
+    background: rgba(240, 237, 255, 0.6);
+    color: var(--text-secondary);
+  }
+
+  /* ——— Active state ——— */
+  .draft-pill.active {
+    background: var(--card-bg);
+    color: var(--text-primary);
+    border-color: var(--border);
+    box-shadow: var(--shadow-btn);
+    padding: 3px 8px 3px 10px;
+    gap: 3px;
+  }
+
+  .draft-pill.active:active:not(.confirming) {
+    transform: translateY(0.5px);
+    box-shadow: 1px 1px 0 var(--border);
+  }
+
+  /* ——— Confirming (delete?) state ——— */
+  .draft-pill.confirming {
+    background: var(--card-bg);
+    color: var(--danger);
+    border-color: var(--danger);
+    box-shadow: 2px 2px 0 var(--danger);
+    padding: 3px 10px;
+    gap: 0px;
+    cursor: default;
+  }
+
+  /* ——— Pill label ——— */
+  .pill-label {
+    display: grid;
+    /* Animate between full width and 0 */
+    grid-template-columns: 1fr;
+    transition:
+      grid-template-columns var(--duration-normal) var(--ease-out-smooth),
+      opacity var(--duration-fast) var(--ease-in-out);
+    overflow: hidden;
+    opacity: 1;
+  }
+
+  .pill-label span {
+    overflow: hidden;
+  }
+
+  .confirming .pill-label {
+    grid-template-columns: 0fr;
+    opacity: 0;
+  }
+
+  /* ——— Confirm content ——— */
+  .pill-confirm {
+    display: grid;
+    grid-template-columns: 0fr;
+    overflow: hidden;
+    opacity: 0;
+    transition:
+      grid-template-columns var(--duration-normal) var(--ease-out-smooth),
+      opacity var(--duration-normal) var(--ease-out-smooth);
+    pointer-events: none;
+  }
+
+  .pill-confirm-inner {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  .confirming .pill-confirm {
+    grid-template-columns: 1fr;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .confirm-text {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--danger);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color var(--duration-fast);
+  }
+
+  .confirm-text:hover { color: var(--danger-hover); }
+
+  .confirm-undo {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    white-space: nowrap;
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    transition:
+      text-decoration-color var(--duration-fast),
+      color var(--duration-fast);
+  }
+
+  .confirm-undo:hover {
+    text-decoration-color: var(--text-tertiary);
+    color: var(--text-secondary);
+  }
+
+  /* ——— Close button (X) ——— */
+  .pill-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 0px;
+    min-width: 0px;
+    height: 14px;
+    border-radius: 50%;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+    cursor: pointer;
+    overflow: hidden;
+    opacity: 0;
+    transform: scale(0.5);
+    transition:
+      width var(--duration-normal) var(--ease-out-smooth),
+      min-width var(--duration-normal) var(--ease-out-smooth),
+      opacity var(--duration-normal) var(--ease-out-smooth),
+      transform var(--duration-normal) var(--ease-out-back),
+      background var(--duration-fast),
+      color var(--duration-fast);
+  }
+
+  .pill-close svg {
+    width: 10px;
+    height: 10px;
+    stroke-width: 2.5;
+    flex-shrink: 0;
+  }
+
+  .draft-pill.active:not(.confirming):not(.sole) .pill-close {
+    width: 14px;
+    min-width: 14px;
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* When it's the only draft, match inactive padding (no room for X) */
+  .draft-pill.active.sole {
+    padding: 3px 10px;
+    gap: 0px;
+  }
+
+  .pill-close:hover {
+    background: rgba(255, 51, 102, 0.15);
+    color: var(--accent);
+  }
+
+  /* ——— Add button ——— */
+  .draft-add {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--text-faint);
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-left: 2px;
+    transform: scale(1) rotate(0deg);
+    transition:
+      color var(--duration-fast),
+      background var(--duration-fast),
+      transform var(--duration-normal) var(--ease-out-back),
+      opacity var(--duration-normal) var(--ease-out-smooth),
+      width var(--duration-normal) var(--ease-out-smooth),
+      margin var(--duration-normal) var(--ease-out-smooth);
+    overflow: hidden;
+  }
+
+  .draft-add svg { width: 12px; height: 12px; stroke-width: 2.5; }
+
+  .draft-add:hover {
+    color: var(--accent);
+    background: var(--accent-subtle);
+    transform: rotate(90deg);
+  }
+
+  .draft-add:active {
+    transform: scale(0.9) rotate(90deg);
+  }
+
+  /* Collapsing state for smooth container resize */
+  .draft-add.hiding {
+    width: 0;
+    margin-left: 0;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  /* ——— Pill entrance ——— */
+  .draft-pill.entering {
+    max-width: 0;
+    opacity: 0;
+    padding-left: 0;
+    padding-right: 0;
+    margin-right: -3px;
+    transform: scale(0.8);
+  }
+
+  /* Applied after a frame to trigger transition */
+  .draft-pill.entering.enter-to {
+    max-width: 140px;
+    opacity: 1;
+    padding: 3px 8px 3px 10px;
+    margin-right: 0;
+    transform: scale(1);
+  }
+
+  /* ——— Pill exit phase 1: shrink to compact, fade out content ——— */
+  .draft-pill.exit-shrink {
+    max-width: 140px; /* explicit so phase 2 has a value to transition from */
+    padding: 3px 10px;
+    gap: 0px;
+    border-color: transparent;
+    box-shadow: none;
+    background: rgba(240, 237, 255, 0.4);
+    color: var(--text-faint);
+    opacity: 0.5;
+    transform: scale(0.95);
+    pointer-events: none;
+  }
+
+  /* ——— Pill exit phase 2: collapse to zero width ——— */
+  .draft-pill.exit-collapse {
+    max-width: 0;
+    padding: 3px 0;
+    gap: 0;
+    margin-right: -3px;
+    border-color: transparent;
+    box-shadow: none;
+    background: transparent;
+    opacity: 0;
+    transform: scale(0.8);
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  /* ——— Canvas placeholder ——— */
+  .canvas-placeholder {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: var(--text-faint);
+    font-size: 13px;
+    pointer-events: none;
+  }
+
+  .canvas-placeholder .draft-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    margin-bottom: 4px;
+    transition: opacity 0.15s;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="left">shapepaint.com</div>
+  <div class="center">Today's Challenge</div>
+  <div class="right">
+    <button class="top-btn secondary">Reset</button>
+    <button class="top-btn primary">Submit!</button>
+  </div>
+</div>
+
+<div class="canvas-area">
+  <div class="draft-container" id="draftContainer"></div>
+  <div class="canvas-placeholder">
+    <div class="draft-name" id="activeDraftName">Draft 1</div>
+    <div>Your canvas content here</div>
+  </div>
+</div>
+
+<script>
+  const MAX_DRAFTS = 3;
+  const container = document.getElementById('draftContainer');
+  const activeDraftNameEl = document.getElementById('activeDraftName');
+
+  let drafts = [{ id: 1, name: 'Draft 1' }];
+  let activeDraftId = 1;
+  let nextId = 2;
+  let confirmingId = null;
+
+  // Lucide SVG icons
+  const xIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+  const plusIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
+
+  // ——— DOM references map (keyed by draft id) ———
+  const pillElements = new Map();
+  let addBtnEl = null;
+
+  function createPillElement(draft) {
+    const pill = document.createElement('div');
+    pill.className = 'draft-pill';
+    pill.dataset.id = draft.id;
+
+    // Label (uses grid trick for animatable width)
+    const label = document.createElement('div');
+    label.className = 'pill-label';
+    const labelSpan = document.createElement('span');
+    labelSpan.textContent = draft.name;
+    label.appendChild(labelSpan);
+    pill.appendChild(label);
+
+    // Confirm content (hidden by default via grid-template-columns: 0fr)
+    const confirmWrap = document.createElement('div');
+    confirmWrap.className = 'pill-confirm';
+    const confirmInner = document.createElement('div');
+    confirmInner.className = 'pill-confirm-inner';
+
+    const confirmText = document.createElement('span');
+    confirmText.className = 'confirm-text';
+    confirmText.textContent = 'Delete?';
+    confirmText.addEventListener('click', (e) => {
+      e.stopPropagation();
+      deleteDraft(draft.id);
+    });
+
+    const confirmUndo = document.createElement('span');
+    confirmUndo.className = 'confirm-undo';
+    confirmUndo.textContent = 'undo';
+    confirmUndo.addEventListener('click', (e) => {
+      e.stopPropagation();
+      confirmingId = null;
+      syncStates();
+    });
+
+    confirmInner.appendChild(confirmText);
+    confirmInner.appendChild(confirmUndo);
+    confirmWrap.appendChild(confirmInner);
+    pill.appendChild(confirmWrap);
+
+    // Close (X) button
+    const close = document.createElement('span');
+    close.className = 'pill-close';
+    close.innerHTML = xIcon;
+    close.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (draft.id === activeDraftId && drafts.length > 1) {
+        confirmingId = draft.id;
+        syncStates();
+      }
+    });
+    pill.appendChild(close);
+
+    // Click to activate
+    pill.addEventListener('click', () => {
+      if (draft.id === confirmingId) return;
+      if (confirmingId !== null) confirmingId = null;
+      activeDraftId = draft.id;
+      syncStates();
+    });
+
+    return pill;
+  }
+
+  function ensureAddButton() {
+    if (!addBtnEl) {
+      addBtnEl = document.createElement('button');
+      addBtnEl.className = 'draft-add';
+      addBtnEl.title = 'New draft';
+      addBtnEl.innerHTML = plusIcon;
+      addBtnEl.addEventListener('click', addDraft);
+    }
+
+    if (drafts.length < MAX_DRAFTS) {
+      // Show it
+      if (!addBtnEl.parentNode) {
+        addBtnEl.classList.add('hiding');
+        container.appendChild(addBtnEl);
+        // Trigger transition on next frame
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            addBtnEl.classList.remove('hiding');
+          });
+        });
+      } else {
+        addBtnEl.classList.remove('hiding');
+      }
+    } else if (addBtnEl.parentNode) {
+      // Collapse it smoothly, then remove
+      addBtnEl.classList.add('hiding');
+      const onDone = () => {
+        if (addBtnEl.classList.contains('hiding') && addBtnEl.parentNode) {
+          addBtnEl.remove();
+        }
+      };
+      addBtnEl.addEventListener('transitionend', function handler(e) {
+        if (e.propertyName === 'width') {
+          addBtnEl.removeEventListener('transitionend', handler);
+          onDone();
+        }
+      });
+      setTimeout(onDone, 400);
+    }
+  }
+
+  // ——— Sync all pill states (no DOM rebuild, just class toggling) ———
+  function syncStates() {
+    const isSole = drafts.length === 1;
+
+    drafts.forEach(draft => {
+      const pill = pillElements.get(draft.id);
+      if (!pill) return;
+
+      const isActive = draft.id === activeDraftId;
+      const isConfirming = draft.id === confirmingId;
+
+      // Toggle classes — CSS transitions handle the rest
+      pill.classList.toggle('active', isActive && !isConfirming);
+      pill.classList.toggle('confirming', isConfirming);
+      pill.classList.toggle('sole', isSole);
+    });
+
+    // Update placeholder
+    const active = drafts.find(d => d.id === activeDraftId);
+    if (active) {
+      activeDraftNameEl.style.opacity = '0';
+      setTimeout(() => {
+        activeDraftNameEl.textContent = active.name;
+        activeDraftNameEl.style.opacity = '1';
+      }, 150);
+    }
+
+    ensureAddButton();
+  }
+
+  // ——— Add a new draft ———
+  function addDraft() {
+    if (drafts.length >= MAX_DRAFTS) return;
+    confirmingId = null;
+
+    const newDraft = { id: nextId, name: `Draft ${nextId}` };
+    nextId++;
+    drafts.push(newDraft);
+    activeDraftId = newDraft.id;
+
+    // Create pill and insert before the + button
+    const pill = createPillElement(newDraft);
+    pill.classList.add('entering');
+    pillElements.set(newDraft.id, pill);
+
+    if (addBtnEl && addBtnEl.parentNode) {
+      container.insertBefore(pill, addBtnEl);
+    } else {
+      container.appendChild(pill);
+    }
+
+    // Trigger enter transition on next frame
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        pill.classList.add('enter-to', 'active');
+        // Clean up entering classes after transition
+        pill.addEventListener('transitionend', function handler(e) {
+          if (e.propertyName === 'max-width') {
+            pill.classList.remove('entering', 'enter-to');
+            pill.removeEventListener('transitionend', handler);
+          }
+        });
+      });
+    });
+
+    // Sync other pills (deactivate previous active)
+    syncStates();
+  }
+
+  // ——— Delete a draft ———
+  function deleteDraft(id) {
+    const idx = drafts.findIndex(d => d.id === id);
+    if (idx === -1 || drafts.length <= 1) return;
+
+    const pill = pillElements.get(id);
+    if (!pill) return;
+
+    // Pick new active
+    if (activeDraftId === id) {
+      const newIdx = idx > 0 ? idx - 1 : 1;
+      activeDraftId = drafts[newIdx].id;
+    }
+    confirmingId = null;
+
+    // Remove from data immediately so syncStates doesn't touch it
+    drafts = drafts.filter(d => d.id !== id);
+    pillElements.delete(id);
+
+    // Phase 1: shrink to compact (deactivate styling, fade content)
+    pill.classList.remove('active', 'confirming');
+    pill.classList.add('exit-shrink');
+
+    // Phase 2: after shrink transition, collapse width
+    const startCollapse = () => {
+      pill.classList.remove('exit-shrink');
+      pill.classList.add('exit-collapse');
+
+      // Remove from DOM after collapse
+      const removePill = () => { pill.remove(); ensureAddButton(); };
+      pill.addEventListener('transitionend', function handler(e) {
+        if (e.propertyName === 'max-width' || e.propertyName === 'opacity') {
+          pill.removeEventListener('transitionend', handler);
+          removePill();
+        }
+      });
+      setTimeout(removePill, 400); // fallback
+    };
+
+    // Wait for phase 1 to finish, then start phase 2
+    pill.addEventListener('transitionend', function handler(e) {
+      if (e.propertyName === 'padding' || e.propertyName === 'background') {
+        pill.removeEventListener('transitionend', handler);
+        // Need rAF so browser commits the shrunk state before collapsing
+        requestAnimationFrame(() => requestAnimationFrame(startCollapse));
+      }
+    });
+
+    // Fallback if transitionend doesn't fire for phase 1
+    setTimeout(() => {
+      if (pill.classList.contains('exit-shrink')) {
+        requestAnimationFrame(() => requestAnimationFrame(startCollapse));
+      }
+    }, 350);
+
+    // Sync remaining pills (activates the new one)
+    syncStates();
+  }
+
+  // Click outside to dismiss confirm
+  document.addEventListener('click', (e) => {
+    if (confirmingId !== null && !e.target.closest('.draft-pill')) {
+      confirmingId = null;
+      syncStates();
+    }
+  });
+
+  // ——— Initial render ———
+  function initialRender() {
+    drafts.forEach(draft => {
+      const pill = createPillElement(draft);
+      pillElements.set(draft.id, pill);
+      container.appendChild(pill);
+    });
+    syncStates();
+  }
+
+  initialRender();
+</script>
+
+</body>
+</html>

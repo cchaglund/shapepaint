@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Draft Slots — 3 Design Directions</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Lilita+One&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Fredoka', sans-serif;
+    background: #FFFBF7;
+    color: #2D1B69;
+    padding: 40px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 64px;
+  }
+
+  /* ——— Pop Art tokens ——— */
+  :root {
+    --accent: #FF3366;
+    --accent-hover: #e6204d;
+    --accent-subtle: rgba(255, 51, 102, 0.12);
+    --bg-primary: #FFFBF7;
+    --bg-secondary: #FFF8F2;
+    --bg-elevated: #ffffff;
+    --text-primary: #2D1B69;
+    --text-secondary: #5a4880;
+    --text-tertiary: #8B7EC8;
+    --text-faint: #b5a8c8;
+    --border: #2D1B69;
+    --border-light: #E8E8E8;
+    --selected: #F0EDFF;
+    --selected-hover: #E0DBFF;
+    --card-bg: #ffffff;
+    --shadow-btn: 2px 2px 0 #2D1B69;
+    --shadow-card: 4px 4px 0 #2D1B69;
+    --radius-sm: 0.5rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-pill: 1.25rem;
+    --border-width: 2px;
+  }
+
+  /* ——— Section layout ——— */
+  .design-section {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .design-label {
+    font-family: 'Lilita One', cursive;
+    font-size: 20px;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .design-label .tag {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: var(--accent-subtle);
+    color: var(--accent);
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+
+  .design-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    max-width: 600px;
+    line-height: 1.5;
+  }
+
+  /* ——— Mock canvas area ——— */
+  .canvas-mock {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    border: var(--border-width) solid var(--border);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+
+  /* ——— Mock top bar ——— */
+  .mock-topbar {
+    height: 56px;
+    background: var(--card-bg);
+    border-bottom: var(--border-width) solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    justify-content: space-between;
+  }
+
+  .mock-topbar .left {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-primary);
+  }
+
+  .mock-topbar .right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mock-btn {
+    font-family: 'Fredoka', sans-serif;
+    height: 32px;
+    padding: 0 14px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: var(--radius-pill);
+    border: var(--border-width) solid var(--border);
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .mock-btn.secondary {
+    background: var(--card-bg);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-btn);
+  }
+
+  .mock-btn.primary {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: var(--shadow-btn);
+  }
+
+  .mock-btn.primary:hover { background: var(--accent-hover); }
+  .mock-btn.secondary:hover { background: var(--bg-secondary); }
+
+  /* ——— Mock canvas body ——— */
+  .canvas-body {
+    height: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-faint);
+    font-size: 13px;
+    position: relative;
+    background:
+      radial-gradient(circle at 20px 20px, rgba(255,51,102,0.03) 2px, transparent 2px),
+      radial-gradient(circle at 60px 60px, rgba(51,204,255,0.02) 1.5px, transparent 1.5px);
+    background-size: 80px 80px;
+  }
+
+  /* ——— State labels ——— */
+  .state-row {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+
+  .state-col {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .state-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-tertiary);
+  }
+
+
+  /* ============================================================
+     DESIGN A — "Segmented Control Strip"
+     Sits in a tinted trough below the top bar, like ViewToggle.
+     The + button is part of the same control.
+     ============================================================ */
+
+  .draft-bar-a {
+    display: flex;
+    align-items: center;
+    padding: 6px 16px;
+    gap: 8px;
+    background: var(--selected);
+    border-bottom: var(--border-width) solid var(--border-light);
+  }
+
+  .draft-bar-a .draft-strip {
+    display: flex;
+    align-items: center;
+    background: var(--selected);
+    border: var(--border-width) solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: 3px;
+    gap: 2px;
+  }
+
+  .draft-bar-a .draft-tab {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 14px;
+    border-radius: var(--radius-sm);
+    border: var(--border-width) solid transparent;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .draft-bar-a .draft-tab:hover {
+    background: var(--selected-hover);
+    color: var(--text-primary);
+  }
+
+  .draft-bar-a .draft-tab.active {
+    background: var(--card-bg);
+    color: var(--text-primary);
+    border-color: var(--border);
+    box-shadow: var(--shadow-btn);
+  }
+
+  .draft-bar-a .draft-add {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    border: var(--border-width) dashed var(--border-light);
+    background: transparent;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .draft-bar-a .draft-add:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-subtle);
+  }
+
+  .draft-bar-a .draft-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-right: 4px;
+  }
+
+  /* Close button on tab */
+  .draft-tab .close-x {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    font-size: 10px;
+    margin-left: 6px;
+    margin-right: -4px;
+    opacity: 0;
+    transition: all 0.15s;
+    color: var(--text-tertiary);
+  }
+
+  .draft-tab:hover .close-x,
+  .draft-tab.active .close-x {
+    opacity: 1;
+  }
+
+  .draft-tab .close-x:hover {
+    background: rgba(255, 51, 102, 0.15);
+    color: var(--accent);
+  }
+
+
+  /* ============================================================
+     DESIGN B — "Floating Pill Cards"
+     Individual pill-shaped cards that float freely in a slim bar.
+     Active card is elevated with accent border. More spatial.
+     ============================================================ */
+
+  .draft-bar-b {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    gap: 8px;
+    background: transparent;
+    border-bottom: var(--border-width) solid var(--border-light);
+  }
+
+  .draft-bar-b .draft-pill {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 16px;
+    border-radius: var(--radius-pill);
+    border: var(--border-width) solid var(--border-light);
+    background: var(--card-bg);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+    white-space: nowrap;
+  }
+
+  .draft-bar-b .draft-pill:hover {
+    border-color: var(--text-tertiary);
+    color: var(--text-primary);
+  }
+
+  .draft-bar-b .draft-pill.active {
+    border-color: var(--accent);
+    color: var(--text-primary);
+    box-shadow: 0 0 0 2px var(--accent-subtle), var(--shadow-btn);
+    background: var(--card-bg);
+  }
+
+  .draft-bar-b .draft-pill .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-faint);
+    transition: all 0.15s;
+  }
+
+  .draft-bar-b .draft-pill.active .dot {
+    background: var(--accent);
+    box-shadow: 0 0 0 2px var(--card-bg), 0 0 0 3.5px var(--accent);
+  }
+
+  .draft-bar-b .draft-pill .pill-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    font-size: 10px;
+    opacity: 0;
+    transition: all 0.15s;
+    color: var(--text-tertiary);
+    margin-right: -6px;
+  }
+
+  .draft-bar-b .draft-pill:hover .pill-close,
+  .draft-bar-b .draft-pill.active .pill-close {
+    opacity: 1;
+  }
+
+  .draft-bar-b .draft-pill .pill-close:hover {
+    background: rgba(255, 51, 102, 0.15);
+    color: var(--accent);
+  }
+
+  .draft-bar-b .draft-add-pill {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 14px;
+    border-radius: var(--radius-pill);
+    border: var(--border-width) dashed var(--border-light);
+    background: transparent;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+
+  .draft-bar-b .draft-add-pill:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-subtle);
+  }
+
+
+  /* ============================================================
+     DESIGN C — "Minimal Numbered Tabs"
+     Ultra-minimal. Numbered circles with a thin underline
+     indicator. Almost invisible until you need it.
+     Doesn't add visual weight.
+     ============================================================ */
+
+  .draft-bar-c {
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 2px;
+    background: var(--card-bg);
+    border-bottom: var(--border-width) solid var(--border-light);
+    height: 36px;
+  }
+
+  .draft-bar-c .draft-num {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+  }
+
+  .draft-bar-c .draft-num::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2.5px;
+    border-radius: 2px;
+    background: var(--accent);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .draft-bar-c .draft-num:hover {
+    color: var(--text-primary);
+    background: var(--selected);
+  }
+
+  .draft-bar-c .draft-num.active {
+    color: var(--accent);
+    background: var(--accent-subtle);
+  }
+
+  .draft-bar-c .draft-num.active::after {
+    width: 16px;
+  }
+
+  .draft-bar-c .draft-divider {
+    width: 1px;
+    height: 16px;
+    background: var(--border-light);
+    margin: 0 4px;
+  }
+
+  .draft-bar-c .draft-add-circle {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: var(--border-width) dashed var(--border-light);
+    background: transparent;
+    color: var(--text-faint);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .draft-bar-c .draft-add-circle:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-subtle);
+  }
+
+  .draft-bar-c .draft-text {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    margin-left: 8px;
+    white-space: nowrap;
+  }
+
+  /* ——— Annotations ——— */
+  .annotation {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    line-height: 1.6;
+    max-width: 520px;
+    padding: 12px 16px;
+    background: var(--selected);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--accent);
+  }
+
+  .annotation strong {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  .annotation ul {
+    margin: 4px 0 0 16px;
+    padding: 0;
+  }
+
+  .annotation li {
+    margin-bottom: 2px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ======================================
+     DESIGN A — Segmented Control Strip
+     ====================================== -->
+<div class="design-section">
+  <div>
+    <div class="design-label">
+      Design A — Segmented Control
+      <span class="tag">ViewToggle-inspired</span>
+    </div>
+    <p class="design-desc">
+      Draft tabs live inside a tinted trough (like the existing ViewToggle pattern).
+      The active tab pops out with card-bg + border + shadow.
+      Feels native to the design system — the most "expected" option.
+    </p>
+  </div>
+
+  <!-- State: Before any snapshot -->
+  <div class="state-row">
+    <div class="state-col">
+      <span class="state-label">Before first snapshot</span>
+      <div class="canvas-mock" style="width: 640px;">
+        <div class="mock-topbar">
+          <div class="left">shapepaint.com</div>
+          <div class="right">
+            <button class="mock-btn secondary">Reset</button>
+            <button class="mock-btn primary">Submit!</button>
+          </div>
+        </div>
+        <!-- No draft bar — clean -->
+        <div class="canvas-body">
+          <span>✦ No draft bar visible — canvas works exactly as today</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- State: 2 drafts -->
+  <div class="state-row">
+    <div class="state-col">
+      <span class="state-label">After first snapshot (2 drafts)</span>
+      <div class="canvas-mock" style="width: 640px;">
+        <div class="mock-topbar">
+          <div class="left">shapepaint.com</div>
+          <div class="right">
+            <button class="mock-btn secondary">Reset</button>
+            <button class="mock-btn primary">Submit!</button>
+          </div>
+        </div>
+        <div class="draft-bar-a">
+          <span class="draft-label">Drafts</span>
+          <div class="draft-strip">
+            <button class="draft-tab">Draft 1<span class="close-x">×</span></button>
+            <button class="draft-tab active">Draft 2<span class="close-x">×</span></button>
+          </div>
+          <button class="draft-add" title="New draft">+</button>
+        </div>
+        <div class="canvas-body">
+          <span>Active: Draft 2 (editing here)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-col">
+      <span class="state-label">3 drafts (max)</span>
+      <div class="canvas-mock" style="width: 640px;">
+        <div class="mock-topbar">
+          <div class="left">shapepaint.com</div>
+          <div class="right">
+            <button class="mock-btn secondary">Reset</button>
+            <button class="mock-btn primary">Submit!</button>
+          </div>
+        </div>
+        <div class="draft-bar-a">
+          <span class="draft-label">Drafts</span>
+          <div class="draft-strip">
+            <button class="draft-tab">Draft 1<span class="close-x">×</span></button>
+            <button class="draft-tab">Draft 2<span class="close-x">×</span></button>
+            <button class="draft-tab active">Draft 3<span class="close-x">×</span></button>
+          </div>
+        </div>
+        <div class="canvas-body">
+          <span>+ button gone — max 3 reached</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="annotation">
+    <strong>Character:</strong> Familiar. Extends ViewToggle language. The tinted trough groups drafts visually.
+    <ul>
+      <li>The "Drafts" label adds clarity but takes horizontal space</li>
+      <li>× shows on hover/active for delete</li>
+      <li>Dashed + button disappears at max capacity</li>
+      <li>Tinted background separates it from the top bar without heavy borders</li>
+    </ul>
+  </div>
+</div>
+
+
+<!-- ======================================
+     DESIGN B — Floating Pill Cards
+     ====================================== -->
+<div class="design-section">
+  <div>
+    <div class="design-label">
+      Design B — Floating Pills
+      <span class="tag">ThemePill-inspired</span>
+    </div>
+    <p class="design-desc">
+      Individual pill-shaped cards with a colored dot indicator, like the theme pill.
+      Active pill gets an accent border glow.
+      Feels more like "objects" you switch between — each draft is a thing.
+    </p>
+  </div>
+
+  <div class="state-row">
+    <div class="state-col">
+      <span class="state-label">Before first snapshot</span>
+      <div class="canvas-mock" style="width: 640px;">
+        <div class="mock-topbar">
+          <div class="left">shapepaint.com</div>
+          <div class="right">
+            <button class="mock-btn secondary">Reset</button>
+            <button class="mock-btn primary">Submit!</button>
+          </div>
+        </div>
+        <div class="canvas-body">
+          <span>✦ No draft bar visible — canvas works exactly as today</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="state-row">
+    <div class="state-col">
+      <span class="state-label">After first snapshot (2 drafts)</span>
+      <div class="canvas-mock" style="width: 640px;">
+        <div class="mock-topbar">
+          <div class="left">shapepaint.com</div>
+          <div class="right">
+            <button class="mock-btn secondary">Reset</button>
+            <button class="mock-btn primary">Submit!</button>
+          </div>
+        </div>
+        <div class="draft-bar-b">
+          <div class="draft-pill">
+            <span class="dot"></span>
+            Draft 1
+            <span class="pill-close">×</span>
+          </div>
+          <div class="draft-pill active">
+            <span class="dot"></span>
+            Draft 2
+            <span class="pill-close">×</span>
+          </div>
+          <button class="draft-add-pill">+ New</button>
+        </div>
+        <div class="canvas-body">
+          <span>Active: Draft 2 — accent glow ring on active pill</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-col">
+      <span class="state-label">3 drafts (max)</span>
+      <div class="canvas-mock" style="width: 640px;">
+        <div class="mock-topbar">
+          <div class="left">shapepaint.com</div>
+          <div class="right">
+            <button class="mock-btn secondary">Reset</button>
+            <button class="mock-btn primary">Submit!</button>
+          </div>
+        </div>
+        <div class="draft-bar-b">
+          <div class="draft-pill">
+            <span class="dot"></span>
+            Draft 1
+            <span class="pill-close">×</span>
+          </div>
+          <div class="draft-pill">
+            <span class="dot"></span>
+            Draft 2
+            <span class="pill-close">×</span>
+          </div>
+          <div class="draft-pill active">
+            <span class="dot"></span>
+            Draft 3
+            <span class="pill-close">×</span>
+          </div>
+        </div>
+        <div class="canvas-body">
+          <span>+ button gone — max 3 reached</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="annotation">
+    <strong>Character:</strong> Spatial and object-oriented. Each draft feels like a distinct artifact.
+    <ul>
+      <li>Accent dot with glow ring mirrors ThemePill active state</li>
+      <li>Individual pills can animate in/out independently (good for Motion)</li>
+      <li>× appears on hover for delete</li>
+      <li>"+ New" as a dashed ghost pill — clear affordance</li>
+      <li>Slightly taller bar than Design A due to pill padding</li>
+    </ul>
+  </div>
+</div>
+
+
+<!-- ======================================
+     DESIGN C — Minimal Numbered Tabs
+     ====================================== -->
+<div class="design-section">
+  <div>
+    <div class="design-label">
+      Design C — Numbered Circles
+      <span class="tag">Minimal footprint</span>
+    </div>
+    <p class="design-desc">
+      Ultra-compact numbered circles with an accent underline indicator.
+      Barely there until you need it. Maximizes canvas real estate.
+      The accent underline slides between active items.
+    </p>
+  </div>
+
+  <div class="state-row">
+    <div class="state-col">
+      <span class="state-label">Before first snapshot</span>
+      <div class="canvas-mock" style="width: 640px;">
+        <div class="mock-topbar">
+          <div class="left">shapepaint.com</div>
+          <div class="right">
+            <button class="mock-btn secondary">Reset</button>
+            <button class="mock-btn primary">Submit!</button>
+          </div>
+        </div>
+        <div class="canvas-body">
+          <span>✦ No draft bar visible — canvas works exactly as today</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="state-row">
+    <div class="state-col">
+      <span class="state-label">After first snapshot (2 drafts)</span>
+      <div class="canvas-mock" style="width: 640px;">
+        <div class="mock-topbar">
+          <div class="left">shapepaint.com</div>
+          <div class="right">
+            <button class="mock-btn secondary">Reset</button>
+            <button class="mock-btn primary">Submit!</button>
+          </div>
+        </div>
+        <div class="draft-bar-c">
+          <button class="draft-num">1</button>
+          <button class="draft-num active">2</button>
+          <span class="draft-divider"></span>
+          <button class="draft-add-circle" title="New draft">+</button>
+          <span class="draft-text">Draft 2 of 2</span>
+        </div>
+        <div class="canvas-body">
+          <span>Active: 2 — accent pill bg + underline indicator</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-col">
+      <span class="state-label">3 drafts (max)</span>
+      <div class="canvas-mock" style="width: 640px;">
+        <div class="mock-topbar">
+          <div class="left">shapepaint.com</div>
+          <div class="right">
+            <button class="mock-btn secondary">Reset</button>
+            <button class="mock-btn primary">Submit!</button>
+          </div>
+        </div>
+        <div class="draft-bar-c">
+          <button class="draft-num">1</button>
+          <button class="draft-num">2</button>
+          <button class="draft-num active">3</button>
+          <span class="draft-text">Draft 3 of 3</span>
+        </div>
+        <div class="canvas-body">
+          <span>+ button gone — max 3 reached</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="annotation">
+    <strong>Character:</strong> Disappears into the interface. Maximum canvas space.
+    <ul>
+      <li>Only 36px tall — thinnest option</li>
+      <li>Numbered circles are instantly scannable</li>
+      <li>Accent underline slides with CSS transition for active state</li>
+      <li>No explicit delete — would need long-press or context menu (trade-off)</li>
+      <li>"Draft 2 of 3" text adds context without labels on each circle</li>
+      <li>Risk: might be <em>too</em> minimal — could feel like pagination, not drafts</li>
+    </ul>
+  </div>
+</div>
+
+</body>
+</html>
