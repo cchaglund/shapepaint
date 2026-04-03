@@ -4,10 +4,11 @@ interface CardLikeButtonProps {
   isLiked: boolean;
   likeCount: number;
   disabled?: boolean;
+  size?: 'sm' | 'lg';
   onToggle: () => void;
 }
 
-export function CardLikeButton({ isLiked, likeCount, disabled, onToggle }: CardLikeButtonProps) {
+export function CardLikeButton({ isLiked, likeCount, disabled, size = 'sm', onToggle }: CardLikeButtonProps) {
   const btnRef = useRef<HTMLButtonElement>(null);
 
   const displayCount = likeCount > 9999 ? '9999+' : likeCount;
@@ -18,8 +19,8 @@ export function CardLikeButton({ isLiked, likeCount, disabled, onToggle }: CardL
     e.stopPropagation();
     if (disabled) return;
     onToggle();
-    createBurst(btnRef.current);
-  }, [disabled, onToggle]);
+    createBurst(btnRef.current, size === 'lg');
+  }, [disabled, onToggle, size]);
 
   return (
     <button
@@ -29,12 +30,12 @@ export function CardLikeButton({ isLiked, likeCount, disabled, onToggle }: CardL
       title=""
       aria-label={isLiked ? 'Unlike submission' : 'Like submission'}
       aria-pressed={isLiked}
-      className={`card-like-btn ${isLiked ? 'is-liked' : ''} ${disabled ? 'is-disabled' : ''}`}
+      className={`card-like-btn ${isLiked ? 'is-liked' : ''} ${disabled ? 'is-disabled' : ''} ${size === 'lg' ? 'card-like-lg' : ''}`}
     >
       <svg
         className="card-like-heart"
-        width="14"
-        height="14"
+        width={size === 'lg' ? 18 : 14}
+        height={size === 'lg' ? 18 : 14}
         viewBox="0 0 24 24"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -54,7 +55,7 @@ export function CardLikeButton({ isLiked, likeCount, disabled, onToggle }: CardL
   );
 }
 
-function createBurst(btn: HTMLButtonElement | null) {
+function createBurst(btn: HTMLButtonElement | null, large = false) {
   if (!btn) return;
   const heart = btn.querySelector('.card-like-heart');
   if (!heart) return;
@@ -68,7 +69,7 @@ function createBurst(btn: HTMLButtonElement | null) {
     const particle = document.createElement('span');
     particle.className = 'card-like-particle';
     const angle = (i / 6) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
-    const dist = 12 + Math.random() * 10;
+    const dist = (large ? 15 : 12) + Math.random() * (large ? 12 : 10);
     const tx = Math.cos(angle) * dist;
     const ty = Math.sin(angle) * dist;
     particle.style.left = `${cx}px`;

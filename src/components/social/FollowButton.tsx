@@ -6,13 +6,13 @@ import { Button } from '../shared/Button';
 
 interface FollowButtonProps {
   targetUserId: string;
-  size?: 'sm' | 'md';
 }
 
-export function FollowButton({ targetUserId, size = 'sm' }: FollowButtonProps) {
+const compact = 'h-auto! py-1! text-xs!';
+
+export function FollowButton({ targetUserId }: FollowButtonProps) {
   const { user } = useAuth();
   const { isFollowing, follow, unfollow, actionLoading } = useFollows();
-  const [isHovered, setIsHovered] = useState(false);
   const [localLoading, setLocalLoading] = useState(false);
 
   const following = isFollowing(targetUserId);
@@ -41,7 +41,7 @@ export function FollowButton({ targetUserId, size = 'sm' }: FollowButtonProps) {
   // Not logged in: disabled state
   if (!user) {
     return (
-      <Button variant="muted" size={size} disabled title="Sign in to follow" className="opacity-60 cursor-not-allowed!">
+      <Button variant="ghost" size="sm" disabled title="Sign in to follow" className={`${compact} opacity-60 cursor-not-allowed!`}>
         Follow
       </Button>
     );
@@ -50,31 +50,24 @@ export function FollowButton({ targetUserId, size = 'sm' }: FollowButtonProps) {
   // Loading state
   if (loading) {
     return (
-      <Button variant="muted" size={size} disabled className="cursor-not-allowed!">
+      <Button variant="ghost" size="sm" disabled className={`${compact} cursor-not-allowed!`}>
         <Loader2 size={12} className="animate-spin" />
-        {following ? 'Following' : 'Follow'}
       </Button>
     );
   }
 
-  // Following state: show "Following", on hover show "Unfollow"
+  // Following state: show "Unfollow"
   if (following) {
     return (
-      <Button
-        variant="muted"
-        size={size}
-        onClick={handleClick}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        {isHovered ? 'Unfollow' : 'Following'}
+      <Button variant="ghost" size="sm" onClick={handleClick} className={compact}>
+        Unfollow
       </Button>
     );
   }
 
-  // Not following: accent "Follow" button
+  // Not following: "Follow"
   return (
-    <Button variant="primary" size={size} onClick={handleClick}>
+    <Button variant="ghost" size="sm" onClick={handleClick} className={compact}>
       Follow
     </Button>
   );

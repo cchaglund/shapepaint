@@ -10,6 +10,7 @@ import { useSubmissionDetail } from '../hooks/submission/useSubmissionDetail';
 import { useExportActions } from '../hooks/submission/useExportActions';
 import { useLikes } from '../hooks/social/useLikes';
 import { FollowButton } from '../components/social/FollowButton';
+import { AvatarImage } from '../components/shared/AvatarImage';
 import { LoginPromptModal } from '../components/social/LoginPromptModal';
 import {
   SubmissionCanvas,
@@ -39,7 +40,7 @@ export function SubmissionDetailPage({ date, submissionId, themeMode, onSetTheme
   const svgRef = useRef<SVGSVGElement>(null);
 
   // Load submission data
-  const { submission, loading, rankInfo, error, adjacentDates, nickname } = useSubmissionDetail({
+  const { submission, loading, rankInfo, error, adjacentDates, nickname, avatarUrl } = useSubmissionDetail({
     date,
     submissionId,
     user,
@@ -154,14 +155,13 @@ export function SubmissionDetailPage({ date, submissionId, themeMode, onSetTheme
                 <>
                   <Link
                     href={`?view=profile&user=${submission.user_id}`}
-                    className="text-(--color-text-secondary) hover:text-(--color-accent) transition-colors"
+                    className="flex items-center gap-2 text-(--color-text-secondary) hover:text-(--color-accent) transition-colors"
                   >
-                    @{nickname}
+                    <AvatarImage avatarUrl={avatarUrl} initial={(nickname || 'U')[0].toUpperCase()} size="sm" />
+                    {nickname}
                   </Link>
-                  <span className="text-(--color-text-tertiary)">·</span>
-                  <span className="text-(--color-text-secondary)">Submission</span>
                   {user && user.id !== submission.user_id && (
-                    <FollowButton targetUserId={submission.user_id} size="sm" />
+                    <FollowButton targetUserId={submission.user_id} />
                   )}
                 </>
               ) : (
@@ -196,6 +196,7 @@ export function SubmissionDetailPage({ date, submissionId, themeMode, onSetTheme
                   isLiked={isLiked}
                   likeCount={likeCount}
                   disabled={isOwnSubmission}
+                  size="lg"
                   onToggle={handleLikeToggle}
                 />
               </div>

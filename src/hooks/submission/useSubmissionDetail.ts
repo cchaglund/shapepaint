@@ -26,6 +26,7 @@ export function useSubmissionDetail({
   const [error, setError] = useState<string | null>(null);
   const [adjacentDates, setAdjacentDates] = useState<{ prev: string | null; next: string | null }>({ prev: null, next: null });
   const [nickname, setNickname] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   const loadedForRef = useRef<string | null>(null);
 
@@ -50,8 +51,9 @@ export function useSubmissionDetail({
           } else {
             setSubmission(data as unknown as Submission);
 
-            // Extract nickname from joined profile data
+            // Extract profile data from join
             setNickname(data.profiles?.nickname ?? null);
+            setAvatarUrl(data.profiles?.avatar_url ?? null);
 
             // Extract rank from joined daily_rankings data, fetch total count separately
             const rankings = data.daily_rankings;
@@ -98,5 +100,6 @@ export function useSubmissionDetail({
     error,
     adjacentDates,
     nickname,
+    avatarUrl,
   };
 }

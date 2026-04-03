@@ -4,6 +4,7 @@ import { findProfileByNickname } from '../../lib/api';
 import { navigate } from '../../lib/router';
 import { AnimatePresence, motion } from 'motion/react';
 import { Link, AvatarImage, Button, LoadingSpinner } from '../shared';
+import { FollowButton } from '../social/FollowButton';
 import type { Profile } from '../../hooks/auth/useProfile';
 import type { ThemeMode, ThemeName } from '../../hooks/ui/useThemeState';
 import { FollowsProvider } from '../../contexts/FollowsContext';
@@ -117,7 +118,7 @@ function UserMenuContent({
   themeName?: ThemeName;
   onSetThemeName?: (name: ThemeName) => void;
 }) {
-  const { following, followers, followingCount, followersCount, loading, follow, unfollow, isFollowing } = useFollows();
+  const { following, followers, followingCount, followersCount, loading, follow, isFollowing } = useFollows();
   const [activeTab, setActiveTab] = useState<'following' | 'followers'>('following');
   const [addNickname, setAddNickname] = useState('');
   const [addStatus, setAddStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -223,22 +224,14 @@ function UserMenuContent({
                 <span className="truncate">@{friend.nickname}</span>
               </button>
               {activeTab === 'following' && (
-                <Button
-                  variant="muted"
-                  className="shrink-0 h-6! px-2! text-xs! opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={(e: React.MouseEvent) => { e.stopPropagation(); unfollow(friend.id); }}
-                >
-                  Remove
-                </Button>
+                <div className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+                  <FollowButton targetUserId={friend.id} />
+                </div>
               )}
               {activeTab === 'followers' && !isFollowing(friend.id) && (
-                <Button
-                  variant="muted"
-                  className="shrink-0 h-6! px-2! text-xs!"
-                  onClick={(e: React.MouseEvent) => { e.stopPropagation(); follow(friend.id); }}
-                >
-                  Follow back
-                </Button>
+                <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
+                  <FollowButton targetUserId={friend.id} />
+                </div>
               )}
             </div>
           ))

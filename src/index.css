@@ -815,3 +815,15 @@ html.theme-transitioning *::after {
   pointer-events: none;
   opacity: 0;
 }
+
+/* Large variant — ~1.25× scale */
+.card-like-btn.card-like-lg {
+  gap: 4px;
+  padding: 5px 10px 5px 8px;
+  font-size: 1rem;
+  margin-left: 0;
+}
+.card-like-btn.card-like-lg .card-like-particle {
+  width: 5px;
+  height: 5px;
+}

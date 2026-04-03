@@ -29,14 +29,14 @@ export async function fetchSubmission(userId: string, challengeDate: string): Pr
 }
 
 export interface SubmissionWithJoins extends SubmissionRow {
-  profiles: { nickname: string | null } | null;
+  profiles: { nickname: string | null; avatar_url: string | null } | null;
   daily_rankings: { final_rank: number | null; challenge_date: string }[] | null;
 }
 
 export async function fetchSubmissionById(submissionId: string): Promise<SubmissionWithJoins | null> {
   const { data, error } = await supabase
     .from('submissions')
-    .select('*, profiles!user_id(nickname), daily_rankings(final_rank, challenge_date)')
+    .select('*, profiles!user_id(nickname, avatar_url), daily_rankings(final_rank, challenge_date)')
     .eq('id', submissionId)
     .maybeSingle();
   if (error) throw error;

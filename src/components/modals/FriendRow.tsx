@@ -24,7 +24,7 @@ export function FriendRow({ userId, nickname, onNavigateToProfile }: FriendRowPr
       >
         @{nickname}
       </button>
-      <FollowButton targetUserId={userId} size="sm" />
+      <FollowButton targetUserId={userId} />
     </div>
   );
 }
