@@ -1,5 +1,6 @@
 import type { LayerItemProps } from './types';
 import { VisibilityToggle } from './VisibilityToggle';
+import { LockToggle } from './LockToggle';
 import { ShapeIcon } from '../shared/ShapeIcon';
 
 /**
@@ -31,22 +32,28 @@ export function LayerItem({
   onMoveLayer,
   onDeleteShape,
   onToggleVisibility,
+  onToggleLock,
   onHoverShape,
   groupVisible,
+  groupLocked,
 }: LayerItemProps) {
   const isSelected = selectedShapeIds.has(shape.id);
   const isVisible = shape.visible !== false;
   const isEffectivelyVisible = isVisible && groupVisible;
+  const isLocked = shape.locked === true;
+  const isEffectivelyLocked = isLocked || groupLocked;
   const shapeColor = challenge.colors[shape.colorIndex];
 
   return (
     <li
-      draggable={editingId !== shape.id}
+      draggable={editingId !== shape.id && !isEffectivelyLocked}
       onDragStart={(e) => onDragStart(e, shape.id)}
       onDragEnd={onDragEnd}
       onDragOver={(e) => onDragOver(e, index, groupId)}
       onDrop={(e) => onDrop(e, index, groupId)}
-      className={`relative flex items-center gap-1.5 py-1.5 px-2 rounded-(--radius-sm) cursor-grab transition-colors ${
+      className={`relative flex items-center gap-1.5 py-1.5 px-2 rounded-(--radius-sm) select-none transition-colors ${
+        isEffectivelyLocked ? 'cursor-default' : 'cursor-grab'
+      } ${
         draggedId === shape.id ? 'opacity-50' : ''
       } ${
         dropTargetIndex === index && draggedId !== shape.id
@@ -60,13 +67,23 @@ export function LayerItem({
       onMouseLeave={() => onHoverShape(null)}
       title={layerHint}
     >
-      <VisibilityToggle
-        visible={isVisible}
-        onToggle={(e) => {
-          e.stopPropagation();
-          onToggleVisibility(shape.id);
-        }}
-      />
+      <div className="flex gap-[0.1rem] shrink-0">
+        <VisibilityToggle
+          visible={isVisible}
+          onToggle={(e) => {
+            e.stopPropagation();
+            onToggleVisibility(shape.id);
+          }}
+        />
+        <LockToggle
+          locked={isEffectivelyLocked}
+          disabled={groupLocked}
+          onToggle={(e) => {
+            e.stopPropagation();
+            onToggleLock(shape.id);
+          }}
+        />
+      </div>
       {/* Shape thumbnail — colored shape with border */}
       <div className="w-4.5 h-4.5 shrink-0 flex items-center justify-center">
         <ShapeIcon
@@ -89,8 +106,9 @@ export function LayerItem({
         />
       ) : (
         <span
-          className="flex-1 flex items-baseline min-w-0 cursor-text text-xs font-semibold text-(--color-text-primary) capitalize"
-          onDoubleClick={(e) => {
+          className="flex-1 flex items-baseline min-w-0 text-xs font-semibold text-(--color-text-primary) capitalize"
+          title={isEffectivelyLocked ? undefined : 'Double-click to rename'}
+          onDoubleClick={isEffectivelyLocked ? undefined : (e) => {
             e.stopPropagation();
             onStartEditing(shape);
           }}
@@ -114,7 +132,7 @@ export function LayerItem({
         <button
           className="w-3.5 h-3.5 p-0 bg-transparent border-none cursor-pointer flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed text-(--color-text-secondary) hover:enabled:text-(--color-text-primary) rounded-(--radius-sm)"
           title="Move to top"
-          disabled={isTopLayer}
+          disabled={isTopLayer || isEffectivelyLocked}
           onClick={(e) => {
             e.stopPropagation();
             onMoveLayer(shape.id, 'top');
@@ -125,7 +143,7 @@ export function LayerItem({
         <button
           className="w-3.5 h-3.5 p-0 bg-transparent border-none cursor-pointer flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed text-(--color-text-secondary) hover:enabled:text-(--color-text-primary) rounded-(--radius-sm)"
           title="Move up"
-          disabled={isTopLayer}
+          disabled={isTopLayer || isEffectivelyLocked}
           onClick={(e) => {
             e.stopPropagation();
             onMoveLayer(shape.id, 'up');
@@ -136,7 +154,7 @@ export function LayerItem({
         <button
           className="w-3.5 h-3.5 p-0 bg-transparent border-none cursor-pointer flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed text-(--color-text-secondary) hover:enabled:text-(--color-text-primary) rounded-(--radius-sm)"
           title="Move down"
-          disabled={isBottomLayer}
+          disabled={isBottomLayer || isEffectivelyLocked}
           onClick={(e) => {
             e.stopPropagation();
             onMoveLayer(shape.id, 'down');
@@ -147,7 +165,7 @@ export function LayerItem({
         <button
           className="w-3.5 h-3.5 p-0 bg-transparent border-none cursor-pointer flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed text-(--color-text-secondary) hover:enabled:text-(--color-text-primary) rounded-(--radius-sm)"
           title="Move to bottom"
-          disabled={isBottomLayer}
+          disabled={isBottomLayer || isEffectivelyLocked}
           onClick={(e) => {
             e.stopPropagation();
             onMoveLayer(shape.id, 'bottom');
@@ -156,8 +174,9 @@ export function LayerItem({
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 13 6 6 6-6"/><path d="M5 5h14"/></svg>
         </button>
         <button
-          className="w-3.5 h-3.5 p-0 bg-transparent border-none cursor-pointer flex items-center justify-center text-(--color-accent) rounded-(--radius-sm)"
+          className="w-3.5 h-3.5 p-0 bg-transparent border-none cursor-pointer flex items-center justify-center text-(--color-accent) rounded-(--radius-sm) disabled:opacity-30 disabled:cursor-not-allowed"
           title="Delete"
+          disabled={isEffectivelyLocked}
           onClick={(e) => {
             e.stopPropagation();
             onDeleteShape(shape.id);

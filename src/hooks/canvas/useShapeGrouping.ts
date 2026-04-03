@@ -176,6 +176,54 @@ export function useShapeGrouping(setCanvasState: SetCanvasState) {
     [setCanvasState]
   );
 
+  const toggleShapeLock = useCallback(
+    (id: string) => {
+      setCanvasState((prev) => {
+        // If the shape's group is locked, don't allow toggling individual shape lock
+        const shape = prev.shapes.find(s => s.id === id);
+        if (shape?.groupId) {
+          const group = prev.groups.find(g => g.id === shape.groupId);
+          if (group?.locked) return prev;
+        }
+        const newLocked = shape?.locked ? false : true;
+        return {
+          ...prev,
+          shapes: prev.shapes.map((s) =>
+            s.id === id ? { ...s, locked: newLocked } : s
+          ),
+          // Deselect shape when locking
+          selectedShapeIds: newLocked
+            ? new Set([...prev.selectedShapeIds].filter(sid => sid !== id))
+            : prev.selectedShapeIds,
+        };
+      }, true, 'Toggle lock');
+    },
+    [setCanvasState]
+  );
+
+  const toggleGroupLock = useCallback(
+    (groupId: string) => {
+      setCanvasState((prev) => {
+        const group = prev.groups.find(g => g.id === groupId);
+        const newLocked = group?.locked ? false : true;
+        const shapeIdsInGroup = new Set(
+          prev.shapes.filter(s => s.groupId === groupId).map(s => s.id)
+        );
+        return {
+          ...prev,
+          groups: prev.groups.map((g) =>
+            g.id === groupId ? { ...g, locked: newLocked } : g
+          ),
+          // Deselect shapes in group when locking
+          selectedShapeIds: newLocked
+            ? new Set([...prev.selectedShapeIds].filter(id => !shapeIdsInGroup.has(id)))
+            : prev.selectedShapeIds,
+        };
+      }, true, 'Toggle lock');
+    },
+    [setCanvasState]
+  );
+
   const moveToGroup = useCallback(
     (shapeIds: string[], groupId: string | null) => {
       setCanvasState((prev) => {
@@ -237,6 +285,8 @@ export function useShapeGrouping(setCanvasState: SetCanvasState) {
     toggleGroupCollapsed,
     toggleShapeVisibility,
     toggleGroupVisibility,
+    toggleShapeLock,
+    toggleGroupLock,
     moveToGroup,
     selectGroup,
   };

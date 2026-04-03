@@ -1,6 +1,7 @@
 import { useCallback, useRef } from 'react';
 import type { Shape, CanvasState, DailyChallenge, ShapeType } from '../../types';
 import { generateId, SHAPE_NAMES } from '../../utils/shapes';
+import { isShapeLocked } from '../../utils/visibility';
 
 type SetCanvasState = (
   updater: CanvasState | ((prev: CanvasState) => CanvasState),
@@ -170,6 +171,8 @@ export function useShapeCRUD(
   const deleteShape = useCallback(
     (id: string) => {
       setCanvasState((prev) => {
+        const shape = prev.shapes.find(s => s.id === id);
+        if (shape && isShapeLocked(shape, prev.groups)) return prev;
         const newSelectedIds = new Set(prev.selectedShapeIds);
         newSelectedIds.delete(id);
         return {
@@ -185,10 +188,17 @@ export function useShapeCRUD(
   const deleteSelectedShapes = useCallback(() => {
     setCanvasState((prev) => {
       if (prev.selectedShapeIds.size === 0) return prev;
+      const toDelete = prev.shapes.filter(
+        (s) => prev.selectedShapeIds.has(s.id) && !isShapeLocked(s, prev.groups)
+      );
+      if (toDelete.length === 0) return prev;
+      const deleteIds = new Set(toDelete.map(s => s.id));
       return {
         ...prev,
-        shapes: prev.shapes.filter((s) => !prev.selectedShapeIds.has(s.id)),
-        selectedShapeIds: new Set<string>(),
+        shapes: prev.shapes.filter((s) => !deleteIds.has(s.id)),
+        selectedShapeIds: new Set<string>(
+          [...prev.selectedShapeIds].filter(id => !deleteIds.has(id))
+        ),
       };
     }, true, 'Delete');
   }, [setCanvasState]);

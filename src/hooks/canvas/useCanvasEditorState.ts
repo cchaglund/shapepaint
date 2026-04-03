@@ -46,6 +46,8 @@ export function useCanvasEditorState({ challenge, userId, keyMappings }: UseCanv
     toggleGroupCollapsed,
     toggleShapeVisibility,
     toggleGroupVisibility,
+    toggleShapeLock,
+    toggleGroupLock,
     selectGroup,
     loadCanvasState,
     toast,
@@ -74,6 +76,7 @@ export function useCanvasEditorState({ challenge, userId, keyMappings }: UseCanv
     handleResizeShapes,
   } = useShapeActions({
     shapes: canvasState.shapes,
+    groups: canvasState.groups,
     selectedShapeIds: canvasState.selectedShapeIds,
     updateShapes,
     duplicateShapes,
@@ -124,7 +127,7 @@ export function useCanvasEditorState({ challenge, userId, keyMappings }: UseCanv
     mirrorHorizontal, mirrorVertical, moveLayer,
     moveGroup, reorderLayers, reorderGroup,
     createGroup, deleteGroup, ungroupShapes, renameGroup,
-    toggleGroupCollapsed, toggleShapeVisibility, toggleGroupVisibility,
+    toggleGroupCollapsed, toggleShapeVisibility, toggleGroupVisibility, toggleShapeLock, toggleGroupLock,
     selectGroup, keyMappings, showGrid, showOffCanvas, toggleGrid,
     hoveredShapeIds, setHoveredShapeIds, toast, dismissToast,
   };

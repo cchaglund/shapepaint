@@ -466,7 +466,7 @@ export function CanvasEditorPage({ challenge, todayDate, themeMode, onSetThemeMo
                 ? 'absolute top-3 right-3 z-20'
                 : 'absolute bottom-18 left-0 right-0 z-20 max-h-[50vh]'
               }
-              style={isDesktop ? { width: 280 } : undefined}
+              style={isDesktop ? { width: 350 } : undefined}
             >
               <LayerPanel onToggle={toggleRight} />
             </motion.div>

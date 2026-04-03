@@ -12,12 +12,14 @@ interface ShapeElementProps {
   shape: Shape;
   color: string;
   isSelected: boolean;
+  locked?: boolean;
   animateEntrance?: boolean;
 }
 
 export function ShapeElement({
   shape,
   color,
+  locked,
   animateEntrance,
 }: ShapeElementProps) {
   // Latch: once we decide to animate on mount, keep animating until complete.
@@ -36,7 +38,7 @@ export function ShapeElement({
       flipX={shape.flipX}
       flipY={shape.flipY}
       color={color}
-      style={{ cursor: 'move' }}
+      style={{ cursor: locked ? 'default' : 'move' }}
       dataShapeId={shape.id}
     />
   );

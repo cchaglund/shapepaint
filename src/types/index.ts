@@ -15,6 +15,7 @@ export interface Shape {
   flipY?: boolean; // Flip vertically (mirror up/down)
   groupId?: string; // Optional group membership
   visible?: boolean; // Layer visibility (undefined = visible)
+  locked?: boolean; // Layer lock (undefined = unlocked)
 }
 
 export interface ShapeGroup {
@@ -23,6 +24,7 @@ export interface ShapeGroup {
   isCollapsed: boolean;
   zIndex: number; // For ordering groups in the layer panel
   visible?: boolean; // Group visibility (undefined = visible)
+  locked?: boolean; // Group lock (undefined = unlocked)
 }
 
 export interface ChallengeShapeData {

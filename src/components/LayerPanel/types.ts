@@ -42,8 +42,10 @@ export interface LayerItemProps {
   onMoveLayer: (id: string, direction: 'up' | 'down' | 'top' | 'bottom') => void;
   onDeleteShape: (id: string) => void;
   onToggleVisibility: (id: string) => void;
+  onToggleLock: (id: string) => void;
   onHoverShape: (ids: Set<string> | null) => void;
   groupVisible: boolean;
+  groupLocked: boolean;
 }
 
 export interface GroupHeaderProps {
@@ -67,6 +69,7 @@ export interface GroupHeaderProps {
   onKeyDown: (e: React.KeyboardEvent) => void;
   onToggleGroupCollapsed: (groupId: string) => void;
   onToggleGroupVisibility: (groupId: string) => void;
+  onToggleGroupLock: (groupId: string) => void;
   onDeleteGroup: (groupId: string) => void;
   onMoveGroup: (groupId: string, direction: 'up' | 'down' | 'top' | 'bottom') => void;
   onGroupDragStart: (e: React.DragEvent, groupId: string) => void;

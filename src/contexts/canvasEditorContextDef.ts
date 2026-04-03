@@ -42,6 +42,8 @@ export interface CanvasEditorContextValue {
   toggleGroupCollapsed: (groupId: string) => void;
   toggleShapeVisibility: (shapeId: string) => void;
   toggleGroupVisibility: (groupId: string) => void;
+  toggleShapeLock: (shapeId: string) => void;
+  toggleGroupLock: (groupId: string) => void;
   selectGroup: (groupId: string, options?: { toggle?: boolean }) => void;
 
   keyMappings: KeyMappings;

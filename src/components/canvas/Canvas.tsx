@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import type { Shape } from '../../types';
 import { CANVAS_SIZE } from '../../types/canvas';
 import { getShapeDimensions } from '../../utils/shapes';
-import { getVisibleShapes } from '../../utils/visibility';
+import { getVisibleShapes, isShapeLocked } from '../../utils/visibility';
 import { useCanvasEditor } from '../../contexts/useCanvasEditor';
 import { ShapeElement } from './ShapeElement';
 import {
@@ -56,13 +56,18 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
   // Filter to only visible shapes
   const visibleShapes = useMemo(() => getVisibleShapes(shapes, groups), [shapes, groups]);
 
-  // Exclude hidden shapes from effective selection (don't show transform handles for hidden shapes)
+  // Exclude hidden and locked shapes from effective selection
   const effectiveSelectedShapeIds = useMemo(() => {
     const visibleIds = new Set(visibleShapes.map(s => s.id));
     const filtered = new Set<string>();
-    selectedShapeIds.forEach(id => { if (visibleIds.has(id)) filtered.add(id); });
+    selectedShapeIds.forEach(id => {
+      if (!visibleIds.has(id)) return;
+      const shape = shapes.find(s => s.id === id);
+      if (shape && isShapeLocked(shape, groups)) return;
+      filtered.add(id);
+    });
     return filtered;
-  }, [visibleShapes, selectedShapeIds]);
+  }, [visibleShapes, selectedShapeIds, shapes, groups]);
 
   // Track newly added shapes for entrance animation.
   // Track newly added shapes for entrance animations.
@@ -184,6 +189,7 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
       e.stopPropagation();
       const shape = shapes.find((s) => s.id === shapeId);
       if (!shape) return;
+      if (isShapeLocked(shape, groups)) return;
 
       const isShiftKey = e.shiftKey;
       const isAlreadySelected = selectedShapeIds.has(shapeId);
@@ -228,7 +234,7 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
         startPositions,
       });
     },
-    [shapes, selectedShapeIds, selectedShapes, getSVGPoint, onSelectShape, setDragState]
+    [shapes, groups, selectedShapeIds, selectedShapes, getSVGPoint, onSelectShape, setDragState]
   );
 
   const handleResizeStart = useCallback(
@@ -499,6 +505,7 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
                   shape={shape}
                   color={challenge.colors[shape.colorIndex]}
                   isSelected={selectedShapeIds.has(shape.id)}
+                  locked={isShapeLocked(shape, groups)}
                   animateEntrance={newShapeIds.has(shape.id)}
                 />
               </g>

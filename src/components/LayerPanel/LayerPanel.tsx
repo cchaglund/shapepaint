@@ -26,6 +26,8 @@ export function LayerPanel({ onToggle }: LayerPanelProps) {
     toggleGroupCollapsed: onToggleGroupCollapsed,
     toggleShapeVisibility: onToggleShapeVisibility,
     toggleGroupVisibility: onToggleGroupVisibility,
+    toggleShapeLock: onToggleShapeLock,
+    toggleGroupLock: onToggleGroupLock,
     selectGroup: onSelectGroup,
     setHoveredShapeIds: onHoverShape,
   } = useCanvasEditor();
@@ -380,7 +382,7 @@ export function LayerPanel({ onToggle }: LayerPanelProps) {
           {sortedShapes.length === 0 ? (
             <p className="text-sm text-center py-4 text-(--color-text-tertiary)">No shapes yet</p>
           ) : (
-        <ul className="list-none p-0 m-0">
+        <ul className="list-none p-0 m-0 flex flex-col gap-0.5">
           {(() => {
             const elements: React.ReactNode[] = [];
             let i = 0;
@@ -412,6 +414,7 @@ export function LayerPanel({ onToggle }: LayerPanelProps) {
                     onKeyDown={handleKeyDown}
                     onToggleGroupCollapsed={onToggleGroupCollapsed}
                     onToggleGroupVisibility={onToggleGroupVisibility}
+                    onToggleGroupLock={onToggleGroupLock}
                     onDeleteGroup={onDeleteGroup}
                     onMoveGroup={onMoveGroup}
                     onGroupDragStart={handleGroupDragStart}
@@ -438,7 +441,7 @@ export function LayerPanel({ onToggle }: LayerPanelProps) {
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        style={{ overflow: 'hidden', paddingLeft: '0.75rem' }}
+                        style={{ overflow: 'hidden', paddingLeft: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.125rem' }}
                       >
                         {groupChildren.map((child) => {
                           const shape = child.shape!;
@@ -471,8 +474,10 @@ export function LayerPanel({ onToggle }: LayerPanelProps) {
                               onMoveLayer={onMoveLayer}
                               onDeleteShape={onDeleteShape}
                               onToggleVisibility={onToggleShapeVisibility}
+                              onToggleLock={onToggleShapeLock}
                               onHoverShape={onHoverShape}
-                              groupVisible={groups.find(g => g.id === shape.groupId)?.visible !== false}
+                              groupVisible={group.visible !== false}
+                              groupLocked={group.locked === true}
                             />
                           );
                         })}
@@ -512,8 +517,10 @@ export function LayerPanel({ onToggle }: LayerPanelProps) {
                     onMoveLayer={onMoveLayer}
                     onDeleteShape={onDeleteShape}
                     onToggleVisibility={onToggleShapeVisibility}
+                    onToggleLock={onToggleShapeLock}
                     onHoverShape={onHoverShape}
                     groupVisible={true}
+                    groupLocked={false}
                   />
                 );
                 i++;

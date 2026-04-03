@@ -3,7 +3,7 @@ import type { Shape, ShapeGroup, ViewportState } from '../../types';
 import type { TouchState, ContextMenuState } from '../../types/canvas';
 import { LONG_PRESS_DURATION, TAP_THRESHOLD, CANVAS_SIZE } from '../../types/canvas';
 import { getShapeDimensions } from '../../utils/shapes';
-import { isShapeVisible } from '../../utils/visibility';
+import { isShapeVisible, isShapeLocked } from '../../utils/visibility';
 
 interface UseCanvasTouchGesturesOptions {
   shapes: Shape[];
@@ -115,6 +115,7 @@ export function useCanvasTouchGestures({
       const sortedByZ = [...shapes].sort((a, b) => b.zIndex - a.zIndex);
       for (const shape of sortedByZ) {
         if (!isShapeVisible(shape, groups)) continue;
+        if (isShapeLocked(shape, groups)) continue;
         const dims = getShapeDimensions(shape.type, shape.size);
         const centerX = shape.x + dims.width / 2;
         const centerY = shape.y + dims.height / 2;

@@ -142,6 +142,12 @@ export function useShapeLayering(setCanvasState: SetCanvasState) {
   const reorderLayers = useCallback(
     (draggedId: string, targetIndex: number, targetGroupId: string | null) => {
       setCanvasState((prev) => {
+        // Prevent dropping into a locked group
+        if (targetGroupId) {
+          const targetGroup = prev.groups.find(g => g.id === targetGroupId);
+          if (targetGroup?.locked) return prev;
+        }
+
         const sortedByZDesc = [...prev.shapes].sort((a, b) => b.zIndex - a.zIndex);
         const draggedIndex = sortedByZDesc.findIndex((s) => s.id === draggedId);
 

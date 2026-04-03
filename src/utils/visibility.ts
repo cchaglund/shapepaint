@@ -14,3 +14,13 @@ export function isShapeVisible(shape: Shape, groups: ShapeGroup[]): boolean {
 export function getVisibleShapes(shapes: Shape[], groups: ShapeGroup[]): Shape[] {
   return shapes.filter(s => isShapeVisible(s, groups));
 }
+
+/** Check if a shape is effectively locked (considers its own + group lock) */
+export function isShapeLocked(shape: Shape, groups: ShapeGroup[]): boolean {
+  if (shape.locked) return true;
+  if (shape.groupId) {
+    const group = groups.find(g => g.id === shape.groupId);
+    if (group?.locked) return true;
+  }
+  return false;
+}

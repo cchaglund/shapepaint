@@ -95,6 +95,8 @@ export function useCanvasState(challenge: DailyChallenge | null, userId: string 
     toggleGroupCollapsed,
     toggleShapeVisibility,
     toggleGroupVisibility,
+    toggleShapeLock,
+    toggleGroupLock,
     moveToGroup,
     selectGroup,
   } = useShapeOperations(challenge, setCanvasState);
@@ -166,6 +168,8 @@ export function useCanvasState(challenge: DailyChallenge | null, userId: string 
     toggleGroupCollapsed,
     toggleShapeVisibility,
     toggleGroupVisibility,
+    toggleShapeLock,
+    toggleGroupLock,
     moveToGroup,
     selectGroup,
     getShapesInGroup,

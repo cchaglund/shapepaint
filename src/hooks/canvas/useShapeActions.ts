@@ -1,8 +1,10 @@
 import { useCallback, useMemo, type RefObject } from 'react';
-import type { Shape } from '../../types';
+import type { Shape, ShapeGroup } from '../../types';
+import { isShapeLocked } from '../../utils/visibility';
 
 interface UseShapeActionsOptions {
   shapes: Shape[];
+  groups: ShapeGroup[];
   selectedShapeIds: Set<string>;
   updateShapes: (updates: Map<string, Partial<Shape>>, addToHistory?: boolean, label?: string) => void;
   duplicateShapes: (ids: string[]) => void;
@@ -16,6 +18,7 @@ interface UseShapeActionsOptions {
  */
 export function useShapeActions({
   shapes,
+  groups,
   selectedShapeIds,
   updateShapes,
   duplicateShapes,
@@ -24,8 +27,8 @@ export function useShapeActions({
   mirrorVertical,
 }: UseShapeActionsOptions) {
   const selectedShapes = useMemo(
-    () => shapes.filter((s) => selectedShapeIds.has(s.id)),
-    [shapes, selectedShapeIds]
+    () => shapes.filter((s) => selectedShapeIds.has(s.id) && !isShapeLocked(s, groups)),
+    [shapes, groups, selectedShapeIds]
   );
 
   const handleMoveShapes = useCallback(
@@ -41,9 +44,10 @@ export function useShapeActions({
   );
 
   const handleDuplicate = useCallback(() => {
-    if (selectedShapeIds.size > 0) {
-      duplicateShapes(Array.from(selectedShapeIds));
-    } else if (lastDuplicatedIdsRef.current.length > 0) {
+    const unlockedIds = selectedShapes.map(s => s.id);
+    if (unlockedIds.length > 0) {
+      duplicateShapes(unlockedIds);
+    } else if (selectedShapeIds.size === 0 && lastDuplicatedIdsRef.current.length > 0) {
       // Re-duplicate the shapes created by the last duplication
       const stillExist = lastDuplicatedIdsRef.current.filter(id =>
         shapes.some(s => s.id === id)
@@ -52,17 +56,17 @@ export function useShapeActions({
         duplicateShapes(stillExist);
       }
     }
-  }, [selectedShapeIds, shapes, duplicateShapes, lastDuplicatedIdsRef]);
+  }, [selectedShapes, selectedShapeIds, shapes, duplicateShapes, lastDuplicatedIdsRef]);
 
   const handleMirrorHorizontal = useCallback(() => {
-    if (selectedShapeIds.size === 0) return;
-    mirrorHorizontal(Array.from(selectedShapeIds));
-  }, [selectedShapeIds, mirrorHorizontal]);
+    if (selectedShapes.length === 0) return;
+    mirrorHorizontal(selectedShapes.map(s => s.id));
+  }, [selectedShapes, mirrorHorizontal]);
 
   const handleMirrorVertical = useCallback(() => {
-    if (selectedShapeIds.size === 0) return;
-    mirrorVertical(Array.from(selectedShapeIds));
-  }, [selectedShapeIds, mirrorVertical]);
+    if (selectedShapes.length === 0) return;
+    mirrorVertical(selectedShapes.map(s => s.id));
+  }, [selectedShapes, mirrorVertical]);
 
   // Resize from center - adjust position to keep center fixed
   const handleResizeShapes = useCallback(
