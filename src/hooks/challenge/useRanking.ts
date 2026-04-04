@@ -7,12 +7,22 @@ import {
   fetchUserRank as apiFetchUserRank,
   fetchSubmissionRankInfo,
   fetchAdjacentRankingDates,
+  countSubmissions,
+  fetchVoterCount,
 } from '../../lib/api';
+import { calculateRankingConfidence, type RankingConfidence } from '../../utils/votingRules';
+
+interface RankingStats {
+  submissionCount: number;
+  voterCount: number;
+  confidence: RankingConfidence;
+}
 
 interface UseRankingReturn {
   topThree: RankingEntry[];
   rankings: RankingEntry[];
   totalSubmissions: number;
+  rankingStats: RankingStats | null;
   userRank: number | null;
   loading: boolean;
   fetchTopThree: (date: string) => Promise<void>;
@@ -26,6 +36,7 @@ export function useRanking(): UseRankingReturn {
   const [topThree, setTopThree] = useState<RankingEntry[]>([]);
   const [rankings, setRankings] = useState<RankingEntry[]>([]);
   const [totalSubmissions, setTotalSubmissions] = useState(0);
+  const [rankingStats, setRankingStats] = useState<RankingStats | null>(null);
   const [userRank, setUserRank] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -39,8 +50,17 @@ export function useRanking(): UseRankingReturn {
         // RPC may fail if user doesn't have permission or ranks already computed — expected
       }
 
-      const entries = await fetchRankingsWithSubmissions(date, 3);
+      const [entries, submissions, voters] = await Promise.all([
+        fetchRankingsWithSubmissions(date, 3),
+        countSubmissions(date),
+        fetchVoterCount(date),
+      ]);
       setTopThree(entries);
+      setRankingStats({
+        submissionCount: submissions,
+        voterCount: voters,
+        confidence: calculateRankingConfidence(voters, submissions),
+      });
     } catch (error) {
       console.error('Error fetching top three:', error);
     }
@@ -105,6 +125,7 @@ export function useRanking(): UseRankingReturn {
     topThree,
     rankings,
     totalSubmissions,
+    rankingStats,
     userRank,
     loading,
     fetchTopThree,

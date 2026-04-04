@@ -146,6 +146,16 @@ export async function countSubmissions(challengeDate: string): Promise<number> {
   return count ?? 0;
 }
 
+export async function fetchVoterCount(challengeDate: string): Promise<number> {
+  const { data, error } = await supabase
+    .from('comparisons')
+    .select('voter_id')
+    .eq('challenge_date', challengeDate)
+    .not('winner_id', 'is', null);
+  if (error) throw error;
+  return new Set(data?.map((r) => r.voter_id)).size;
+}
+
 export async function countOtherSubmissions(challengeDate: string, userId: string): Promise<number> {
   const { count, error } = await supabase
     .from('submissions')

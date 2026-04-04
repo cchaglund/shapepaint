@@ -5,7 +5,10 @@ import { useRanking } from '../hooks/challenge/useRanking';
 import { useDailyChallenge } from '../hooks/challenge/useDailyChallenge';
 import { WinnerCard } from '../components/submission/WinnerCard';
 import { getShapeSVGData } from '../utils/shapes';
+import { RANKING_CONFIDENCE_TOOLTIP } from '../utils/votingRules';
 import { TopBar } from '../components/canvas/TopBar';
+import { ConfidencePill } from '../components/shared/ConfidencePill';
+import { InfoTooltip } from '../components/shared/InfoTooltip';
 import type { ThemeMode, ThemeName } from '../hooks/ui/useThemeState';
 
 interface WinnersDayPageProps {
@@ -17,7 +20,7 @@ interface WinnersDayPageProps {
 }
 
 export function WinnersDayPage({ date, themeMode, onSetThemeMode, themeName, onSetThemeName }: WinnersDayPageProps) {
-  const { fetchTopThree, topThree, loading, getAdjacentRankingDates } = useRanking();
+  const { fetchTopThree, topThree, loading, getAdjacentRankingDates, rankingStats } = useRanking();
   const { challenge, loading: challengeLoading } = useDailyChallenge(date);
   const [adjacentDates, setAdjacentDates] = useState<{ prev: string | null; next: string | null }>({ prev: null, next: null });
 
@@ -247,6 +250,34 @@ export function WinnersDayPage({ date, themeMode, onSetThemeMode, themeName, onS
                     })}
                   </div>
                 </div>
+
+                {rankingStats && (
+                  <>
+                    <hr className="border-t border-(--color-border-light,var(--color-border)) opacity-50 my-3" />
+                    <div className="text-xs font-semibold uppercase tracking-wide text-(--color-text-tertiary) mb-2">
+                      Ranking
+                    </div>
+                    <div className="flex flex-wrap gap-4 items-baseline">
+                      <div>
+                        <span className="text-xs text-(--color-text-tertiary) block">Submissions</span>
+                        <span className="text-sm font-medium text-(--color-text-primary) mt-0.5 inline-block">{rankingStats.submissionCount}</span>
+                      </div>
+                      <div>
+                        <span className="text-xs text-(--color-text-tertiary) block">Voters</span>
+                        <span className="text-sm font-medium text-(--color-text-primary) mt-0.5 inline-block">{rankingStats.voterCount}</span>
+                      </div>
+                      <div>
+                        <span className="text-xs text-(--color-text-tertiary) block">
+                          Confidence
+                          <InfoTooltip text={RANKING_CONFIDENCE_TOOLTIP} />
+                        </span>
+                        <span className="mt-0.5 inline-block">
+                          <ConfidencePill confidence={rankingStats.confidence} />
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>

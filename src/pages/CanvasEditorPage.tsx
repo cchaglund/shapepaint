@@ -93,6 +93,7 @@ export function CanvasEditorPage({ challenge, todayDate, themeMode, onSetThemeMo
     dismiss: dismissWinnerAnnouncement,
     loading: winnerLoading,
     userPlacement,
+    rankingStats: winnerRankingStats,
     persistSeen,
   } = useWinnerAnnouncement(user?.id);
 
@@ -499,6 +500,7 @@ export function CanvasEditorPage({ challenge, todayDate, themeMode, onSetThemeMo
         winnerDismissed={winnerDismissed}
         winnerChallengeDate={winnerChallengeDate}
         winnerTopThree={winnerTopThree}
+        winnerRankingStats={winnerRankingStats}
         onPersistSeen={persistSeen}
         onDismissCongrats={dismissCongrats}
         onDismissWinnerAnnouncement={dismissWinnerAnnouncement}

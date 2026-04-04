@@ -212,6 +212,7 @@ export function VotingTestPage() {
     <WinnerAnnouncementModal
       challengeDate={MOCK_CHALLENGE.date}
       topThree={topThree}
+      rankingStats={{ submissionCount: 10, voterCount: 3, confidence: 'low' }}
       onDismiss={() => setShowModal(false)}
     />
   );

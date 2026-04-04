@@ -1,5 +1,6 @@
 
 import type { RankingEntry } from '../../types';
+import type { RankingConfidence } from '../../utils/votingRules';
 import type { KeyMappings, KeyboardActionId, KeyBinding } from '../../constants/keyboardActions';
 import { KeyboardSettingsModal } from './KeyboardSettingsModal';
 import { ResetConfirmModal } from './ResetConfirmModal';
@@ -26,6 +27,7 @@ interface CanvasModalsProps {
   winnerDismissed: boolean;
   winnerChallengeDate: string;
   winnerTopThree: RankingEntry[];
+  winnerRankingStats: { submissionCount: number; voterCount: number; confidence: RankingConfidence } | null;
   onPersistSeen: () => void;
   onDismissCongrats: () => void;
   onDismissWinnerAnnouncement: () => void;
@@ -58,6 +60,7 @@ export function CanvasModals({
   winnerDismissed,
   winnerChallengeDate,
   winnerTopThree,
+  winnerRankingStats,
   onPersistSeen,
   onDismissCongrats,
   onDismissWinnerAnnouncement,
@@ -101,6 +104,7 @@ export function CanvasModals({
             <WinnerAnnouncementModal
               challengeDate={winnerChallengeDate}
               topThree={winnerTopThree}
+              rankingStats={winnerRankingStats}
               onDismiss={() => {
                 onDismissWinnerAnnouncement();
                 onDismissWinner();

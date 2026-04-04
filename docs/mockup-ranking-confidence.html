@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ranking Confidence — Final Prototype</title>
+
+<!-- Google Fonts matching the app -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&family=Lilita+One&family=DM+Sans:wght@300;400;500;600;700&family=Nunito:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* ── Theme Variable Definitions (from src/index.css) ── */
+
+  /* Pop Art Light */
+  [data-theme="a"][data-mode="light"] {
+    font-family: 'Fredoka', sans-serif;
+    --font-body: 'Fredoka', sans-serif;
+    --font-display: 'Lilita One', cursive;
+    --radius-sm: 0.5rem; --radius-md: 0.75rem; --radius-lg: 1rem; --radius-xl: 1.25rem; --radius-2xl: 1.5rem; --radius-pill: 1.25rem;
+    --border-width: 2px; --border-width-heavy: 3px;
+    --color-accent: #FF3366; --color-accent-hover: #e6204d; --color-accent-subtle: rgba(255, 51, 102, 0.12); --color-accent-text: #ffffff;
+    --color-danger: #c45c4a;
+    --color-bg-primary: #FFFBF7; --color-bg-secondary: #FFF8F2; --color-bg-tertiary: #FFF5ED; --color-bg-elevated: #ffffff;
+    --color-text-primary: #2D1B69; --color-text-secondary: #5a4880; --color-text-tertiary: #8B7EC8; --color-text-faint: #b5a8c8;
+    --color-border: #2D1B69; --color-border-light: #E8E8E8;
+    --color-modal-bg: #ffffff; --color-card-bg: #ffffff; --color-modal-overlay: rgba(45, 27, 105, 0.5);
+    --shadow-card: 4px 4px 0 #2D1B69; --shadow-btn: 2px 2px 0 #2D1B69; --shadow-modal: 8px 8px 0 #2D1B69;
+    --border-card: 2px solid #2D1B69;
+    --color-hover: rgba(45, 27, 105, 0.06);
+    --color-confidence-high: #22c55e; --color-confidence-high-bg: rgba(34, 197, 94, 0.12); --color-confidence-high-text: #166534;
+    --color-confidence-med: #eab308; --color-confidence-med-bg: rgba(234, 179, 8, 0.14); --color-confidence-med-text: #854d0e;
+    --color-confidence-low: #ef4444; --color-confidence-low-bg: rgba(239, 68, 68, 0.10); --color-confidence-low-text: #991b1b;
+    color: var(--color-text-primary); background-color: var(--color-bg-primary);
+  }
+
+  /* Pop Art Dark */
+  [data-theme="a"][data-mode="dark"] {
+    font-family: 'Fredoka', sans-serif;
+    --font-body: 'Fredoka', sans-serif;
+    --font-display: 'Lilita One', cursive;
+    --radius-sm: 0.5rem; --radius-md: 0.75rem; --radius-lg: 1rem; --radius-xl: 1.25rem; --radius-2xl: 1.5rem; --radius-pill: 1.25rem;
+    --border-width: 2px; --border-width-heavy: 3px;
+    --color-accent: #FF3366; --color-accent-hover: #ff4d7a; --color-accent-subtle: rgba(255, 51, 102, 0.2); --color-accent-text: #ffffff;
+    --color-danger: #d4705e;
+    --color-bg-primary: #1A1230; --color-bg-secondary: #241B3D; --color-bg-tertiary: #2D2248; --color-bg-elevated: #352A55;
+    --color-text-primary: #E8E0FF; --color-text-secondary: #8B7EC8; --color-text-tertiary: rgba(232, 224, 255, 0.4); --color-text-faint: rgba(232, 224, 255, 0.2);
+    --color-border: #4A3B6B; --color-border-light: #3A2D55;
+    --color-modal-bg: #2D2248; --color-card-bg: #241B3D; --color-modal-overlay: rgba(0, 0, 0, 0.6);
+    --shadow-card: 4px 4px 0 rgba(0, 0, 0, 0.3); --shadow-btn: 3px 3px 0 rgba(0, 0, 0, 0.3); --shadow-modal: 8px 8px 0 rgba(0, 0, 0, 0.4);
+    --border-card: 2px solid #4A3B6B;
+    --color-hover: rgba(255, 255, 255, 0.06);
+    --color-confidence-high: #4ade80; --color-confidence-high-bg: rgba(74, 222, 128, 0.15); --color-confidence-high-text: #bbf7d0;
+    --color-confidence-med: #facc15; --color-confidence-med-bg: rgba(250, 204, 21, 0.15); --color-confidence-med-text: #fef08a;
+    --color-confidence-low: #f87171; --color-confidence-low-bg: rgba(248, 113, 113, 0.15); --color-confidence-low-text: #fecaca;
+    color: var(--color-text-primary); background-color: var(--color-bg-primary);
+  }
+
+  /* Swiss Light */
+  [data-theme="b"][data-mode="light"] {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    --font-body: 'DM Sans', system-ui, sans-serif;
+    --font-display: 'DM Sans', system-ui, sans-serif;
+    --radius-sm: 0.125rem; --radius-md: 0.1875rem; --radius-lg: 0.25rem; --radius-xl: 0.25rem; --radius-2xl: 0.25rem; --radius-pill: 0.1875rem;
+    --border-width: 1px; --border-width-heavy: 2px;
+    --color-accent: #E63322; --color-accent-hover: #c82b1c; --color-accent-subtle: rgba(230, 51, 34, 0.1); --color-accent-text: #ffffff;
+    --color-danger: #E63322;
+    --color-bg-primary: #fafafa; --color-bg-secondary: #f5f5f5; --color-bg-tertiary: #f0f0f0; --color-bg-elevated: #ffffff;
+    --color-text-primary: #222222; --color-text-secondary: #555555; --color-text-tertiary: #666666; --color-text-faint: #bbbbbb;
+    --color-border: #222222; --color-border-light: #E0E0E0;
+    --color-modal-bg: #ffffff; --color-card-bg: #ffffff; --color-modal-overlay: rgba(0, 0, 0, 0.4);
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.06); --shadow-btn: 0 1px 2px rgba(0, 0, 0, 0.06); --shadow-modal: 0 2px 8px rgba(0, 0, 0, 0.12);
+    --border-card: 1px solid #222222;
+    --color-hover: rgba(0, 0, 0, 0.04);
+    --color-confidence-high: #16a34a; --color-confidence-high-bg: rgba(22, 163, 74, 0.10); --color-confidence-high-text: #14532d;
+    --color-confidence-med: #ca8a04; --color-confidence-med-bg: rgba(202, 138, 4, 0.10); --color-confidence-med-text: #713f12;
+    --color-confidence-low: #dc2626; --color-confidence-low-bg: rgba(220, 38, 38, 0.08); --color-confidence-low-text: #7f1d1d;
+    color: var(--color-text-primary); background-color: var(--color-bg-primary);
+  }
+
+  /* Swiss Dark */
+  [data-theme="b"][data-mode="dark"] {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    --font-body: 'DM Sans', system-ui, sans-serif;
+    --font-display: 'DM Sans', system-ui, sans-serif;
+    --radius-sm: 0.125rem; --radius-md: 0.1875rem; --radius-lg: 0.25rem; --radius-xl: 0.25rem; --radius-2xl: 0.25rem; --radius-pill: 0.1875rem;
+    --border-width: 1px; --border-width-heavy: 2px;
+    --color-accent: #E63322; --color-accent-hover: #ff4433; --color-accent-subtle: rgba(230, 51, 34, 0.15); --color-accent-text: #ffffff;
+    --color-danger: #E63322;
+    --color-bg-primary: #1a1a1a; --color-bg-secondary: #1e1e1e; --color-bg-tertiary: #222222; --color-bg-elevated: #2a2a2a;
+    --color-text-primary: rgba(255, 255, 255, 0.9); --color-text-secondary: rgba(255, 255, 255, 0.6); --color-text-tertiary: rgba(255, 255, 255, 0.4); --color-text-faint: rgba(255, 255, 255, 0.2);
+    --color-border: #444444; --color-border-light: #333333;
+    --color-modal-bg: #222222; --color-card-bg: #222222; --color-modal-overlay: rgba(0, 0, 0, 0.6);
+    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.2); --shadow-btn: 0 1px 2px rgba(0, 0, 0, 0.2); --shadow-modal: 0 4px 16px rgba(0, 0, 0, 0.4);
+    --border-card: 1px solid #444444;
+    --color-hover: rgba(255, 255, 255, 0.05);
+    --color-confidence-high: #4ade80; --color-confidence-high-bg: rgba(74, 222, 128, 0.12); --color-confidence-high-text: #bbf7d0;
+    --color-confidence-med: #facc15; --color-confidence-med-bg: rgba(250, 204, 21, 0.12); --color-confidence-med-text: #fef08a;
+    --color-confidence-low: #f87171; --color-confidence-low-bg: rgba(248, 113, 113, 0.12); --color-confidence-low-text: #fecaca;
+    color: var(--color-text-primary); background-color: var(--color-bg-primary);
+  }
+
+  /* Cloud Light */
+  [data-theme="c"][data-mode="light"] {
+    font-family: 'Nunito', sans-serif;
+    --font-body: 'Nunito', sans-serif;
+    --font-display: 'Nunito', sans-serif;
+    --radius-sm: 0.75rem; --radius-md: 1rem; --radius-lg: 1.25rem; --radius-xl: 1.5rem; --radius-2xl: 1.75rem; --radius-pill: 9999px;
+    --border-width: 1px; --border-width-heavy: 2px;
+    --color-accent: #E07A5F; --color-accent-hover: #c8684e; --color-accent-subtle: rgba(224, 122, 95, 0.12); --color-accent-text: #ffffff;
+    --color-danger: #c45c4a;
+    --color-bg-primary: #fdf8f3; --color-bg-secondary: #f9f2ea; --color-bg-tertiary: #f5ece3; --color-bg-elevated: #ffffff;
+    --color-text-primary: #3d3d3d; --color-text-secondary: #6b6b6b; --color-text-tertiary: #706860; --color-text-faint: #c0c0c0;
+    --color-border: rgba(0, 0, 0, 0.08); --color-border-light: rgba(0, 0, 0, 0.04);
+    --color-modal-bg: #ffffff; --color-card-bg: #ffffff; --color-modal-overlay: rgba(0, 0, 0, 0.35);
+    --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.05); --shadow-btn: 0 2px 10px rgba(0, 0, 0, 0.05); --shadow-modal: 0 8px 40px rgba(0, 0, 0, 0.08);
+    --border-card: 1px solid rgba(0, 0, 0, 0.08);
+    --color-hover: rgba(157, 196, 176, 0.15);
+    --color-confidence-high: #22c55e; --color-confidence-high-bg: rgba(34, 197, 94, 0.10); --color-confidence-high-text: #166534;
+    --color-confidence-med: #eab308; --color-confidence-med-bg: rgba(234, 179, 8, 0.12); --color-confidence-med-text: #854d0e;
+    --color-confidence-low: #ef4444; --color-confidence-low-bg: rgba(239, 68, 68, 0.08); --color-confidence-low-text: #991b1b;
+    color: var(--color-text-primary); background-color: var(--color-bg-primary);
+  }
+
+  /* Cloud Dark */
+  [data-theme="c"][data-mode="dark"] {
+    font-family: 'Nunito', sans-serif;
+    --font-body: 'Nunito', sans-serif;
+    --font-display: 'Nunito', sans-serif;
+    --radius-sm: 0.75rem; --radius-md: 1rem; --radius-lg: 1.25rem; --radius-xl: 1.5rem; --radius-2xl: 1.75rem; --radius-pill: 9999px;
+    --border-width: 1px; --border-width-heavy: 2px;
+    --color-accent: #E07A5F; --color-accent-hover: #e88d76; --color-accent-subtle: rgba(224, 122, 95, 0.18); --color-accent-text: #ffffff;
+    --color-danger: #d4705e;
+    --color-bg-primary: #2a2520; --color-bg-secondary: #302a24; --color-bg-tertiary: #352f29; --color-bg-elevated: #3d362f;
+    --color-text-primary: rgba(255, 255, 255, 0.88); --color-text-secondary: rgba(255, 255, 255, 0.6); --color-text-tertiary: rgba(255, 255, 255, 0.38); --color-text-faint: rgba(255, 255, 255, 0.2);
+    --color-border: rgba(255, 255, 255, 0.08); --color-border-light: rgba(255, 255, 255, 0.04);
+    --color-modal-bg: #352f29; --color-card-bg: #352f29; --color-modal-overlay: rgba(0, 0, 0, 0.5);
+    --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.15); --shadow-btn: 0 2px 10px rgba(0, 0, 0, 0.15); --shadow-modal: 0 8px 40px rgba(0, 0, 0, 0.3);
+    --border-card: 1px solid rgba(255, 255, 255, 0.08);
+    --color-hover: rgba(157, 196, 176, 0.1);
+    --color-confidence-high: #4ade80; --color-confidence-high-bg: rgba(74, 222, 128, 0.12); --color-confidence-high-text: #bbf7d0;
+    --color-confidence-med: #facc15; --color-confidence-med-bg: rgba(250, 204, 21, 0.12); --color-confidence-med-text: #fef08a;
+    --color-confidence-low: #f87171; --color-confidence-low-bg: rgba(248, 113, 113, 0.12); --color-confidence-low-text: #fecaca;
+    color: var(--color-text-primary); background-color: var(--color-bg-primary);
+  }
+
+  /* ── Layout ── */
+  body {
+    background: #111;
+    padding: 2rem;
+    line-height: 1.5;
+  }
+
+  .page-header {
+    text-align: center;
+    color: #fff;
+    margin-bottom: 1rem;
+    font-family: 'DM Sans', system-ui, sans-serif;
+  }
+  .page-header h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+  .page-header p { font-size: 0.875rem; color: rgba(255,255,255,0.6); }
+
+  .section-title {
+    color: #fff;
+    font-family: 'DM Sans', system-ui, sans-serif;
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 2.5rem 0 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+  }
+  .section-subtitle {
+    color: #fff;
+    font-family: 'DM Sans', system-ui, sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    margin: 1.5rem 0 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px dashed rgba(255,255,255,0.15);
+  }
+  .section-desc {
+    color: rgba(255,255,255,0.5);
+    font-family: 'DM Sans', system-ui, sans-serif;
+    font-size: 0.8125rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+  }
+
+  .theme-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  @media (max-width: 1100px) { .theme-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 700px) { .theme-grid { grid-template-columns: 1fr; } }
+
+  .theme-cell {
+    border-radius: var(--radius-xl, 0.5rem);
+    padding: 1.25rem;
+    background: var(--color-bg-primary);
+    border: var(--border-width, 1px) solid var(--color-border);
+    box-shadow: var(--shadow-card);
+    font-family: var(--font-body);
+  }
+  .theme-label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-tertiary);
+    margin-bottom: 0.75rem;
+    font-family: var(--font-body);
+  }
+
+  /* ── Shared component styles ── */
+  .card {
+    border-radius: var(--radius-xl);
+    padding: 1rem;
+    background: var(--color-bg-primary);
+    border: var(--border-width, 2px) solid var(--color-border);
+    box-shadow: var(--shadow-card);
+  }
+  .card-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--color-text-primary);
+  }
+  .label {
+    font-size: 0.6875rem;
+    color: var(--color-text-tertiary);
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+  .value {
+    font-size: 0.875rem;
+    color: var(--color-text-primary);
+    font-weight: 500;
+  }
+  .row { margin-bottom: 1rem; }
+  .row:last-child { margin-bottom: 0; }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--color-border-light, var(--color-border));
+    margin: 0.75rem 0;
+    opacity: 0.5;
+  }
+
+  /* Color swatches */
+  .swatch-row { display: flex; gap: 0.5rem; }
+  .swatch {
+    width: 2rem; height: 2rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+  }
+
+  /* Shape placeholders */
+  .shape-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .shape-placeholder {
+    width: 2.5rem; height: 2.5rem;
+    border-radius: var(--radius-md);
+    background: var(--color-bg-tertiary);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .shape-placeholder svg { fill: var(--color-text-primary); }
+
+  /* Ranking statistics row */
+  .ranking-heading {
+    font-size: 0.6875rem;
+    color: var(--color-text-tertiary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.5rem;
+  }
+  .ranking-stats-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: baseline;
+  }
+  .stat { min-width: 0; }
+  .stat .value {
+    margin-top: 0.25rem;
+    display: inline-block;
+    vertical-align: baseline;
+  }
+  .stat .confidence-pill {
+    margin-top: 0.25rem;
+  }
+
+  /* ── InfoTooltip — matches existing InfoTooltip component ── */
+  .info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1rem; height: 1rem;
+    margin-left: 0.375rem;
+    cursor: help;
+    color: var(--color-text-tertiary);
+    vertical-align: middle;
+    position: relative;
+  }
+  .info-icon:hover { color: var(--color-accent); }
+  .info-icon svg { width: 16px; height: 16px; }
+
+  .info-icon .tooltip-bubble {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--color-text-primary);
+    color: var(--color-bg-primary);
+    font-size: 0.6875rem;
+    line-height: 1.4;
+    padding: 0.375rem 0.625rem;
+    border-radius: var(--radius-md);
+    white-space: normal;
+    width: 220px;
+    z-index: 10;
+    pointer-events: none;
+    font-weight: 400;
+  }
+  .info-icon:hover .tooltip-bubble { display: block; }
+
+  /* ── ConfidencePill component ── */
+  .confidence-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.1875rem 0.5rem;
+    border-radius: var(--radius-pill);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1;
+  }
+  .confidence-pill.high {
+    background: var(--color-confidence-high-bg);
+    color: var(--color-confidence-high-text);
+  }
+  .confidence-pill.medium {
+    background: var(--color-confidence-med-bg);
+    color: var(--color-confidence-med-text);
+  }
+  .confidence-pill.low {
+    background: var(--color-confidence-low-bg);
+    color: var(--color-confidence-low-text);
+  }
+  .confidence-pill .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .confidence-pill.high .dot { background: var(--color-confidence-high); }
+  .confidence-pill.medium .dot { background: var(--color-confidence-med); }
+  .confidence-pill.low .dot { background: var(--color-confidence-low); }
+
+  /* ── Modal mockup ── */
+  .modal-mock {
+    background: var(--color-modal-bg);
+    border: var(--border-width, 2px) solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-modal);
+    padding: 1rem 1.25rem;
+    text-align: center;
+    max-width: 100%;
+  }
+  .modal-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    font-family: var(--font-display, var(--font-body));
+    margin-bottom: 0.125rem;
+  }
+  .modal-subtitle {
+    font-size: 0.8125rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 0.75rem;
+  }
+
+  .winner-placeholders {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  .winner-placeholder {
+    width: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .winner-thumb {
+    width: 72px; height: 72px;
+    border-radius: var(--radius-md);
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    position: relative;
+  }
+  .winner-thumb.first { width: 90px; height: 90px; }
+  .trophy-badge {
+    position: absolute;
+    top: -6px; right: -6px;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.625rem;
+    font-weight: 700;
+    border: var(--border-width, 1px) solid var(--color-border);
+    background: var(--color-bg-elevated);
+    color: var(--color-text-primary);
+  }
+  .winner-name {
+    font-size: 0.6875rem;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+  }
+
+  .modal-confidence-line {
+    font-size: 0.6875rem;
+    color: var(--color-text-tertiary);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    flex-wrap: wrap;
+  }
+  .modal-confidence-line .separator {
+    color: var(--color-text-faint);
+  }
+
+  .btn-primary {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 1rem;
+    border: var(--border-width, 2px) solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-accent);
+    color: var(--color-accent-text);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: var(--shadow-btn);
+    font-family: inherit;
+  }
+
+  /* ── Spec notes styling ── */
+  .spec-notes {
+    max-width: 780px;
+    color: rgba(255,255,255,0.7);
+    font-family: 'DM Sans', system-ui, sans-serif;
+    font-size: 0.8125rem;
+    line-height: 1.7;
+    margin-bottom: 3rem;
+  }
+  .spec-notes strong { color: #fff; }
+  .spec-notes ul { margin: 0.5rem 0 1rem 1.25rem; }
+  .spec-notes li { margin-bottom: 0.25rem; }
+  .spec-notes code {
+    background: rgba(255,255,255,0.08);
+    padding: 0.125rem 0.375rem;
+    border-radius: 3px;
+    font-size: 0.75rem;
+  }
+  .spec-notes p + p { margin-top: 0.75rem; }
+  .spec-notes table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.5rem 0 1rem;
+    font-size: 0.75rem;
+  }
+  .spec-notes th {
+    text-align: left;
+    padding: 0.375rem 0.5rem;
+    color: #fff;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+  }
+  .spec-notes td {
+    padding: 0.375rem 0.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Ranking Confidence Indicator — Final Prototype</h1>
+  <p>Approved design: Colored Pill Badge &middot; 3 themes &times; 2 modes = 6 permutations &middot; Hover <strong>?</strong> icons for tooltip preview</p>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     HELPER: reusable HTML fragments as JS templates
+     ════════════════════════════════════════════════════════════ -->
+<script>
+  // InfoTooltip icon SVG — matches the existing lucide Info icon used in InfoTooltip.tsx
+  const infoSVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>`;
+  const tooltipText = `Ranking confidence reflects how reliable the rankings are based on voter turnout. More voters relative to submissions means more accurate rankings. Low confidence means results may not reflect true community preference.`;
+
+  function infoTooltip() {
+    return `<span class="info-icon"><${''}>span>${infoSVG}<span class="tooltip-bubble">${tooltipText}</span></span>`;
+  }
+</script>
+
+
+<!-- ════════════════════════════════════════════════════════════
+     SECTION 1: CHALLENGE DETAILS SIDEBAR CARD
+     ════════════════════════════════════════════════════════════ -->
+
+<div class="section-title">1. Challenge Details Card (Winners Day Page — Right Sidebar)</div>
+<div class="section-desc">
+  New "Ranking" section added below Shapes, separated by a subtle divider. Three stats displayed in a single flex-wrap row: Submissions, Voters, and Confidence.
+  The confidence value is rendered as a <code>ConfidencePill</code>. An <code>InfoTooltip</code> next to the "Confidence" label explains what it means.
+</div>
+
+<div class="theme-grid">
+  <!-- Pop Art Light -->
+  <div class="theme-cell" data-theme="a" data-mode="light">
+    <div class="theme-label">Pop Art — Light</div>
+    <div class="card">
+      <div class="card-title">Challenge Details</div>
+      <div class="row">
+        <span class="label">Inspiration</span>
+        <p class="value" style="font-style: italic; font-size: 1rem;">"Celestial"</p>
+      </div>
+      <div class="row">
+        <span class="label">Colors</span>
+        <div class="swatch-row" style="margin-top: 0.25rem;">
+          <div class="swatch" style="background: #2D1B69;"></div>
+          <div class="swatch" style="background: #FF3366;"></div>
+        </div>
+      </div>
+      <div class="row">
+        <span class="label">Shapes</span>
+        <div class="shape-row" style="margin-top: 0.25rem;">
+          <div class="shape-placeholder"><svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg></div>
+          <div class="shape-placeholder"><svg width="24" height="24" viewBox="0 0 24 24"><polygon points="12,2 22,22 2,22"/></svg></div>
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="ranking-heading">Ranking</div>
+      <div class="ranking-stats-row">
+        <div class="stat"><span class="label">Submissions</span><span class="value">10</span></div>
+        <div class="stat"><span class="label">Voters</span><span class="value">3</span></div>
+        <div class="stat">
+          <span class="label">Confidence
+            <span class="info-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+              <span class="tooltip-bubble">Ranking confidence reflects how reliable the rankings are based on voter turnout. More voters relative to submissions means more accurate rankings. Low confidence means results may not reflect true community preference.</span>
+            </span>
+          </span>
+          <span class="confidence-pill low"><span class="dot"></span>Low</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pop Art Dark -->
+  <div class="theme-cell" data-theme="a" data-mode="dark">
+    <div class="theme-label">Pop Art — Dark</div>
+    <div class="card">
+      <div class="card-title">Challenge Details</div>
+      <div class="row">
+        <span class="label">Inspiration</span>
+        <p class="value" style="font-style: italic; font-size: 1rem;">"Celestial"</p>
+      </div>
+      <div class="row">
+        <span class="label">Colors</span>
+        <div class="swatch-row" style="margin-top: 0.25rem;">
+          <div class="swatch" style="background: #2D1B69; border-color: #8B7EC8;"></div>
+          <div class="swatch" style="background: #FF3366;"></div>
+        </div>
+      </div>
+      <div class="row">
+        <span class="label">Shapes</span>
+        <div class="shape-row" style="margin-top: 0.25rem;">
+          <div class="shape-placeholder"><svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg></div>
+          <div class="shape-placeholder"><svg width="24" height="24" viewBox="0 0 24 24"><polygon points="12,2 22,22 2,22"/></svg></div>
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="ranking-heading">Ranking</div>
+      <div class="ranking-stats-row">
+        <div class="stat"><span class="label">Submissions</span><span class="value">10</span></div>
+        <div class="stat"><span class="label">Voters</span><span class="value">3</span></div>
+        <div class="stat">
+          <span class="label">Confidence
+            <span class="info-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+              <span class="tooltip-bubble">Ranking confidence reflects how reliable the rankings are based on voter turnout. More voters relative to submissions means more accurate rankings. Low confidence means results may not reflect true community preference.</span>
+            </span>
+          </span>
+          <span class="confidence-pill low"><span class="dot"></span>Low</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Swiss Light -->
+  <div class="theme-cell" data-theme="b" data-mode="light">
+    <div class="theme-label">Swiss — Light</div>
+    <div class="card">
+      <div class="card-title">Challenge Details</div>
+      <div class="row">
+        <span class="label">Inspiration</span>
+        <p class="value" style="font-style: italic; font-size: 1rem;">"Celestial"</p>
+      </div>
+      <div class="row">
+        <span class="label">Colors</span>
+        <div class="swatch-row" style="margin-top: 0.25rem;">
+          <div class="swatch" style="background: #222222;"></div>
+          <div class="swatch" style="background: #E63322;"></div>
+        </div>
+      </div>
+      <div class="row">
+        <span class="label">Shapes</span>
+        <div class="shape-row" style="margin-top: 0.25rem;">
+          <div class="shape-placeholder"><svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg></div>
+          <div class="shape-placeholder"><svg width="24" height="24" viewBox="0 0 24 24"><polygon points="12,2 22,22 2,22"/></svg></div>
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="ranking-heading">Ranking</div>
+      <div class="ranking-stats-row">
+        <div class="stat"><span class="label">Submissions</span><span class="value">10</span></div>
+        <div class="stat"><span class="label">Voters</span><span class="value">3</span></div>
+        <div class="stat">
+          <span class="label">Confidence
+            <span class="info-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+              <span class="tooltip-bubble">Ranking confidence reflects how reliable the rankings are based on voter turnout. More voters relative to submissions means more accurate rankings. Low confidence means results may not reflect true community preference.</span>
+            </span>
+          </span>
+          <span class="confidence-pill low"><span class="dot"></span>Low</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Swiss Dark -->
+  <div class="theme-cell" data-theme="b" data-mode="dark">
+    <div class="theme-label">Swiss — Dark</div>
+    <div class="card">
+      <div class="card-title">Challenge Details</div>
+      <div class="row">
+        <span class="label">Inspiration</span>
+        <p class="value" style="font-style: italic; font-size: 1rem;">"Celestial"</p>
+      </div>
+      <div class="row">
+        <span class="label">Colors</span>
+        <div class="swatch-row" style="margin-top: 0.25rem;">
+          <div class="swatch" style="background: #222222; border-color: #555;"></div>
+          <div class="swatch" style="background: #E63322;"></div>
+        </div>
+      </div>
+      <div class="row">
+        <span class="label">Shapes</span>
+        <div class="shape-row" style="margin-top: 0.25rem;">
+          <div class="shape-placeholder"><svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg></div>
+          <div class="shape-placeholder"><svg width="24" height="24" viewBox="0 0 24 24"><polygon points="12,2 22,22 2,22"/></svg></div>
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="ranking-heading">Ranking</div>
+      <div class="ranking-stats-row">
+        <div class="stat"><span class="label">Submissions</span><span class="value">10</span></div>
+        <div class="stat"><span class="label">Voters</span><span class="value">3</span></div>
+        <div class="stat">
+          <span class="label">Confidence
+            <span class="info-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+              <span class="tooltip-bubble">Ranking confidence reflects how reliable the rankings are based on voter turnout. More voters relative to submissions means more accurate rankings. Low confidence means results may not reflect true community preference.</span>
+            </span>
+          </span>
+          <span class="confidence-pill low"><span class="dot"></span>Low</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cloud Light -->
+  <div class="theme-cell" data-theme="c" data-mode="light">
+    <div class="theme-label">Cloud — Light</div>
+    <div class="card">
+      <div class="card-title">Challenge Details</div>
+      <div class="row">
+        <span class="label">Inspiration</span>
+        <p class="value" style="font-style: italic; font-size: 1rem;">"Celestial"</p>
+      </div>
+      <div class="row">
+        <span class="label">Colors</span>
+        <div class="swatch-row" style="margin-top: 0.25rem;">
+          <div class="swatch" style="background: #3d3d3d;"></div>
+          <div class="swatch" style="background: #E07A5F;"></div>
+        </div>
+      </div>
+      <div class="row">
+        <span class="label">Shapes</span>
+        <div class="shape-row" style="margin-top: 0.25rem;">
+          <div class="shape-placeholder"><svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg></div>
+          <div class="shape-placeholder"><svg width="24" height="24" viewBox="0 0 24 24"><polygon points="12,2 22,22 2,22"/></svg></div>
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="ranking-heading">Ranking</div>
+      <div class="ranking-stats-row">
+        <div class="stat"><span class="label">Submissions</span><span class="value">10</span></div>
+        <div class="stat"><span class="label">Voters</span><span class="value">3</span></div>
+        <div class="stat">
+          <span class="label">Confidence
+            <span class="info-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+              <span class="tooltip-bubble">Ranking confidence reflects how reliable the rankings are based on voter turnout. More voters relative to submissions means more accurate rankings. Low confidence means results may not reflect true community preference.</span>
+            </span>
+          </span>
+          <span class="confidence-pill low"><span class="dot"></span>Low</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cloud Dark -->
+  <div class="theme-cell" data-theme="c" data-mode="dark">
+    <div class="theme-label">Cloud — Dark</div>
+    <div class="card">
+      <div class="card-title">Challenge Details</div>
+      <div class="row">
+        <span class="label">Inspiration</span>
+        <p class="value" style="font-style: italic; font-size: 1rem;">"Celestial"</p>
+      </div>
+      <div class="row">
+        <span class="label">Colors</span>
+        <div class="swatch-row" style="margin-top: 0.25rem;">
+          <div class="swatch" style="background: #3d3d3d; border-color: rgba(255,255,255,0.15);"></div>
+          <div class="swatch" style="background: #E07A5F;"></div>
+        </div>
+      </div>
+      <div class="row">
+        <span class="label">Shapes</span>
+        <div class="shape-row" style="margin-top: 0.25rem;">
+          <div class="shape-placeholder"><svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg></div>
+          <div class="shape-placeholder"><svg width="24" height="24" viewBox="0 0 24 24"><polygon points="12,2 22,22 2,22"/></svg></div>
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="ranking-heading">Ranking</div>
+      <div class="ranking-stats-row">
+        <div class="stat"><span class="label">Submissions</span><span class="value">10</span></div>
+        <div class="stat"><span class="label">Voters</span><span class="value">3</span></div>
+        <div class="stat">
+          <span class="label">Confidence
+            <span class="info-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+              <span class="tooltip-bubble">Ranking confidence reflects how reliable the rankings are based on voter turnout. More voters relative to submissions means more accurate rankings. Low confidence means results may not reflect true community preference.</span>
+            </span>
+          </span>
+          <span class="confidence-pill low"><span class="dot"></span>Low</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── All Three Confidence Levels ── -->
+<div class="section-subtitle">All Three Confidence Levels — Side by Side</div>
+<div class="section-desc">Showing High, Medium, and Low states in Pop Art light (primary theme).</div>
+
+<div class="theme-grid">
+  <!-- High -->
+  <div class="theme-cell" data-theme="a" data-mode="light">
+    <div class="theme-label">High (12 voters / 10 submissions)</div>
+    <div class="ranking-heading" style="margin-top: 0.25rem;">Ranking</div>
+    <div class="ranking-stats-row">
+      <div class="stat"><span class="label">Submissions</span><span class="value">10</span></div>
+      <div class="stat"><span class="label">Voters</span><span class="value">12</span></div>
+      <div class="stat">
+        <span class="label">Confidence
+          <span class="info-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            <span class="tooltip-bubble">Ranking confidence reflects how reliable the rankings are based on voter turnout. More voters relative to submissions means more accurate rankings.</span>
+          </span>
+        </span>
+        <span class="confidence-pill high"><span class="dot"></span>High</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Medium -->
+  <div class="theme-cell" data-theme="a" data-mode="light">
+    <div class="theme-label">Medium (6 voters / 10 submissions)</div>
+    <div class="ranking-heading" style="margin-top: 0.25rem;">Ranking</div>
+    <div class="ranking-stats-row">
+      <div class="stat"><span class="label">Submissions</span><span class="value">10</span></div>
+      <div class="stat"><span class="label">Voters</span><span class="value">6</span></div>
+      <div class="stat">
+        <span class="label">Confidence
+          <span class="info-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            <span class="tooltip-bubble">Ranking confidence reflects how reliable the rankings are based on voter turnout. More voters relative to submissions means more accurate rankings.</span>
+          </span>
+        </span>
+        <span class="confidence-pill medium"><span class="dot"></span>Medium</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Low -->
+  <div class="theme-cell" data-theme="a" data-mode="light">
+    <div class="theme-label">Low (3 voters / 10 submissions)</div>
+    <div class="ranking-heading" style="margin-top: 0.25rem;">Ranking</div>
+    <div class="ranking-stats-row">
+      <div class="stat"><span class="label">Submissions</span><span class="value">10</span></div>
+      <div class="stat"><span class="label">Voters</span><span class="value">3</span></div>
+      <div class="stat">
+        <span class="label">Confidence
+          <span class="info-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            <span class="tooltip-bubble">Ranking confidence reflects how reliable the rankings are based on voter turnout. More voters relative to submissions means more accurate rankings.</span>
+          </span>
+        </span>
+        <span class="confidence-pill low"><span class="dot"></span>Low</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════
+     SECTION 2: WINNER ANNOUNCEMENT MODAL
+     ════════════════════════════════════════════════════════════ -->
+
+<div class="section-title">2. Winner Announcement Modal</div>
+<div class="section-desc">
+  Compact confidence line below the subtitle. Format: <code>3 voters &middot; 10 submissions &middot; Confidence: [pill]</code>.
+  The pill always shows the short label ("High", "Medium", or "Low") — surrounding text provides context via the "Confidence:" prefix.
+  An <code>InfoTooltip</code> appears after the pill with the same tooltip text as in the sidebar.
+</div>
+
+<div class="theme-grid">
+  <!-- Pop Art Light -->
+  <div class="theme-cell" data-theme="a" data-mode="light">
+    <div class="theme-label">Pop Art — Light</div>
+    <div class="modal-mock">
+      <div class="modal-title" style="font-family: 'Lilita One', cursive;">Winners of Friday, April 3</div>
+      <div class="modal-subtitle">Word of the day was "Celestial"</div>
+      <div class="modal-confidence-line">
+        3 voters <span class="separator">&middot;</span> 10 submissions <span class="separator">&middot;</span>
+        Confidence: <span class="confidence-pill low" style="font-size: 0.625rem;"><span class="dot"></span>Low</span>
+        <span class="info-icon" style="margin-left: 0;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          <span class="tooltip-bubble">Ranking confidence reflects how reliable the rankings are based on voter turnout. More voters relative to submissions means more accurate rankings.</span>
+        </span>
+      </div>
+      <div class="winner-placeholders">
+        <div class="winner-placeholder"><div class="winner-thumb" style="width: 60px; height: 60px;"><div class="trophy-badge">2</div></div><span class="winner-name">alice</span></div>
+        <div class="winner-placeholder"><div class="winner-thumb first"><div class="trophy-badge" style="background: var(--color-accent); color: var(--color-accent-text);">1</div></div><span class="winner-name">bob</span></div>
+        <div class="winner-placeholder"><div class="winner-thumb" style="width: 60px; height: 60px;"><div class="trophy-badge">3</div></div><span class="winner-name">carol</span></div>
+      </div>
+      <button class="btn-primary">Awesome!</button>
+    </div>
+  </div>
+
+  <!-- Pop Art Dark -->
+  <div class="theme-cell" data-theme="a" data-mode="dark">
+    <div class="theme-label">Pop Art — Dark</div>
+    <div class="modal-mock">
+      <div class="modal-title" style="font-family: 'Lilita One', cursive;">Winners of Friday, April 3</div>
+      <div class="modal-subtitle">Word of the day was "Celestial"</div>
+      <div class="modal-confidence-line">
+        3 voters <span class="separator">&middot;</span> 10 submissions <span class="separator">&middot;</span>
+        Confidence: <span class="confidence-pill low" style="font-size: 0.625rem;"><span class="dot"></span>Low</span>
+        <span class="info-icon" style="margin-left: 0;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          <span class="tooltip-bubble">Ranking confidence reflects how reliable the rankings are based on voter turnout. More voters relative to submissions means more accurate rankings.</span>
+        </span>
+      </div>
+      <div class="winner-placeholders">
+        <div class="winner-placeholder"><div class="winner-thumb" style="width: 60px; height: 60px;"><div class="trophy-badge">2</div></div><span class="winner-name">alice</span></div>
+        <div class="winner-placeholder"><div class="winner-thumb first"><div class="trophy-badge" style="background: var(--color-accent); color: var(--color-accent-text);">1</div></div><span class="winner-name">bob</span></div>
+        <div class="winner-placeholder"><div class="winner-thumb" style="width: 60px; height: 60px;"><div class="trophy-badge">3</div></div><span class="winner-name">carol</span></div>
+      </div>
+      <button class="btn-primary">Awesome!</button>
+    </div>
+  </div>
+
+  <!-- Swiss Light -->
+  <div class="theme-cell" data-theme="b" data-mode="light">
+    <div class="theme-label">Swiss — Light</div>
+    <div class="modal-mock">
+      <div class="modal-title">Winners of Friday, April 3</div>
+      <div class="modal-subtitle">Word of the day was "Celestial"</div>
+      <div class="modal-confidence-line">
+        3 voters <span class="separator">&middot;</span> 10 submissions <span class="separator">&middot;</span>
+        Confidence: <span class="confidence-pill low" style="font-size: 0.625rem;"><span class="dot"></span>Low</span>
+        <span class="info-icon" style="margin-left: 0;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          <span class="tooltip-bubble">Ranking confidence reflects how reliable the rankings are based on voter turnout. More voters relative to submissions means more accurate rankings.</span>
+        </span>
+      </div>
+      <div class="winner-placeholders">
+        <div class="winner-placeholder"><div class="winner-thumb" style="width: 60px; height: 60px;"><div class="trophy-badge">2</div></div><span class="winner-name">alice</span></div>
+        <div class="winner-placeholder"><div class="winner-thumb first"><div class="trophy-badge" style="background: var(--color-accent); color: var(--color-accent-text);">1</div></div><span class="winner-name">bob</span></div>
+        <div class="winner-placeholder"><div class="winner-thumb" style="width: 60px; height: 60px;"><div class="trophy-badge">3</div></div><span class="winner-name">carol</span></div>
+      </div>
+      <button class="btn-primary">Awesome!</button>
+    </div>
+  </div>
+
+  <!-- Swiss Dark -->
+  <div class="theme-cell" data-theme="b" data-mode="dark">
+    <div class="theme-label">Swiss — Dark</div>
+    <div class="modal-mock">
+      <div class="modal-title">Winners of Friday, April 3</div>
+      <div class="modal-subtitle">Word of the day was "Celestial"</div>
+      <div class="modal-confidence-line">
+        3 voters <span class="separator">&middot;</span> 10 submissions <span class="separator">&middot;</span>
+        Confidence: <span class="confidence-pill low" style="font-size: 0.625rem;"><span class="dot"></span>Low</span>
+        <span class="info-icon" style="margin-left: 0;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          <span class="tooltip-bubble">Ranking confidence reflects how reliable the rankings are based on voter turnout. More voters relative to submissions means more accurate rankings.</span>
+        </span>
+      </div>
+      <div class="winner-placeholders">
+        <div class="winner-placeholder"><div class="winner-thumb" style="width: 60px; height: 60px;"><div class="trophy-badge">2</div></div><span class="winner-name">alice</span></div>
+        <div class="winner-placeholder"><div class="winner-thumb first"><div class="trophy-badge" style="background: var(--color-accent); color: var(--color-accent-text);">1</div></div><span class="winner-name">bob</span></div>
+        <div class="winner-placeholder"><div class="winner-thumb" style="width: 60px; height: 60px;"><div class="trophy-badge">3</div></div><span class="winner-name">carol</span></div>
+      </div>
+      <button class="btn-primary">Awesome!</button>
+    </div>
+  </div>
+
+  <!-- Cloud Light -->
+  <div class="theme-cell" data-theme="c" data-mode="light">
+    <div class="theme-label">Cloud — Light</div>
+    <div class="modal-mock">
+      <div class="modal-title">Winners of Friday, April 3</div>
+      <div class="modal-subtitle">Word of the day was "Celestial"</div>
+      <div class="modal-confidence-line">
+        3 voters <span class="separator">&middot;</span> 10 submissions <span class="separator">&middot;</span>
+        Confidence: <span class="confidence-pill low" style="font-size: 0.625rem;"><span class="dot"></span>Low</span>
+        <span class="info-icon" style="margin-left: 0;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          <span class="tooltip-bubble">Ranking confidence reflects how reliable the rankings are based on voter turnout. More voters relative to submissions means more accurate rankings.</span>
+        </span>
+      </div>
+      <div class="winner-placeholders">
+        <div class="winner-placeholder"><div class="winner-thumb" style="width: 60px; height: 60px;"><div class="trophy-badge">2</div></div><span class="winner-name">alice</span></div>
+        <div class="winner-placeholder"><div class="winner-thumb first"><div class="trophy-badge" style="background: var(--color-accent); color: var(--color-accent-text);">1</div></div><span class="winner-name">bob</span></div>
+        <div class="winner-placeholder"><div class="winner-thumb" style="width: 60px; height: 60px;"><div class="trophy-badge">3</div></div><span class="winner-name">carol</span></div>
+      </div>
+      <button class="btn-primary">Awesome!</button>
+    </div>
+  </div>
+
+  <!-- Cloud Dark -->
+  <div class="theme-cell" data-theme="c" data-mode="dark">
+    <div class="theme-label">Cloud — Dark</div>
+    <div class="modal-mock">
+      <div class="modal-title">Winners of Friday, April 3</div>
+      <div class="modal-subtitle">Word of the day was "Celestial"</div>
+      <div class="modal-confidence-line">
+        3 voters <span class="separator">&middot;</span> 10 submissions <span class="separator">&middot;</span>
+        Confidence: <span class="confidence-pill low" style="font-size: 0.625rem;"><span class="dot"></span>Low</span>
+        <span class="info-icon" style="margin-left: 0;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          <span class="tooltip-bubble">Ranking confidence reflects how reliable the rankings are based on voter turnout. More voters relative to submissions means more accurate rankings.</span>
+        </span>
+      </div>
+      <div class="winner-placeholders">
+        <div class="winner-placeholder"><div class="winner-thumb" style="width: 60px; height: 60px;"><div class="trophy-badge">2</div></div><span class="winner-name">alice</span></div>
+        <div class="winner-placeholder"><div class="winner-thumb first"><div class="trophy-badge" style="background: var(--color-accent); color: var(--color-accent-text);">1</div></div><span class="winner-name">bob</span></div>
+        <div class="winner-placeholder"><div class="winner-thumb" style="width: 60px; height: 60px;"><div class="trophy-badge">3</div></div><span class="winner-name">carol</span></div>
+      </div>
+      <button class="btn-primary">Awesome!</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal — all confidence levels ── -->
+<div class="section-subtitle">Modal — All Confidence Levels</div>
+<div class="section-desc">High, Medium, and Low in Pop Art (light + dark).</div>
+
+<div class="theme-grid">
+  <div class="theme-cell" data-theme="a" data-mode="light">
+    <div class="theme-label">Pop Art Light — High</div>
+    <div class="modal-mock">
+      <div class="modal-title" style="font-family: 'Lilita One', cursive;">Winners of Friday, April 3</div>
+      <div class="modal-subtitle">Word of the day was "Celestial"</div>
+      <div class="modal-confidence-line">
+        15 voters <span class="separator">&middot;</span> 10 submissions <span class="separator">&middot;</span>
+        Confidence: <span class="confidence-pill high" style="font-size: 0.625rem;"><span class="dot"></span>High</span>
+        <span class="info-icon" style="margin-left: 0;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          <span class="tooltip-bubble">Ranking confidence reflects how reliable the rankings are based on voter turnout. More voters relative to submissions means more accurate rankings.</span>
+        </span>
+      </div>
+      <div class="winner-placeholders">
+        <div class="winner-placeholder"><div class="winner-thumb" style="width: 60px; height: 60px;"><div class="trophy-badge">2</div></div><span class="winner-name">alice</span></div>
+        <div class="winner-placeholder"><div class="winner-thumb first"><div class="trophy-badge" style="background: var(--color-accent); color: var(--color-accent-text);">1</div></div><span class="winner-name">bob</span></div>
+        <div class="winner-placeholder"><div class="winner-thumb" style="width: 60px; height: 60px;"><div class="trophy-badge">3</div></div><span class="winner-name">carol</span></div>
+      </div>
+      <button class="btn-primary">Awesome!</button>
+    </div>
+  </div>
+
+  <div class="theme-cell" data-theme="a" data-mode="dark">
+    <div class="theme-label">Pop Art Dark — Medium</div>
+    <div class="modal-mock">
+      <div class="modal-title" style="font-family: 'Lilita One', cursive;">Winners of Friday, April 3</div>
+      <div class="modal-subtitle">Word of the day was "Celestial"</div>
+      <div class="modal-confidence-line">
+        6 voters <span class="separator">&middot;</span> 10 submissions <span class="separator">&middot;</span>
+        Confidence: <span class="confidence-pill medium" style="font-size: 0.625rem;"><span class="dot"></span>Medium</span>
+        <span class="info-icon" style="margin-left: 0;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          <span class="tooltip-bubble">Ranking confidence reflects how reliable the rankings are based on voter turnout. More voters relative to submissions means more accurate rankings.</span>
+        </span>
+      </div>
+      <div class="winner-placeholders">
+        <div class="winner-placeholder"><div class="winner-thumb" style="width: 60px; height: 60px;"><div class="trophy-badge">2</div></div><span class="winner-name">alice</span></div>
+        <div class="winner-placeholder"><div class="winner-thumb first"><div class="trophy-badge" style="background: var(--color-accent); color: var(--color-accent-text);">1</div></div><span class="winner-name">bob</span></div>
+        <div class="winner-placeholder"><div class="winner-thumb" style="width: 60px; height: 60px;"><div class="trophy-badge">3</div></div><span class="winner-name">carol</span></div>
+      </div>
+      <button class="btn-primary">Awesome!</button>
+    </div>
+  </div>
+
+  <div class="theme-cell" data-theme="a" data-mode="light">
+    <div class="theme-label">Pop Art Light — Low</div>
+    <div class="modal-mock">
+      <div class="modal-title" style="font-family: 'Lilita One', cursive;">Winners of Friday, April 3</div>
+      <div class="modal-subtitle">Word of the day was "Celestial"</div>
+      <div class="modal-confidence-line">
+        3 voters <span class="separator">&middot;</span> 10 submissions <span class="separator">&middot;</span>
+        Confidence: <span class="confidence-pill low" style="font-size: 0.625rem;"><span class="dot"></span>Low</span>
+        <span class="info-icon" style="margin-left: 0;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          <span class="tooltip-bubble">Ranking confidence reflects how reliable the rankings are based on voter turnout. More voters relative to submissions means more accurate rankings.</span>
+        </span>
+      </div>
+      <div class="winner-placeholders">
+        <div class="winner-placeholder"><div class="winner-thumb" style="width: 60px; height: 60px;"><div class="trophy-badge">2</div></div><span class="winner-name">alice</span></div>
+        <div class="winner-placeholder"><div class="winner-thumb first"><div class="trophy-badge" style="background: var(--color-accent); color: var(--color-accent-text);">1</div></div><span class="winner-name">bob</span></div>
+        <div class="winner-placeholder"><div class="winner-thumb" style="width: 60px; height: 60px;"><div class="trophy-badge">3</div></div><span class="winner-name">carol</span></div>
+      </div>
+      <button class="btn-primary">Awesome!</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════
+     SECTION 3: FINALIZED SPECIFICATION
+     ════════════════════════════════════════════════════════════ -->
+
+<div class="section-title">3. Implementation Specification</div>
+
+<div class="spec-notes">
+
+  <p><strong>Background</strong></p>
+  <p>The ELO-based voting system produces unreliable rankings when voter turnout is low relative to submission count. This feature surfaces ranking confidence so users understand when results are solid vs. noisy. The confidence level is derived from the ratio <code>voters / submissions</code>.</p>
+
+  <table>
+    <thead>
+      <tr><th>Level</th><th>Condition</th><th>Meaning</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>High</td><td><code>voters &gt;= submissions</code></td><td>Rankings are reliable</td></tr>
+      <tr><td>Medium</td><td><code>voters &gt;= submissions &times; 0.5</code></td><td>Rankings are roughly directional</td></tr>
+      <tr><td>Low</td><td><code>voters &lt; submissions &times; 0.5</code></td><td>Rankings are noisy</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>Design decisions</strong></p>
+  <ul>
+    <li><strong>Visual treatment:</strong> Colored pill badge (dot + label text on tinted background). Chosen over signal bars and text-only options for its scannability and familiarity (GitHub label pattern).</li>
+    <li><strong>Pill label:</strong> Always the short word only — "High", "Medium", or "Low". Surrounding context provides the meaning ("Confidence" label in sidebar, "Confidence:" prefix in modal).</li>
+    <li><strong>Section heading:</strong> "Ranking" (not "Voting") — this describes the ranking outcome and its reliability, not the act of voting.</li>
+    <li><strong>Sidebar layout:</strong> Submissions, Voters, and Confidence displayed in a single flex-wrap row under the "Ranking" heading. All three stats sit on one line when space permits, and stack naturally when the sidebar is narrow.</li>
+    <li><strong>Modal layout:</strong> Single line below the subtitle: <code>{voters} voters &middot; {submissions} submissions &middot; Confidence: [pill] [?]</code>. Subtle/secondary tone so it doesn't dampen the celebratory feel.</li>
+    <li><strong>InfoTooltip:</strong> Same <code>InfoTooltip</code> component used elsewhere in the app. Appears next to the "Confidence" label (sidebar) and after the pill (modal). Same tooltip text in both locations.</li>
+  </ul>
+
+  <p><strong>Tooltip text</strong></p>
+  <p style="padding: 0.5rem 0.75rem; background: rgba(255,255,255,0.05); border-radius: 4px; font-style: italic;">
+    "Ranking confidence reflects how reliable the rankings are based on voter turnout. More voters relative to submissions means more accurate rankings. Low confidence means results may not reflect true community preference."
+  </p>
+
+  <p><strong>New CSS tokens (add to each theme &times; mode in <code>src/index.css</code>)</strong></p>
+  <p>9 tokens per theme-mode combination (3 levels &times; 3 variants each):</p>
+  <table>
+    <thead>
+      <tr><th>Token</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>--color-confidence-high</code></td><td>Dot color for high confidence</td></tr>
+      <tr><td><code>--color-confidence-high-bg</code></td><td>Pill background for high</td></tr>
+      <tr><td><code>--color-confidence-high-text</code></td><td>Pill text for high</td></tr>
+      <tr><td><code>--color-confidence-med</code></td><td>Dot color for medium confidence</td></tr>
+      <tr><td><code>--color-confidence-med-bg</code></td><td>Pill background for medium</td></tr>
+      <tr><td><code>--color-confidence-med-text</code></td><td>Pill text for medium</td></tr>
+      <tr><td><code>--color-confidence-low</code></td><td>Dot color for low confidence</td></tr>
+      <tr><td><code>--color-confidence-low-bg</code></td><td>Pill background for low</td></tr>
+      <tr><td><code>--color-confidence-low-text</code></td><td>Pill text for low</td></tr>
+    </tbody>
+  </table>
+  <p>Light modes use darker text on lighter tinted backgrounds. Dark modes use lighter text on darker tinted backgrounds. Exact values for all 6 theme-mode combinations are defined in the CSS at the top of this file — copy them directly.</p>
+
+  <p><strong>New component</strong></p>
+  <ul>
+    <li><code>ConfidencePill</code> — takes <code>level: 'high' | 'medium' | 'low'</code>, renders a colored dot + short label. Used in both the sidebar card and the modal. Styled via the CSS tokens above, so it automatically adapts to all themes.</li>
+  </ul>
+
+  <p><strong>Files to modify</strong></p>
+  <table>
+    <thead>
+      <tr><th>File</th><th>Change</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>src/index.css</code></td><td>Add 9 confidence color tokens to each of the 6 theme-mode blocks</td></tr>
+      <tr><td><code>src/components/shared/ConfidencePill.tsx</code></td><td>New component (dot + label pill)</td></tr>
+      <tr><td><code>src/pages/WinnersDayPage.tsx</code></td><td>Add "Ranking" section to the challenge details sidebar card</td></tr>
+      <tr><td><code>src/components/modals/WinnerAnnouncementModal.tsx</code></td><td>Add confidence line below subtitle</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>Existing components reused (unchanged)</strong></p>
+  <ul>
+    <li><code>InfoTooltip</code> (<code>src/components/shared/InfoTooltip.tsx</code>) — the <code>?</code> icon with hover tooltip</li>
+    <li><code>Modal</code> (<code>src/components/shared/Modal.tsx</code>) — modal wrapper</li>
+    <li><code>Button</code> — "Awesome!" CTA</li>
+    <li><code>WinnerCard</code> — winner display cards</li>
+  </ul>
+
+  <p><strong>Data requirements</strong></p>
+  <ul>
+    <li><code>submission_count</code> — total submissions for that day's challenge</li>
+    <li><code>voter_count</code> — distinct <code>voter_id</code> from comparisons where <code>winner_id IS NOT NULL</code></li>
+    <li>Confidence level is computed client-side from these two values using the ratio table above</li>
+  </ul>
+
+</div>
+
+</body>
+</html>

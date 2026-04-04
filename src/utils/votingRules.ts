@@ -102,6 +102,30 @@ export type VotingState =
   | 'entered_ranking' // User has voted 5+ times
   | 'no_more_pairs'; // All available pairs have been voted on
 
+/**
+ * Ranking confidence based on voter-to-submission ratio.
+ * With 5 required pairs per voter, you need roughly as many voters
+ * as submissions for reliable ELO convergence.
+ */
+export type RankingConfidence = 'high' | 'medium' | 'low';
+
+export function calculateRankingConfidence(voterCount: number, submissionCount: number): RankingConfidence {
+  if (submissionCount === 0 || voterCount === 0) return 'low';
+  const ratio = voterCount / submissionCount;
+  if (ratio >= 1) return 'high';
+  if (ratio >= 0.5) return 'medium';
+  return 'low';
+}
+
+export const RANKING_CONFIDENCE_LABELS: Record<RankingConfidence, string> = {
+  high: 'High',
+  medium: 'Medium',
+  low: 'Low',
+};
+
+export const RANKING_CONFIDENCE_TOOLTIP =
+  'Ranking confidence reflects how reliable the rankings are based on voter turnout. More voters relative to submissions means more accurate rankings. Low confidence means results may not reflect true community preference.';
+
 export function determineVotingState(options: {
   submissionCount: number;
   voteCount: number;

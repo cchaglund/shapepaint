@@ -5,9 +5,17 @@ import {
   computeFinalRanks,
   fetchRankingsWithSubmissions,
   markWinnerAnnouncementSeen,
+  fetchVoterCount,
 } from '../../lib/api';
 import { getTwoDaysAgoDateUTC } from '../../utils/dailyChallenge';
+import { calculateRankingConfidence, type RankingConfidence } from '../../utils/votingRules';
 import type { RankingEntry } from '../../types';
+
+interface RankingStats {
+  submissionCount: number;
+  voterCount: number;
+  confidence: RankingConfidence;
+}
 
 interface UseWinnerAnnouncementReturn {
   shouldShow: boolean;
@@ -15,6 +23,7 @@ interface UseWinnerAnnouncementReturn {
   challengeDate: string;
   loading: boolean;
   userPlacement: RankingEntry | null;
+  rankingStats: RankingStats | null;
   dismiss: () => Promise<void>;
   persistSeen: () => Promise<void>;
   checkAnnouncement: () => Promise<void>;
@@ -23,6 +32,7 @@ interface UseWinnerAnnouncementReturn {
 export function useWinnerAnnouncement(userId: string | undefined): UseWinnerAnnouncementReturn {
   const [shouldShow, setShouldShow] = useState(false);
   const [topThree, setTopThree] = useState<RankingEntry[]>([]);
+  const [rankingStats, setRankingStats] = useState<RankingStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   const challengeDate = getTwoDaysAgoDateUTC();
@@ -52,7 +62,10 @@ export function useWinnerAnnouncement(userId: string | undefined): UseWinnerAnno
 
       await computeFinalRanks(challengeDate);
 
-      const entries = await fetchRankingsWithSubmissions(challengeDate, 3);
+      const [entries, voters] = await Promise.all([
+        fetchRankingsWithSubmissions(challengeDate, 3),
+        fetchVoterCount(challengeDate),
+      ]);
       if (entries.length === 0) {
         setShouldShow(false);
         setLoading(false);
@@ -60,6 +73,11 @@ export function useWinnerAnnouncement(userId: string | undefined): UseWinnerAnno
       }
 
       setTopThree(entries);
+      setRankingStats({
+        submissionCount: total,
+        voterCount: voters,
+        confidence: calculateRankingConfidence(voters, total),
+      });
       setShouldShow(true);
     } catch (error) {
       console.error('Error checking winner announcement:', error);
@@ -107,6 +125,7 @@ export function useWinnerAnnouncement(userId: string | undefined): UseWinnerAnno
     challengeDate,
     loading,
     userPlacement,
+    rankingStats,
     dismiss,
     persistSeen,
     checkAnnouncement,

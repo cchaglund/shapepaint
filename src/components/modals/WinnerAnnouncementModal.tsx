@@ -1,19 +1,31 @@
 import type { RankingEntry } from '../../types';
+import type { RankingConfidence } from '../../utils/votingRules';
+import { RANKING_CONFIDENCE_TOOLTIP } from '../../utils/votingRules';
 import { useDailyChallenge } from '../../hooks/challenge/useDailyChallenge';
 import { WinnerCard } from '../submission/WinnerCard';
 import { Modal } from '../shared/Modal';
 import { Button } from '../shared/Button';
+import { ConfidencePill } from '../shared/ConfidencePill';
+import { InfoTooltip } from '../shared/InfoTooltip';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
+
+interface RankingStats {
+  submissionCount: number;
+  voterCount: number;
+  confidence: RankingConfidence;
+}
 
 interface WinnerAnnouncementModalProps {
   challengeDate: string;
   topThree: RankingEntry[];
+  rankingStats: RankingStats | null;
   onDismiss: () => void;
 }
 
 export function WinnerAnnouncementModal({
   challengeDate,
   topThree,
+  rankingStats,
   onDismiss,
 }: WinnerAnnouncementModalProps) {
   const { challenge, loading: challengeLoading } = useDailyChallenge(challengeDate);
@@ -48,6 +60,18 @@ export function WinnerAnnouncementModal({
           Winners of {formatDate(challengeDate)}
         </h2>
         <p className="text-sm text-(--color-text-secondary)">Word of the day was "{challenge.word}"</p>
+        {rankingStats && (
+          <div className="flex items-center justify-center gap-1.5 flex-wrap text-[0.6875rem] text-(--color-text-tertiary) mt-1">
+            {rankingStats.voterCount} voter{rankingStats.voterCount !== 1 ? 's' : ''}
+            <span className="text-(--color-text-faint)">&middot;</span>
+            {rankingStats.submissionCount} submission{rankingStats.submissionCount !== 1 ? 's' : ''}
+            <span className="text-(--color-text-faint)">&middot;</span>
+            <span className="inline-flex items-center">
+              Confidence:&nbsp;<ConfidencePill confidence={rankingStats.confidence} size="sm" />
+              <InfoTooltip text={RANKING_CONFIDENCE_TOOLTIP} />
+            </span>
+          </div>
+        )}
         {winners.length > 1 && (
           <p className="text-xs text-(--color-text-tertiary) mt-0.5">
             {winners.length === 3 ? 'Three-way tie!' : winners.length === 2 ? 'Tie for 1st place!' : ''}
