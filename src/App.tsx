@@ -20,7 +20,6 @@ const SubmissionDetailPage = lazy(() => import('./pages/SubmissionDetailPage').t
 const WinnersDayPage = lazy(() => import('./pages/WinnersDayPage').then(m => ({ default: m.WinnersDayPage })));
 const UserProfilePage = lazy(() => import('./pages/UserProfilePage').then(m => ({ default: m.UserProfilePage })));
 const VotingTestPage = lazy(() => import('./test/VotingTestPage').then(m => ({ default: m.VotingTestPage })));
-const SocialTestPage = lazy(() => import('./test/SocialTestPage').then(m => ({ default: m.SocialTestPage })));
 const CanvasEditorPage = lazy(() => import('./pages/CanvasEditorPage').then(m => ({ default: m.CanvasEditorPage })));
 
 function AdminGuard({ children }: { children: ReactNode }) {
@@ -53,7 +52,6 @@ function AppContent() {
       switch (route.type) {
         case 'explorer': return <AdminGuard><ShapeExplorer /></AdminGuard>;
         case 'voting-test': return <VotingTestPage />;
-        case 'social-test': return <SocialTestPage />;
         case 'dashboard': return <AdminGuard><Dashboard /></AdminGuard>;
         case 'color-tester': return <ColorTester />;
         case 'gallery': return <FollowsProvider><GalleryPage tab={route.tab} year={route.year} month={route.month} date={route.date} themeMode={themeMode} onSetThemeMode={setThemeMode} themeName={themeName} onSetThemeName={setThemeName} /></FollowsProvider>;

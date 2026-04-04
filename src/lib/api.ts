@@ -322,26 +322,34 @@ export async function updateProfileFields(userId: string, fields: Record<string,
   if (error) throw error;
 }
 
-export async function fetchNicknames(userIds: string[]): Promise<Map<string, string>> {
+export interface ProfileSummary {
+  nickname: string;
+  avatar_url: string | null;
+}
+
+export async function fetchNicknames(userIds: string[]): Promise<Map<string, ProfileSummary>> {
   if (userIds.length === 0) return new Map();
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, nickname')
+    .select('id, nickname, avatar_url')
     .in('id', userIds);
   if (error) throw error;
-  const map = new Map<string, string>();
+  const map = new Map<string, ProfileSummary>();
   if (data) {
     for (const p of data) {
-      map.set(p.id as string, (p.nickname as string) || 'Anonymous');
+      map.set(p.id as string, {
+        nickname: (p.nickname as string) || 'Anonymous',
+        avatar_url: (p.avatar_url as string | null) ?? null,
+      });
     }
   }
   return map;
 }
 
-export async function searchProfilesByNickname(query: string, excludeUserId?: string): Promise<{ id: string; nickname: string }[]> {
+export async function searchProfilesByNickname(query: string, excludeUserId?: string): Promise<{ id: string; nickname: string; avatar_url: string | null }[]> {
   let queryBuilder = supabase
     .from('profiles')
-    .select('id, nickname')
+    .select('id, nickname, avatar_url')
     .ilike('nickname', `%${query}%`)
     .limit(20);
 
@@ -351,7 +359,7 @@ export async function searchProfilesByNickname(query: string, excludeUserId?: st
 
   const { data, error } = await queryBuilder;
   if (error) throw error;
-  return (data as { id: string; nickname: string }[]) || [];
+  return (data as { id: string; nickname: string; avatar_url: string | null }[]) || [];
 }
 
 export async function findProfileByNickname(nickname: string): Promise<{ id: string; nickname: string } | null> {
@@ -470,7 +478,8 @@ export async function fetchRankingsWithSubmissions(
     rank: row.final_rank,
     submission_id: row.submission_id,
     user_id: row.user_id,
-    nickname: nicknameMap.get(row.user_id) || 'Anonymous',
+    nickname: nicknameMap.get(row.user_id)?.nickname || 'Anonymous',
+    avatar_url: nicknameMap.get(row.user_id)?.avatar_url ?? null,
     elo_score: row.elo_score,
     vote_count: row.vote_count,
     shapes: row.submissions?.shapes || [],
@@ -553,6 +562,7 @@ export async function fetchMonthlyWinners(
   submission_id: string;
   user_id: string;
   nickname: string;
+  avatar_url: string | null;
   final_rank: number;
   shapes: Shape[];
   groups: ShapeGroup[];
@@ -598,7 +608,8 @@ export async function fetchMonthlyWinners(
     challenge_date: row.challenge_date,
     submission_id: row.submission_id,
     user_id: row.user_id,
-    nickname: nicknameMap.get(row.user_id) || 'Anonymous',
+    nickname: nicknameMap.get(row.user_id)?.nickname || 'Anonymous',
+    avatar_url: nicknameMap.get(row.user_id)?.avatar_url ?? null,
     final_rank: row.final_rank,
     shapes: row.submissions?.shapes || [],
     groups: row.submissions?.groups || [],
@@ -856,7 +867,7 @@ export async function fetchFriendsSubmissionsByDateRange(
 export async function fetchUserPublicProfile(userId: string) {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, nickname')
+    .select('id, nickname, avatar_url')
     .eq('id', userId)
     .single();
   if (error) {

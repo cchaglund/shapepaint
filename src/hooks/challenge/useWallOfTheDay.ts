@@ -15,6 +15,7 @@ export interface WallSubmission {
   id: string;
   user_id: string;
   nickname: string;
+  avatar_url: string | null;
   shapes: Shape[];
   groups: ShapeGroup[];
   background_color_index: number | null;
@@ -98,7 +99,8 @@ async function fetchRankedSubmissions(date: string, limit: number): Promise<Wall
 
   return submissions.map(s => ({
     ...s,
-    nickname: nicknameMap.get(s.user_id) || 'Anonymous',
+    nickname: nicknameMap.get(s.user_id)?.nickname || 'Anonymous',
+    avatar_url: nicknameMap.get(s.user_id)?.avatar_url ?? null,
   }));
 }
 
@@ -115,7 +117,8 @@ async function fetchSortedSubmissions(date: string, sortMode: WallSortMode, limi
   return submissions.map(s => ({
     id: s.id,
     user_id: s.user_id,
-    nickname: nicknameMap.get(s.user_id) || 'Anonymous',
+    nickname: nicknameMap.get(s.user_id)?.nickname || 'Anonymous',
+    avatar_url: nicknameMap.get(s.user_id)?.avatar_url ?? null,
     shapes: s.shapes as Shape[],
     groups: (s.groups as ShapeGroup[]) || [],
     background_color_index: s.background_color_index,

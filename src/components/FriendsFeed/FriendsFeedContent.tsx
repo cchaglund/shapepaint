@@ -326,6 +326,7 @@ export function FriendsFeedContent({
                       backgroundColorIndex={submission.background_color_index}
                       showNickname={true}
                       nickname={submission.nickname}
+                      avatarUrl={submission.avatar_url}
                       href={onSubmissionClick ? undefined : getSubmissionHref(submission.id)}
                       onClick={onSubmissionClick ? () => onSubmissionClick(submission.id) : undefined}
                       likeCount={submission.like_count + (countAdjustments.get(submission.id) ?? 0)}

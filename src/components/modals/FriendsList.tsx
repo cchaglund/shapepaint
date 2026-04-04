@@ -41,6 +41,7 @@ export function FriendsList({
           key={user.id}
           userId={user.id}
           nickname={user.nickname}
+          avatarUrl={user.avatar_url}
           onNavigateToProfile={onNavigateToProfile}
         />
       ))}

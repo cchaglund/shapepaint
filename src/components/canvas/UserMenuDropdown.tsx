@@ -218,9 +218,7 @@ function UserMenuContent({
                 className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer text-left"
                 onClick={() => handleNavigateToProfile(friend.id)}
               >
-                <div className="w-6 h-6 rounded-(--radius-pill) bg-(--color-accent)/20 text-(--color-accent) flex items-center justify-center text-xs font-semibold shrink-0 leading-none">
-                  {(friend.nickname || 'U')[0].toUpperCase()}
-                </div>
+                <AvatarImage avatarUrl={friend.avatar_url} initial={(friend.nickname || 'U')[0].toUpperCase()} size="md" />
                 <span className="truncate">@{friend.nickname}</span>
               </button>
               {activeTab === 'following' && (

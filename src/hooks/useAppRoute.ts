@@ -4,7 +4,6 @@ import {
   isShapeExplorerEnabled,
   getSubmissionView,
   isVotingTestEnabled,
-  isSocialTestEnabled,
   isDashboardEnabled,
   isColorTesterEnabled,
   getWinnersDayView,
@@ -16,7 +15,6 @@ import {
 type StandaloneRoute =
   | { type: 'explorer' }
   | { type: 'voting-test' }
-  | { type: 'social-test' }
   | { type: 'dashboard' }
   | { type: 'color-tester' }
   | { type: 'gallery'; tab?: string; year?: number; month?: number; date?: string }
@@ -34,7 +32,6 @@ export type AppRoute = StandaloneRoute | ChallengeRoute;
 function resolveRoute(): AppRoute {
   if (isShapeExplorerEnabled()) return { type: 'explorer' };
   if (isVotingTestEnabled()) return { type: 'voting-test' };
-  if (isSocialTestEnabled()) return { type: 'social-test' };
   if (isDashboardEnabled()) return { type: 'dashboard' };
   if (isColorTesterEnabled()) return { type: 'color-tester' };
 

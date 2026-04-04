@@ -13,6 +13,7 @@ import {
 export interface FollowUser {
   id: string;
   nickname: string;
+  avatar_url: string | null;
   followedAt: string;
 }
 
@@ -93,17 +94,25 @@ export function FollowsProvider({ children }: FollowsProviderProps) {
       const nicknameMap = await fetchNicknames(allUserIds);
       if (controller.signal.aborted) return;
 
-      const followingList: FollowUser[] = followingData.map(f => ({
-        id: f.following_id,
-        nickname: nicknameMap.get(f.following_id) || 'Anonymous',
-        followedAt: f.created_at,
-      }));
+      const followingList: FollowUser[] = followingData.map(f => {
+        const profile = nicknameMap.get(f.following_id);
+        return {
+          id: f.following_id,
+          nickname: profile?.nickname || 'Anonymous',
+          avatar_url: profile?.avatar_url ?? null,
+          followedAt: f.created_at,
+        };
+      });
 
-      const followersList: FollowUser[] = followersData.map(f => ({
-        id: f.follower_id,
-        nickname: nicknameMap.get(f.follower_id) || 'Anonymous',
-        followedAt: f.created_at,
-      }));
+      const followersList: FollowUser[] = followersData.map(f => {
+        const profile = nicknameMap.get(f.follower_id);
+        return {
+          id: f.follower_id,
+          nickname: profile?.nickname || 'Anonymous',
+          avatar_url: profile?.avatar_url ?? null,
+          followedAt: f.created_at,
+        };
+      });
 
       if (!controller.signal.aborted) {
         setFollowing(followingList);
@@ -154,7 +163,8 @@ export function FollowsProvider({ children }: FollowsProviderProps) {
     // Optimistic update: add to following list immediately
     const optimisticUser: FollowUser = {
       id: userId,
-      nickname: 'Loading...', // Will be updated on refetch
+      nickname: 'Loading...',
+      avatar_url: null,
       followedAt: new Date().toISOString(),
     };
     const previousFollowing = following;

@@ -7,6 +7,7 @@ import { LoadingSpinner } from '../shared/LoadingSpinner';
 interface SearchResult {
   id: string;
   nickname: string;
+  avatar_url: string | null;
 }
 
 interface UserSearchBarProps {
@@ -123,6 +124,7 @@ export function UserSearchBar({ onNavigateToProfile }: UserSearchBarProps) {
               key={result.id}
               userId={result.id}
               nickname={result.nickname}
+              avatarUrl={result.avatar_url}
               onNavigateToProfile={onNavigateToProfile}
             />
           ))}

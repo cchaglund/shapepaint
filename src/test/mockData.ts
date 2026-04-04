@@ -203,6 +203,7 @@ export const MOCK_TOP_THREE: RankingEntry[] = [
     submission_id: 'sub-winner',
     user_id: 'user-winner',
     nickname: 'ArtistPro',
+    avatar_url: null,
     elo_score: 1150,
     vote_count: 12,
     shapes: createMockShapes(100),
@@ -213,6 +214,7 @@ export const MOCK_TOP_THREE: RankingEntry[] = [
     submission_id: 'sub-second',
     user_id: 'user-second',
     nickname: 'DesignMaster',
+    avatar_url: null,
     elo_score: 1080,
     vote_count: 10,
     shapes: createMockShapes(200),
@@ -223,6 +225,7 @@ export const MOCK_TOP_THREE: RankingEntry[] = [
     submission_id: 'sub-third',
     user_id: 'user-third',
     nickname: 'CreativeGuru',
+    avatar_url: null,
     elo_score: 1020,
     vote_count: 8,
     shapes: createMockShapes(300),
@@ -237,6 +240,7 @@ export const MOCK_TIED_TOP_THREE: RankingEntry[] = [
     submission_id: 'sub-tie-1',
     user_id: 'user-tie-1',
     nickname: 'TieBreaker1',
+    avatar_url: null,
     elo_score: 1100,
     vote_count: 10,
     shapes: createMockShapes(400),
@@ -247,6 +251,7 @@ export const MOCK_TIED_TOP_THREE: RankingEntry[] = [
     submission_id: 'sub-tie-2',
     user_id: 'user-tie-2',
     nickname: 'TieBreaker2',
+    avatar_url: null,
     elo_score: 1100,
     vote_count: 10,
     shapes: createMockShapes(500),
@@ -257,6 +262,7 @@ export const MOCK_TIED_TOP_THREE: RankingEntry[] = [
     submission_id: 'sub-third-tied',
     user_id: 'user-third-tied',
     nickname: 'AlmostFirst',
+    avatar_url: null,
     elo_score: 1050,
     vote_count: 9,
     shapes: createMockShapes(600),
@@ -271,6 +277,7 @@ export const MOCK_THREE_WAY_TIE: RankingEntry[] = [
     submission_id: 'sub-3tie-1',
     user_id: 'user-3tie-1',
     nickname: 'TripleThreat1',
+    avatar_url: null,
     elo_score: 1100,
     vote_count: 10,
     shapes: createMockShapes(700),
@@ -281,6 +288,7 @@ export const MOCK_THREE_WAY_TIE: RankingEntry[] = [
     submission_id: 'sub-3tie-2',
     user_id: 'user-3tie-2',
     nickname: 'TripleThreat2',
+    avatar_url: null,
     elo_score: 1100,
     vote_count: 10,
     shapes: createMockShapes(800),
@@ -291,6 +299,7 @@ export const MOCK_THREE_WAY_TIE: RankingEntry[] = [
     submission_id: 'sub-3tie-3',
     user_id: 'user-3tie-3',
     nickname: 'TripleThreat3',
+    avatar_url: null,
     elo_score: 1100,
     vote_count: 10,
     shapes: createMockShapes(900),
@@ -298,127 +307,3 @@ export const MOCK_THREE_WAY_TIE: RankingEntry[] = [
   },
 ];
 
-// ============================================================================
-// MOCK WALL SUBMISSIONS - 50+ submissions for Wall of the Day testing
-// Distributed across various users to simulate a real wall
-// ============================================================================
-
-export interface WallSubmission {
-  id: string;
-  user_id: string;
-  nickname: string;
-  shapes: Shape[];
-  background_color_index: number | null;
-  created_at: string;
-  challenge_date: string;
-}
-
-// Helper to create a wall submission with all required fields
-function createWallSubmission(
-  index: number,
-  userId: string,
-  nickname: string,
-  challengeDate: string
-): WallSubmission {
-  const base = createMockSubmission(`wall-sub-${index}`, userId, index);
-  return {
-    ...base,
-    nickname,
-    created_at: new Date(Date.UTC(2024, 0, 15, index % 24, (index * 7) % 60)).toISOString(),
-    challenge_date: challengeDate,
-  };
-}
-
-// Generate 60 wall submissions from various users
-const wallUserPool = [
-  { id: MOCK_USERS.viewer.id, nickname: MOCK_PROFILES.viewer.nickname },
-  { id: MOCK_USERS.alice.id, nickname: MOCK_PROFILES.alice.nickname },
-  { id: MOCK_USERS.bob.id, nickname: MOCK_PROFILES.bob.nickname },
-  { id: MOCK_USERS.carol.id, nickname: MOCK_PROFILES.carol.nickname },
-  { id: 'user-extra-001', nickname: 'ArtLover' },
-  { id: 'user-extra-002', nickname: 'DesignFan' },
-  { id: 'user-extra-003', nickname: 'ColorMaster' },
-  { id: 'user-extra-004', nickname: 'ShapeWiz' },
-  { id: 'user-extra-005', nickname: 'CreativeSoul' },
-  { id: 'user-extra-006', nickname: 'PixelPro' },
-  { id: 'user-extra-007', nickname: 'DrawDaily' },
-  { id: 'user-extra-008', nickname: 'SketchKing' },
-  { id: 'user-extra-009', nickname: 'FormFinder' },
-  { id: 'user-extra-010', nickname: 'GeoGenius' },
-];
-
-export const MOCK_WALL_SUBMISSIONS: WallSubmission[] = Array.from(
-  { length: 60 },
-  (_, i) => {
-    const user = wallUserPool[i % wallUserPool.length];
-    return createWallSubmission(i, user.id, user.nickname, MOCK_CHALLENGE.date);
-  }
-);
-
-// Subset of wall submissions from followed users only (for filter testing)
-export const MOCK_WALL_SUBMISSIONS_FOLLOWED = MOCK_WALL_SUBMISSIONS.filter(
-  sub => sub.user_id === MOCK_USERS.alice.id || sub.user_id === MOCK_USERS.bob.id
-);
-
-// ============================================================================
-// SCENARIOS - Preset configurations for testing different states
-// ============================================================================
-
-export interface Scenario {
-  name: string;
-  description: string;
-  user: MockUser | null;
-  profile: Profile | null;
-  follows: MockFollow[];
-  viewerSubmission: WallSubmission | null;
-}
-
-// Viewer's submission for scenarios that need it
-const VIEWER_SUBMISSION = createWallSubmission(
-  999,
-  MOCK_USERS.viewer.id,
-  MOCK_PROFILES.viewer.nickname,
-  MOCK_CHALLENGE.date
-);
-
-export const SCENARIOS = {
-  /** Logged out - no user, no profile, no follows */
-  loggedOut: {
-    name: 'Logged Out',
-    description: 'User is not logged in',
-    user: null,
-    profile: null,
-    follows: [],
-    viewerSubmission: null,
-  },
-
-  /** Logged in but has not saved art for today's challenge */
-  loggedInNoSubmission: {
-    name: 'Logged In (No Submission)',
-    description: 'User is logged in but has not submitted art today',
-    user: MOCK_USERS.viewer,
-    profile: MOCK_PROFILES.viewer,
-    follows: [],
-    viewerSubmission: null,
-  },
-
-  /** Logged in with a saved submission for today */
-  loggedInWithSubmission: {
-    name: 'Logged In (With Submission)',
-    description: 'User is logged in and has submitted art today',
-    user: MOCK_USERS.viewer,
-    profile: MOCK_PROFILES.viewer,
-    follows: [],
-    viewerSubmission: VIEWER_SUBMISSION,
-  },
-
-  /** Logged in with submission and follow relationships */
-  loggedInWithFollows: {
-    name: 'Logged In (With Follows)',
-    description: 'User is logged in with submission and follows alice+bob',
-    user: MOCK_USERS.viewer,
-    profile: MOCK_PROFILES.viewer,
-    follows: MOCK_FOLLOWS,
-    viewerSubmission: VIEWER_SUBMISSION,
-  },
-} as const satisfies Record<string, Scenario>;

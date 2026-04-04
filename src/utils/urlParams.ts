@@ -36,18 +36,6 @@ export function isVotingTestEnabled(): boolean {
   return urlParams.get('test') === 'voting';
 }
 
-// Check if social test page is requested
-export function isSocialTestEnabled(): boolean {
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get('test') === 'social';
-}
-
-// Get the scenario parameter for social test page
-export function getSocialTestScenario(): string | null {
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get('scenario');
-}
-
 // Check if dashboard view is requested
 export function isDashboardEnabled(): boolean {
   const urlParams = new URLSearchParams(window.location.search);

@@ -5,6 +5,7 @@ import { useUserProfile } from '../hooks/social/useUserProfile';
 import { useAuth } from '../hooks/auth/useAuth';
 import { useSubmissions } from '../hooks/submission/useSubmissions';
 import { FollowButton } from '../components/social/FollowButton';
+import { AvatarImage } from '../components/shared/AvatarImage';
 import { getTodayDateUTC } from '../utils/dailyChallenge';
 import { fetchChallengesBatch } from '../hooks/challenge/useDailyChallenge';
 import { canViewCurrentDay } from '../utils/privacyRules';
@@ -118,7 +119,7 @@ export function UserProfilePage({ userId, themeMode, onSetThemeMode, themeName, 
       onSetThemeName={onSetThemeName}
       centerContent={
         <span className="text-lg font-semibold text-(--color-text-primary) font-display">
-          @{profile?.nickname || 'Profile'}
+          {profile?.nickname || 'Profile'}
         </span>
       }
       rightContent={
@@ -181,13 +182,16 @@ export function UserProfilePage({ userId, themeMode, onSetThemeMode, themeName, 
           {/* Profile header */}
           <div className="mb-6">
             <div className="flex items-start justify-between gap-4 mb-2">
-              <div>
-                <h1 className="text-2xl font-bold text-(--color-text-primary) font-display">
-                  @{profile?.nickname || 'Anonymous'}
-                </h1>
-                <p className="text-base text-(--color-text-secondary) mt-1">
-                  {profile?.followingCount ?? 0} following · {profile?.followersCount ?? 0} followers
-                </p>
+              <div className="flex items-center gap-3">
+                <AvatarImage avatarUrl={profile?.avatar_url ?? null} initial={(profile?.nickname || 'A')[0].toUpperCase()} size="lg" />
+                <div>
+                  <h1 className="text-2xl font-bold text-(--color-text-primary) font-display">
+                    {profile?.nickname || 'Anonymous'}
+                  </h1>
+                  <p className="text-base text-(--color-text-secondary) mt-0.5">
+                    {profile?.followingCount ?? 0} following · {profile?.followersCount ?? 0} followers
+                  </p>
+                </div>
               </div>
               <FollowButton targetUserId={userId} />
             </div>

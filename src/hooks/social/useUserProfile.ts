@@ -9,6 +9,7 @@ import { fetchUserPublicProfile, fetchUserPublicSubmissions, fetchFollowCounts }
 export interface UserProfile {
   id: string;
   nickname: string;
+  avatar_url: string | null;
   followingCount: number;
   followersCount: number;
 }
@@ -98,6 +99,7 @@ async function fetchUserProfile(userId: string): Promise<CachedUserData | null> 
     const profile: UserProfile = {
       id: profileData.id,
       nickname: profileData.nickname || 'Anonymous',
+      avatar_url: profileData.avatar_url ?? null,
       followingCount: followCounts.following,
       followersCount: followCounts.followers,
     };

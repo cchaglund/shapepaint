@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from './Link';
+import { AvatarImage } from './AvatarImage';
 import { SubmissionThumbnail } from './SubmissionThumbnail';
 import { CardLikeButton } from './CardLikeButton';
 import type { Shape, ShapeGroup, DailyChallenge } from '../../types';
@@ -11,6 +12,7 @@ interface SubmissionCardProps {
   backgroundColorIndex: number | null;
   showNickname?: boolean;
   nickname?: string;
+  avatarUrl?: string | null;
   onClick?: () => void;
   href?: string;
   likeCount?: number;
@@ -26,6 +28,7 @@ export function SubmissionCard({
   backgroundColorIndex,
   showNickname = false,
   nickname,
+  avatarUrl,
   onClick,
   href,
   likeCount,
@@ -62,7 +65,8 @@ export function SubmissionCard({
           className="flex items-center gap-1"
         >
           {showNickname && nickname && (
-            <span className="truncate text-sm font-bold text-(--color-text-primary)">
+            <span className="flex items-center gap-1.5 truncate text-sm font-bold text-(--color-text-primary)">
+              <AvatarImage avatarUrl={avatarUrl ?? null} initial={(nickname || 'U')[0].toUpperCase()} size="sm" />
               {nickname}
             </span>
           )}

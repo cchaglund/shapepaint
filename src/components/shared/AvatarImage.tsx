@@ -13,22 +13,25 @@ interface AvatarImageProps {
 }
 
 export function AvatarImage({ avatarUrl, initial, size }: AvatarImageProps) {
+  const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
   const { container, img } = sizes[size];
 
-  if (avatarUrl && !failed) {
-    return (
-      <img
-        src={avatarUrl}
-        alt=""
-        className={`${img} rounded-(--radius-pill)`}
-        onError={() => setFailed(true)}
-      />
-    );
-  }
+  const showImg = avatarUrl && !failed;
+
   return (
-    <div className={`${container} rounded-(--radius-pill) bg-(--color-accent) text-(--color-accent-text) flex items-center justify-center font-semibold`}>
+    <div className={`${container} rounded-(--radius-pill) bg-(--color-border-light) text-(--color-text-secondary) flex items-center justify-center font-semibold relative overflow-hidden shrink-0`}>
       {initial}
+      {showImg && (
+        <img
+          src={avatarUrl}
+          alt=""
+          className={`${img} rounded-(--radius-pill) absolute inset-0 transition-opacity duration-150`}
+          style={{ opacity: loaded ? 1 : 0 }}
+          onLoad={() => setLoaded(true)}
+          onError={() => setFailed(true)}
+        />
+      )}
     </div>
   );
 }

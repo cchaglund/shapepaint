@@ -73,6 +73,7 @@ export interface RankingEntry {
   submission_id: string;
   user_id: string;
   nickname: string;
+  avatar_url: string | null;
   elo_score: number;
   vote_count: number;
   shapes: Shape[];
