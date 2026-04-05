@@ -8,6 +8,7 @@ import { Button } from '../shared/Button';
 import { ConfidencePill } from '../shared/ConfidencePill';
 import { InfoTooltip } from '../shared/InfoTooltip';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
+import { navigate } from '../../lib/router';
 
 interface RankingStats {
   submissionCount: number;
@@ -87,8 +88,8 @@ export function WinnerAnnouncementModal({
               key={winner.submission_id}
               entry={winner}
               challenge={challenge}
-
               size={winners.length > 2 ? 'sm' : 'lg'}
+              fitViewport
             />
           ))}
         </div>
@@ -103,8 +104,8 @@ export function WinnerAnnouncementModal({
               key={runnerUp.submission_id}
               entry={runnerUp}
               challenge={challenge}
-
               size="sm"
+              fitViewport
             />
           ))}
 
@@ -113,16 +114,28 @@ export function WinnerAnnouncementModal({
               key={thirdPlace.submission_id}
               entry={thirdPlace}
               challenge={challenge}
-
               size="sm"
+              fitViewport
             />
           ))}
         </div>
       ) : null}
 
-      <Button variant="primary" size="md" fullWidth onClick={onDismiss}>
-        Awesome!
-      </Button>
+      <div className="flex flex-col items-center gap-2 mt-3">
+        <Button variant="primary" size="md" fullWidth onClick={onDismiss}>
+          Awesome!
+        </Button>
+        <Button
+          variant="link"
+          size="sm"
+          onClick={() => {
+            onDismiss();
+            navigate(`?view=gallery&tab=wall&date=${challengeDate}`);
+          }}
+        >
+          See all submissions
+        </Button>
+      </div>
     </Modal>
   );
 }

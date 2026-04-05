@@ -895,3 +895,13 @@ html.theme-transitioning *::after {
   width: 5px;
   height: 5px;
 }
+
+/* ── ViewToggle hover ── */
+.view-toggle-btn:not(.view-toggle-active) {
+  background: transparent;
+  box-shadow: none;
+}
+.view-toggle-btn:not(:disabled):not(.view-toggle-active):hover {
+  background: var(--color-selected-hover);
+  color: var(--color-text-primary);
+}

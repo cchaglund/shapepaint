@@ -58,15 +58,13 @@ export function ViewToggle<T extends string>({
   };
 
   const inactiveStyle: React.CSSProperties = {
-    background: 'transparent',
     border: 'var(--border-width, 2px) solid transparent',
     borderRadius: `var(${config.buttonRadius})`,
-    boxShadow: 'none',
   };
 
   return (
     <div
-      className={`flex ${className}`}
+      className={`flex gap-1 ${className}`}
       style={{
         background: 'var(--color-selected)',
         borderRadius: `var(${config.containerRadius})`,
@@ -82,7 +80,7 @@ export function ViewToggle<T extends string>({
             onClick={() => onChange(value)}
             disabled={disabled}
             title={disabled ? disabledTitle : undefined}
-            className={`${config.buttonPadding} ${config.fontSize} transition-all ${
+            className={`view-toggle-btn ${isActive ? 'view-toggle-active' : ''} ${config.buttonPadding} ${config.fontSize} transition-all ${
               fullWidth ? 'flex-1' : ''
             } ${
               disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
