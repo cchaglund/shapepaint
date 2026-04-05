@@ -133,9 +133,11 @@ export function WinnersDayPage({ date, themeMode, onSetThemeMode, themeName, onS
 
                   {winners.length > 0 && (
                     <div className="text-center">
-                      <h2 className="text-base font-medium mb-4 text-(--color-text-tertiary)">
-                        {winners.length > 1 ? '1st Place (Tie)' : '1st Place'}
-                      </h2>
+                      {winners.length > 1 && (
+                        <h2 className="text-base font-medium mb-4 text-(--color-text-tertiary)">
+                          Tie for 1st Place
+                        </h2>
+                      )}
                       <div className={`flex flex-wrap justify-center ${winners.length > 1 ? 'gap-4 md:gap-6' : ''}`}>
                         {winners.map((winner) => (
                           <WinnerCard
@@ -195,7 +197,7 @@ export function WinnersDayPage({ date, themeMode, onSetThemeMode, themeName, onS
                   <span className="text-xs text-(--color-text-tertiary)">
                     Inspiration
                   </span>
-                  <p className="mt-1 text-lg font-medium italic text-(--color-text-primary)">
+                  <p className="mt-1 text-sm font-medium italic text-(--color-text-primary) capitalize">
                     "{challenge.word}"
                   </p>
                 </div>
@@ -267,7 +269,7 @@ export function WinnersDayPage({ date, themeMode, onSetThemeMode, themeName, onS
                         <span className="text-sm font-medium text-(--color-text-primary) mt-0.5 inline-block">{rankingStats.voterCount}</span>
                       </div>
                       <div>
-                        <span className="text-xs text-(--color-text-tertiary) block">
+                        <span className="text-xs text-(--color-text-tertiary) flex gap-1 items-center">
                           Confidence
                           <InfoTooltip text={RANKING_CONFIDENCE_TOOLTIP} />
                         </span>

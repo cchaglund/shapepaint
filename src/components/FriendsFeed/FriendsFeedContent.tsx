@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Link, SubmissionCard, TrophyBadge, ViewToggle, EmptyState, LoadingSpinner, LoadMoreButton } from '../shared';
+import { Link, SubmissionCard, ViewToggle, EmptyState, LoadingSpinner, LoadMoreButton } from '../shared';
 import { useFriendsFeed, type SortMode } from '../../hooks/social/useFriendsFeed';
 import { useDailyChallenge } from '../../hooks/challenge/useDailyChallenge';
 import { useCalendarMonth } from '../../hooks/challenge/useCalendarMonth';
@@ -311,14 +311,8 @@ export function FriendsFeedContent({
                 {submissions.map((submission) => (
                   <div
                     key={submission.id}
-                    className="relative"
                     title={`Submitted at ${formatTime(submission.created_at)}`}
                   >
-                    {submission.final_rank !== undefined && submission.final_rank >= 1 && submission.final_rank <= 3 && (
-                      <div className="absolute top-0 right-0 z-10">
-                        <TrophyBadge rank={submission.final_rank as 1 | 2 | 3} />
-                      </div>
-                    )}
                     <SubmissionCard
                       shapes={submission.shapes}
                       groups={submission.groups}
@@ -333,6 +327,7 @@ export function FriendsFeedContent({
                       isLiked={likedSet.has(submission.id)}
                       isOwnSubmission={user?.id === submission.user_id}
                       onLikeToggle={() => handleLikeToggle(submission.id)}
+                      rank={submission.final_rank !== undefined && submission.final_rank >= 1 && submission.final_rank <= 3 ? submission.final_rank as 1 | 2 | 3 : undefined}
                     />
                   </div>
                 ))}

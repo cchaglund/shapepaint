@@ -2,7 +2,7 @@ import type { DailyChallenge, Shape } from '../../types';
 import type { ViewMode, WinnerEntry } from './types';
 import { SubmissionThumbnail } from '../shared/SubmissionThumbnail';
 import { ChallengeShapeIndicators } from '../shared/ChallengeShapeIndicators';
-import { TrophyBadge } from '../shared/TrophyBadge';
+import { PlacementBanner } from '../shared/PlacementBanner';
 import { Tooltip } from '../shared/InfoTooltip';
 import { CalendarCell } from './CalendarCell';
 
@@ -82,9 +82,7 @@ export function CalendarDayCell({
           </div>
         )}
         {hasRank && (
-          <div className="absolute top-0.5 right-0.5 z-10">
-            <TrophyBadge rank={hasRank} />
-          </div>
+          <PlacementBanner rank={hasRank} compact />
         )}
         {hasArt ? (
           <SubmissionThumbnail

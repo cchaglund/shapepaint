@@ -3,6 +3,7 @@ import { Link } from './Link';
 import { AvatarImage } from './AvatarImage';
 import { SubmissionThumbnail } from './SubmissionThumbnail';
 import { CardLikeButton } from './CardLikeButton';
+import { PlacementBanner } from './PlacementBanner';
 import type { Shape, ShapeGroup, DailyChallenge } from '../../types';
 
 interface SubmissionCardProps {
@@ -19,6 +20,8 @@ interface SubmissionCardProps {
   isLiked?: boolean;
   isOwnSubmission?: boolean;
   onLikeToggle?: () => void;
+  /** Show a placement banner (1st/2nd/3rd) over the thumbnail */
+  rank?: 1 | 2 | 3;
 }
 
 export function SubmissionCard({
@@ -35,6 +38,7 @@ export function SubmissionCard({
   isLiked,
   isOwnSubmission,
   onLikeToggle,
+  rank,
 }: SubmissionCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -52,13 +56,18 @@ export function SubmissionCard({
 
   const cardInner = (
     <>
-      <SubmissionThumbnail
-        shapes={shapes}
-        groups={groups}
-        challenge={challenge}
-        backgroundColorIndex={backgroundColorIndex}
-        fill
-      />
+      <div className="relative">
+        <SubmissionThumbnail
+          shapes={shapes}
+          groups={groups}
+          challenge={challenge}
+          backgroundColorIndex={backgroundColorIndex}
+          fill
+        />
+        {rank && <PlacementBanner rank={rank} />}
+      </div>
+      {/* Banner positions absolutely within the relative wrapper above;
+          card's overflow:hidden clips it to the rounded corners */}
       {showFooter && (
         <div
           style={{ padding: 'var(--space-2) var(--space-3)' }}

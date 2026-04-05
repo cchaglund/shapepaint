@@ -16,7 +16,7 @@ interface CalendarCellProps {
   children: React.ReactNode;
 }
 
-const cellBase = 'aspect-square rounded-(--radius-md) relative transition-all overflow-hidden';
+const cellBase = 'aspect-square w-full rounded-(--radius-md) relative transition-all overflow-hidden';
 
 export function CalendarCell({
   day,

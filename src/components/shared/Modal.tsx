@@ -61,12 +61,10 @@ export function Modal({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [onClose, closeOnEscape]);
 
-  // Focus first focusable element on mount
+  // Focus the modal container on mount (not the first interactive child,
+  // which would show an unwanted focus ring on links/buttons)
   useEffect(() => {
-    const focusableElements = modalRef.current?.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    focusableElements?.[0]?.focus();
+    modalRef.current?.focus();
   }, []);
 
   const handleBackdropClick = useCallback(
@@ -89,7 +87,8 @@ export function Modal({
     >
       <div
         ref={modalRef}
-        className={`p-4 md:p-6 w-full ${size} mx-4 max-h-[90dvh] overflow-y-auto bg-(--color-modal-bg) border-[length:var(--border-width,2px)] border-solid border-(--color-border) rounded-(--radius-lg) shadow-(--shadow-modal) ${className}`}
+        tabIndex={-1}
+        className={`p-4 md:p-6 w-full ${size} mx-4 max-h-[90dvh] overflow-y-auto outline-none bg-(--color-modal-bg) border-[length:var(--border-width,2px)] border-solid border-(--color-border) rounded-(--radius-lg) shadow-(--shadow-modal) ${className}`}
       >
         {children}
       </div>

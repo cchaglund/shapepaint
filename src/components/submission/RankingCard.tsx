@@ -1,4 +1,4 @@
-import { TrophyBadge } from '../shared/TrophyBadge';
+import { PlacementSwatch } from '../shared/PlacementBanner';
 import { Card } from '../shared/Card';
 import { RankingBadge } from './RankingBadge';
 
@@ -14,7 +14,7 @@ export function RankingCard({ rankInfo }: RankingCardProps) {
       </h2>
       <div className="flex items-center gap-3">
         {rankInfo.rank <= 3 && (
-          <TrophyBadge rank={rankInfo.rank as 1 | 2 | 3} />
+          <PlacementSwatch rank={rankInfo.rank as 1 | 2 | 3} />
         )}
         <RankingBadge rank={rankInfo.rank} total={rankInfo.total} />
       </div>

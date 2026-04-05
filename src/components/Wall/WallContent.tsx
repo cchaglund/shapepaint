@@ -8,7 +8,7 @@ import { useBatchLikedStatus } from '../../hooks/social/useBatchLikedStatus';
 import { WallSortControls } from './WallSortControls';
 import { WallLockedState } from './WallLockedState';
 import { WallEmptyState } from './WallEmptyState';
-import { SubmissionCard, TrophyBadge, ViewToggle, LoadingSpinner, LoadMoreButton } from '../shared';
+import { SubmissionCard, ViewToggle, LoadingSpinner, LoadMoreButton } from '../shared';
 import { ContentNavigation } from '../Calendar/ContentNavigation';
 import { ContentCalendarGrid } from '../Calendar/ContentCalendarGrid';
 import { LoginPromptModal } from '../social/LoginPromptModal';
@@ -219,14 +219,8 @@ export function WallContent({
             {submissions.map((submission) => (
               <div
                 key={submission.id}
-                className="relative"
                 title={`Submitted at ${formatTime(submission.created_at)}`}
               >
-                {submission.final_rank !== undefined && submission.final_rank >= 1 && submission.final_rank <= 3 && (
-                  <div className="absolute top-0 right-0 z-10">
-                    <TrophyBadge rank={submission.final_rank as 1 | 2 | 3} />
-                  </div>
-                )}
                 <SubmissionCard
                   shapes={submission.shapes}
                   groups={submission.groups}
@@ -241,6 +235,7 @@ export function WallContent({
                   isLiked={likedSet.has(submission.id)}
                   isOwnSubmission={user?.id === submission.user_id}
                   onLikeToggle={() => handleLikeToggle(submission.id)}
+                  rank={submission.final_rank !== undefined && submission.final_rank >= 1 && submission.final_rank <= 3 ? submission.final_rank as 1 | 2 | 3 : undefined}
                 />
               </div>
             ))}

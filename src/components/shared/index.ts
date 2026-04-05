@@ -14,5 +14,5 @@ export { SVGShape } from './SVGShape';
 export { ShapeIcon } from './ShapeIcon';
 export { SubmissionCard } from './SubmissionCard';
 export { SubmissionThumbnail } from './SubmissionThumbnail';
-export { TrophyBadge } from './TrophyBadge';
+export { PlacementBanner, PlacementSwatch } from './PlacementBanner';
 export { ViewToggle } from './ViewToggle';

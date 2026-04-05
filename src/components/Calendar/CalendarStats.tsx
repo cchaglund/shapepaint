@@ -1,4 +1,4 @@
-import { TrophyBadge } from '../shared/TrophyBadge';
+import { PlacementSwatch } from '../shared/PlacementBanner';
 import type { ViewMode, WinnerEntry } from './types';
 import type { Submission } from '../../hooks/submission/useSubmissions';
 
@@ -34,17 +34,17 @@ export function CalendarStats({
               <div className="flex items-center gap-4">
                 {trophyCounts[1] > 0 && (
                   <span className="flex items-center gap-1">
-                    <TrophyBadge rank={1} /> ×{trophyCounts[1]}
+                    <PlacementSwatch rank={1} /> 1st ×{trophyCounts[1]}
                   </span>
                 )}
                 {trophyCounts[2] > 0 && (
                   <span className="flex items-center gap-1">
-                    <TrophyBadge rank={2} /> ×{trophyCounts[2]}
+                    <PlacementSwatch rank={2} /> 2nd ×{trophyCounts[2]}
                   </span>
                 )}
                 {trophyCounts[3] > 0 && (
                   <span className="flex items-center gap-1">
-                    <TrophyBadge rank={3} /> ×{trophyCounts[3]}
+                    <PlacementSwatch rank={3} /> 3rd ×{trophyCounts[3]}
                   </span>
                 )}
               </div>
