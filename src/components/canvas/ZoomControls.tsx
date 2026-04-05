@@ -1,3 +1,5 @@
+import { Plus, Minus } from 'lucide-react';
+
 interface ZoomControlsProps {
   zoom: number;
   onZoomIn: () => void;
@@ -41,7 +43,7 @@ export function ZoomControls({
         disabled={!canZoomIn}
         title="Zoom in"
       >
-        +
+        <Plus size={14} strokeWidth={2.5} />
       </button>
 
       <button
@@ -61,18 +63,9 @@ export function ZoomControls({
         disabled={!canZoomOut}
         title="Zoom out"
       >
-        −
+        <Minus size={14} strokeWidth={2.5} />
       </button>
 
-      <button
-        className={btnBase}
-        style={{ ...btnStyle, padding: '0 0.5rem' }}
-        onClick={onResetZoom}
-        disabled={isDefaultZoom}
-        title="Reset zoom to 100%"
-      >
-        1:1
-      </button>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { Button } from '../components/shared/Button';
 import { useRanking } from '../hooks/challenge/useRanking';
 import { useDailyChallenge } from '../hooks/challenge/useDailyChallenge';
 import { WinnerCard } from '../components/submission/WinnerCard';
+import { SubmissionNavigation } from '../components/submission/SubmissionNavigation';
 import { getShapeSVGData } from '../utils/shapes';
 import { RANKING_CONFIDENCE_TOOLTIP } from '../utils/votingRules';
 import { TopBar } from '../components/canvas/TopBar';
@@ -76,28 +77,7 @@ export function WinnersDayPage({ date, themeMode, onSetThemeMode, themeName, onS
         }
         rightContent={
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              className="gap-1 disabled:opacity-30 disabled:cursor-not-allowed"
-              onClick={() => adjacentDates.prev && navigate(`?view=winners-day&date=${adjacentDates.prev}`)}
-              disabled={!adjacentDates.prev}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-              <span className="hidden md:inline">Previous</span>
-            </Button>
-            <Button
-              variant="ghost"
-              className="gap-1 disabled:opacity-30 disabled:cursor-not-allowed"
-              onClick={() => adjacentDates.next && navigate(`?view=winners-day&date=${adjacentDates.next}`)}
-              disabled={!adjacentDates.next}
-            >
-              <span className="hidden md:inline">Next</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </Button>
+            <SubmissionNavigation adjacentDates={adjacentDates} onNavigate={(d) => navigate(`?view=winners-day&date=${d}`)} />
             <Button as="a" variant="ghost" href="/?view=gallery&tab=winners" className="gap-1">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="15 18 9 12 15 6" />

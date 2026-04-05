@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { navigate } from '../lib/router';
 import { Button } from '../components/shared/Button';
 import { Link } from '../components/shared/Link';
 import { CardLikeButton } from '../components/shared/CardLikeButton';
@@ -140,7 +141,11 @@ export function SubmissionDetailPage({ date, submissionId, themeMode, onSetTheme
         }
         rightContent={
           <div className="flex items-center gap-2">
-            {date && <SubmissionNavigation adjacentDates={adjacentDates} />}
+            {date && <SubmissionNavigation adjacentDates={adjacentDates} onNavigate={(d) => {
+              const url = new URL(window.location.href);
+              url.searchParams.set('date', d);
+              navigate(url.toString());
+            }} />}
             <Button as="a" variant="ghost" href="/?view=gallery" className="gap-1">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="15 18 9 12 15 6" />
