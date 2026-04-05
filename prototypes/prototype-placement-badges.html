@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Placement Badge Prototypes — 2C2S</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Lilita+One&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  /* ========================================
+     DESIGN SYSTEM TOKENS (Theme A: Pop Art)
+     ======================================== */
+  :root {
+    --color-accent: #FF3366;
+    --color-bg-primary: #FFFBF7;
+    --color-bg-secondary: #FFF8F2;
+    --color-bg-tertiary: #FFF5ED;
+    --color-bg-elevated: #ffffff;
+    --color-text-primary: #2D1B69;
+    --color-text-secondary: #5a4880;
+    --color-text-tertiary: #8B7EC8;
+    --color-text-faint: #b5a8c8;
+    --color-border: #2D1B69;
+    --color-border-light: #E8E8E8;
+    --color-card-bg: #ffffff;
+    --shadow-card: 4px 4px 0 #2D1B69;
+    --shadow-btn: 2px 2px 0 #2D1B69;
+    --radius-sm: 0.5rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.25rem;
+    --font-body: 'Fredoka', sans-serif;
+    --font-display: 'Lilita One', cursive;
+    --border-width: 2px;
+
+    /* Placement palette */
+    --gold: #FFD700;
+    --gold-deep: #D4A800;
+    --gold-glow: rgba(255, 215, 0, 0.25);
+    --silver: #C0C0C0;
+    --silver-deep: #8E8E8E;
+    --silver-glow: rgba(192, 192, 192, 0.25);
+    --bronze: #CE8946;
+    --bronze-deep: #A66D2F;
+    --bronze-glow: rgba(206, 137, 70, 0.25);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    padding: 2rem;
+    line-height: 1.5;
+  }
+
+  /* ========================================
+     PAGE LAYOUT
+     ======================================== */
+  .page-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 3px solid var(--color-border);
+  }
+  .page-header h1 {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+  }
+  .page-header p {
+    color: var(--color-text-secondary);
+    font-size: 1rem;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .style-section {
+    margin-bottom: 4rem;
+    scroll-margin-top: 2rem;
+  }
+  .style-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  .style-header h2 {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+  }
+  .style-header .style-tag {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-accent);
+    background: rgba(255, 51, 102, 0.1);
+    padding: 0.2em 0.6em;
+    border-radius: var(--radius-sm);
+  }
+  .style-desc {
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+    max-width: 700px;
+  }
+
+  .context-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-text-tertiary);
+    margin-bottom: 0.75rem;
+  }
+
+  .context-group {
+    margin-bottom: 2rem;
+  }
+
+  /* ========================================
+     MOCK CARDS — simulating real app cards
+     ======================================== */
+
+  /* Fake submission art */
+  .art-mock {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+  .art-mock.green-brown {
+    background: linear-gradient(135deg, #A8B77A 0%, #A8B77A 50%, #6B5A3C 50%, #6B5A3C 100%);
+  }
+  .art-mock.pink-teal {
+    background: linear-gradient(220deg, #E8838C 0%, #E8838C 40%, #438C8C 40%, #438C8C 100%);
+  }
+  .art-mock.blue-orange {
+    background: linear-gradient(160deg, #2B3A67 0%, #2B3A67 55%, #E07A2F 55%, #E07A2F 100%);
+  }
+
+  /* Winner card (Winners page / modal) */
+  .winner-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    text-decoration: none;
+    color: inherit;
+  }
+  .winner-card .thumb {
+    width: 220px;
+    height: 220px;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    border: var(--border-width) solid var(--color-border);
+    box-shadow: var(--shadow-card);
+    position: relative;
+  }
+  .winner-card.large .thumb {
+    width: 320px;
+    height: 320px;
+  }
+  .winner-card .artist {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  /* Wall grid card */
+  .wall-card {
+    border-radius: var(--radius-lg);
+    border: var(--border-width) solid var(--color-border);
+    background: var(--color-card-bg);
+    box-shadow: var(--shadow-btn);
+    overflow: hidden;
+    width: 200px;
+    position: relative;
+  }
+  .wall-card .card-footer {
+    padding: 0.5rem 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+  .wall-card .likes {
+    color: var(--color-accent);
+    font-size: 0.8rem;
+  }
+
+  /* Calendar cell */
+  .cal-cell {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border-light);
+    overflow: hidden;
+    position: relative;
+    background: var(--color-card-bg);
+  }
+  .cal-cell .day-num {
+    position: absolute;
+    top: 2px;
+    left: 4px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    z-index: 5;
+    text-shadow: 0 0 3px rgba(255,255,255,0.8);
+  }
+  .cal-cell .art-mock {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--color-border-light);
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+  }
+  .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  /* ========================================
+     FLEX LAYOUTS
+     ======================================== */
+  .flex-row { display: flex; gap: 1.5rem; align-items: flex-start; flex-wrap: wrap; }
+  .flex-row.tight { gap: 0.75rem; }
+  .flex-row.center { justify-content: center; }
+  .winners-layout { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
+  .winners-row { display: flex; gap: 1.5rem; justify-content: center; }
+
+
+  /* ========================================
+     STYLE A: CORNER RIBBON
+     Diagonal ribbon wrapping the corner
+     ======================================== */
+  .ribbon {
+    position: absolute;
+    z-index: 10;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .ribbon.top-right {
+    top: -5px;
+    right: -5px;
+    width: 90px;
+    height: 90px;
+  }
+  .ribbon.top-right .ribbon-inner {
+    position: absolute;
+    /* Place strip so both ends overflow the clipping box equally */
+    left: -4px;
+    top: 20px;
+    width: 130px;
+    text-align: center;
+    transform: rotate(45deg);
+    transform-origin: center center;
+    font-family: var(--font-display);
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+    padding: 3px 0;
+    color: var(--color-text-primary);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+  .ribbon.top-right .ribbon-inner.gold { background: var(--gold); }
+  .ribbon.top-right .ribbon-inner.silver { background: var(--silver); }
+  .ribbon.top-right .ribbon-inner.bronze { background: var(--bronze); }
+
+  /* Small ribbon for calendar */
+  .ribbon.sm {
+    top: -3px;
+    right: -3px;
+    width: 52px;
+    height: 52px;
+  }
+  .ribbon.sm .ribbon-inner {
+    left: -6px;
+    top: 10px;
+    width: 76px;
+    font-size: 0.45rem;
+    padding: 2px 0;
+  }
+
+
+  /* ========================================
+     STYLE B: NUMBERED SEAL
+     Wax-seal inspired circular badge
+     ======================================== */
+  .seal {
+    position: absolute;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-family: var(--font-display);
+    border: 2px solid var(--color-border);
+    box-shadow: 1px 1px 0 var(--color-border);
+  }
+  .seal.lg {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+    top: -10px;
+    right: -10px;
+  }
+  .seal.md {
+    width: 32px;
+    height: 32px;
+    font-size: 0.85rem;
+    top: -8px;
+    right: -8px;
+  }
+  .seal.sm {
+    width: 18px;
+    height: 18px;
+    font-size: 0.5rem;
+    top: -4px;
+    right: -4px;
+    border-width: 1.5px;
+    box-shadow: 1px 1px 0 var(--color-border);
+  }
+
+  .seal.gold { background: var(--gold); }
+  .seal.silver { background: var(--silver); }
+  .seal.bronze { background: var(--bronze); }
+
+
+  /* ========================================
+     STYLE C: SIDE STRIPE
+     Colored vertical bar on card edge
+     ======================================== */
+  .stripe-left {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    z-index: 10;
+  }
+  .stripe-left.gold { background: var(--gold); }
+  .stripe-left.silver { background: var(--silver); }
+  .stripe-left.bronze { background: var(--bronze); }
+
+  .stripe-left.sm { width: 3px; }
+
+  .stripe-corner-num {
+    position: absolute;
+    top: 6px;
+    left: 12px;
+    z-index: 10;
+    font-family: var(--font-display);
+    font-size: 0.7rem;
+    line-height: 1;
+  }
+  .stripe-corner-num.gold { color: var(--gold-deep); }
+  .stripe-corner-num.silver { color: var(--silver-deep); }
+  .stripe-corner-num.bronze { color: var(--bronze-deep); }
+
+  .stripe-corner-num.sm {
+    top: 2px;
+    left: 6px;
+    font-size: 0.5rem;
+  }
+
+
+  /* ========================================
+     STYLE D: FLOATING PILL
+     Rounded pill with ordinal + rank color
+     ======================================== */
+  .rank-pill {
+    position: absolute;
+    z-index: 10;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.7rem;
+    border: var(--border-width) solid var(--color-border);
+    box-shadow: var(--shadow-btn);
+    color: var(--color-text-primary);
+    top: -8px;
+    right: -6px;
+  }
+  .rank-pill .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .rank-pill.gold { background: var(--color-card-bg); }
+  .rank-pill.gold .dot { background: var(--gold); border: 1px solid var(--gold-deep); }
+  .rank-pill.silver { background: var(--color-card-bg); }
+  .rank-pill.silver .dot { background: var(--silver); border: 1px solid var(--silver-deep); }
+  .rank-pill.bronze { background: var(--color-card-bg); }
+  .rank-pill.bronze .dot { background: var(--bronze); border: 1px solid var(--bronze-deep); }
+
+  .rank-pill.sm {
+    font-size: 0.5rem;
+    padding: 0.1rem 0.35rem;
+    gap: 0.15rem;
+    top: -5px;
+    right: -4px;
+    border-width: 1.5px;
+    box-shadow: 1px 1px 0 var(--color-border);
+  }
+  .rank-pill.sm .dot {
+    width: 5px;
+    height: 5px;
+  }
+
+  /* Stats version: inline pill */
+  .rank-pill.inline {
+    position: static;
+    top: unset;
+    right: unset;
+    font-size: 0.75rem;
+    box-shadow: var(--shadow-btn);
+  }
+
+
+  /* ========================================
+     STYLE E: METALLIC RING
+     Glowing ring around the card border
+     ======================================== */
+  .ring-card {
+    position: relative;
+  }
+  .ring-card::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: calc(var(--radius-xl) + 4px);
+    z-index: -1;
+    pointer-events: none;
+  }
+  .ring-card.gold::before {
+    background: var(--gold);
+    box-shadow: 0 0 12px var(--gold-glow), 0 0 2px var(--gold-deep);
+  }
+  .ring-card.silver::before {
+    background: var(--silver);
+    box-shadow: 0 0 12px var(--silver-glow), 0 0 2px var(--silver-deep);
+  }
+  .ring-card.bronze::before {
+    background: var(--bronze);
+    box-shadow: 0 0 12px var(--bronze-glow), 0 0 2px var(--bronze-deep);
+  }
+  /* Wall card ring uses smaller radius */
+  .ring-wall::before {
+    border-radius: calc(var(--radius-lg) + 4px);
+  }
+
+  .ring-ordinal {
+    position: absolute;
+    z-index: 10;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-display);
+    font-size: 0.65rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    border: var(--border-width) solid var(--color-border);
+    color: var(--color-text-primary);
+  }
+  .ring-ordinal.gold { background: var(--gold); }
+  .ring-ordinal.silver { background: var(--silver); }
+  .ring-ordinal.bronze { background: var(--bronze); }
+
+  /* Calendar ring */
+  .ring-cal {
+    position: relative;
+  }
+  .ring-cal::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: calc(var(--radius-sm) + 3px);
+    z-index: -1;
+  }
+  .ring-cal.gold::before { background: var(--gold); box-shadow: 0 0 6px var(--gold-glow); }
+  .ring-cal.silver::before { background: var(--silver); box-shadow: 0 0 6px var(--silver-glow); }
+  .ring-cal.bronze::before { background: var(--bronze); box-shadow: 0 0 6px var(--bronze-glow); }
+
+
+  /* ========================================
+     STYLE F: BOTTOM BANNER
+     Overlay bar at the bottom of art
+     ======================================== */
+  .bottom-banner {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0;
+    font-family: var(--font-display);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    color: var(--color-text-primary);
+    box-shadow: 0 -3px 6px rgba(0,0,0,0.15);
+  }
+  .bottom-banner.gold { background: var(--gold); }
+  .bottom-banner.silver { background: var(--silver); }
+  .bottom-banner.bronze { background: var(--bronze); }
+
+  .bottom-banner.sm {
+    font-size: 0.45rem;
+    padding: 0.15rem 0;
+    gap: 0.15rem;
+  }
+  .bottom-banner .banner-star {
+    font-size: 0.5em;
+    opacity: 0.7;
+  }
+
+  /* ========================================
+     NAV
+     ======================================== */
+  .style-nav {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 2.5rem;
+  }
+  .style-nav a {
+    display: inline-block;
+    padding: 0.4rem 1rem;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--color-text-primary);
+    text-decoration: none;
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-card-bg);
+    box-shadow: var(--shadow-btn);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .style-nav a:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Divider */
+  .divider {
+    border: none;
+    border-top: 2px dashed var(--color-border-light);
+    margin: 3rem 0;
+  }
+
+  /* ========================================
+     COMPARISON TABLE
+     ======================================== */
+  .comparison-grid {
+    display: grid;
+    grid-template-columns: 120px repeat(2, 1fr);
+    gap: 1rem;
+    align-items: center;
+    margin-top: 2rem;
+    font-size: 0.8rem;
+  }
+  .comparison-grid .cell {
+    text-align: center;
+    padding: 0.5rem;
+  }
+  .comparison-grid .label {
+    font-weight: 600;
+    text-align: left;
+    color: var(--color-text-secondary);
+  }
+  .comparison-grid .header {
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    color: var(--color-text-primary);
+  }
+  .check { color: #22c55e; font-weight: 700; }
+  .meh { color: var(--color-text-faint); }
+</style>
+</head>
+<body>
+
+<!-- ========================================
+     HEADER
+     ======================================== -->
+<div class="page-header">
+  <h1>Placement Badge Redesign</h1>
+  <p>Six distinct approaches to showing 1st, 2nd, and 3rd place across winner cards, wall grid, calendar cells, and stats. Each is shown in all relevant contexts.</p>
+</div>
+
+<nav class="style-nav">
+  <a href="#ribbon">A. Corner Ribbon</a>
+  <a href="#banner">B. Bottom Banner</a>
+</nav>
+
+
+<!-- ========================================
+     STYLE A: CORNER RIBBON
+     ======================================== -->
+<section class="style-section" id="ribbon">
+  <div class="style-header">
+    <h2>A. Corner Ribbon</h2>
+    <span class="style-tag">Classic &bull; Bold</span>
+  </div>
+  <p class="style-desc">A folded diagonal ribbon wrapping the top-right corner of the card. Reads immediately as "award" without needing an icon. The angled text adds energy to the composition.</p>
+
+  <!-- Winners page context -->
+  <div class="context-group">
+    <div class="context-label">Winners Page / Modal</div>
+    <div class="winners-layout">
+      <!-- 1st place large -->
+      <div class="winner-card large">
+        <div class="thumb">
+          <div class="ribbon top-right"><div class="ribbon-inner gold">1ST</div></div>
+          <div class="art-mock green-brown"></div>
+        </div>
+        <span class="artist">@Exrik</span>
+      </div>
+      <!-- 2nd, 3rd -->
+      <div class="winners-row">
+        <div class="winner-card">
+          <div class="thumb">
+            <div class="ribbon top-right"><div class="ribbon-inner silver">2ND</div></div>
+            <div class="art-mock pink-teal"></div>
+          </div>
+          <span class="artist">@Dumbledore</span>
+        </div>
+        <div class="winner-card">
+          <div class="thumb">
+            <div class="ribbon top-right"><div class="ribbon-inner bronze">3RD</div></div>
+            <div class="art-mock blue-orange"></div>
+          </div>
+          <span class="artist">@Nelly</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wall grid context -->
+  <div class="context-group">
+    <div class="context-label">Wall of the Day</div>
+    <div class="flex-row">
+      <div class="wall-card">
+        <div class="ribbon top-right"><div class="ribbon-inner gold">1ST</div></div>
+        <div class="art-mock green-brown"></div>
+        <div class="card-footer"><span>Exrik</span><span class="likes">&hearts; 2</span></div>
+      </div>
+      <div class="wall-card">
+        <div class="ribbon top-right"><div class="ribbon-inner silver">2ND</div></div>
+        <div class="art-mock pink-teal"></div>
+        <div class="card-footer"><span>Dumbledore</span><span class="likes">&hearts; 0</span></div>
+      </div>
+      <div class="wall-card">
+        <div class="ribbon top-right"><div class="ribbon-inner bronze">3RD</div></div>
+        <div class="art-mock blue-orange"></div>
+        <div class="card-footer"><span>Nelly</span><span class="likes">&hearts; 1</span></div>
+      </div>
+      <div class="wall-card">
+        <div class="art-mock pink-teal"></div>
+        <div class="card-footer"><span>EXPLODE</span><span class="likes">&hearts; 0</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calendar context -->
+  <div class="context-group">
+    <div class="context-label">My Submissions Calendar</div>
+    <div class="flex-row tight">
+      <div class="cal-cell">
+        <span class="day-num">23</span>
+        <div class="ribbon top-right sm"><div class="ribbon-inner gold">1ST</div></div>
+        <div class="art-mock blue-orange"></div>
+      </div>
+      <div class="cal-cell">
+        <span class="day-num">24</span>
+        <div class="ribbon top-right sm"><div class="ribbon-inner silver">2ND</div></div>
+        <div class="art-mock green-brown"></div>
+      </div>
+      <div class="cal-cell">
+        <span class="day-num">25</span>
+        <div class="ribbon top-right sm"><div class="ribbon-inner bronze">3RD</div></div>
+        <div class="art-mock pink-teal"></div>
+      </div>
+      <div class="cal-cell">
+        <span class="day-num">26</span>
+        <div class="art-mock green-brown"></div>
+      </div>
+      <div class="cal-cell">
+        <span class="day-num">27</span>
+        <div class="art-mock blue-orange"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats context -->
+  <div class="context-group">
+    <div class="context-label">Calendar Stats</div>
+    <div class="stats-row">
+      <span>Total submissions: 28</span>
+      <div style="display:flex; gap:1rem; margin-left:auto;">
+        <span class="stat-item"><span style="display:inline-block;width:14px;height:14px;background:var(--gold);transform:rotate(45deg);border-radius:2px;"></span> &times;3</span>
+        <span class="stat-item"><span style="display:inline-block;width:14px;height:14px;background:var(--silver);transform:rotate(45deg);border-radius:2px;"></span> &times;1</span>
+        <span class="stat-item"><span style="display:inline-block;width:14px;height:14px;background:var(--bronze);transform:rotate(45deg);border-radius:2px;"></span> &times;2</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+
+<!-- ========================================
+     STYLE B: BOTTOM BANNER
+     ======================================== -->
+<section class="style-section" id="banner">
+  <div class="style-header">
+    <h2>B. Bottom Banner</h2>
+    <span class="style-tag">Graphic &bull; Retro</span>
+  </div>
+  <p class="style-desc">A full-width colored bar across the bottom of the artwork, like a sports scoreboard or awards ceremony banner. The top of the art is completely unobscured. The banner doubles as a visual "podium" — gold is prominent, silver recedes, bronze is warm and earthy.</p>
+
+  <!-- Winners page -->
+  <div class="context-group">
+    <div class="context-label">Winners Page / Modal</div>
+    <div class="winners-layout">
+      <div class="winner-card large">
+        <div class="thumb">
+          <div class="bottom-banner gold"><span class="banner-star">&#9733;</span> 1ST PLACE <span class="banner-star">&#9733;</span></div>
+          <div class="art-mock green-brown"></div>
+        </div>
+        <span class="artist">@Exrik</span>
+      </div>
+      <div class="winners-row">
+        <div class="winner-card">
+          <div class="thumb">
+            <div class="bottom-banner silver"><span class="banner-star">&#9733;</span> 2ND PLACE <span class="banner-star">&#9733;</span></div>
+            <div class="art-mock pink-teal"></div>
+          </div>
+          <span class="artist">@Dumbledore</span>
+        </div>
+        <div class="winner-card">
+          <div class="thumb">
+            <div class="bottom-banner bronze"><span class="banner-star">&#9733;</span> 3RD PLACE <span class="banner-star">&#9733;</span></div>
+            <div class="art-mock blue-orange"></div>
+          </div>
+          <span class="artist">@Nelly</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wall grid -->
+  <div class="context-group">
+    <div class="context-label">Wall of the Day</div>
+    <div class="flex-row">
+      <div class="wall-card">
+        <div style="position:relative;">
+          <div class="bottom-banner gold"><span class="banner-star">&#9733;</span> 1ST <span class="banner-star">&#9733;</span></div>
+          <div class="art-mock green-brown"></div>
+        </div>
+        <div class="card-footer"><span>Exrik</span><span class="likes">&hearts; 2</span></div>
+      </div>
+      <div class="wall-card">
+        <div style="position:relative;">
+          <div class="bottom-banner silver"><span class="banner-star">&#9733;</span> 2ND <span class="banner-star">&#9733;</span></div>
+          <div class="art-mock pink-teal"></div>
+        </div>
+        <div class="card-footer"><span>Dumbledore</span><span class="likes">&hearts; 0</span></div>
+      </div>
+      <div class="wall-card">
+        <div style="position:relative;">
+          <div class="bottom-banner bronze"><span class="banner-star">&#9733;</span> 3RD <span class="banner-star">&#9733;</span></div>
+          <div class="art-mock blue-orange"></div>
+        </div>
+        <div class="card-footer"><span>Nelly</span><span class="likes">&hearts; 1</span></div>
+      </div>
+      <div class="wall-card">
+        <div class="art-mock pink-teal"></div>
+        <div class="card-footer"><span>EXPLODE</span><span class="likes">&hearts; 0</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calendar -->
+  <div class="context-group">
+    <div class="context-label">My Submissions Calendar</div>
+    <div class="flex-row tight">
+      <div class="cal-cell">
+        <span class="day-num">23</span>
+        <div class="bottom-banner gold sm">1ST</div>
+        <div class="art-mock blue-orange"></div>
+      </div>
+      <div class="cal-cell">
+        <span class="day-num">24</span>
+        <div class="bottom-banner silver sm">2ND</div>
+        <div class="art-mock green-brown"></div>
+      </div>
+      <div class="cal-cell">
+        <span class="day-num">25</span>
+        <div class="bottom-banner bronze sm">3RD</div>
+        <div class="art-mock pink-teal"></div>
+      </div>
+      <div class="cal-cell">
+        <span class="day-num">26</span>
+        <div class="art-mock green-brown"></div>
+      </div>
+      <div class="cal-cell">
+        <span class="day-num">27</span>
+        <div class="art-mock blue-orange"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="context-group">
+    <div class="context-label">Calendar Stats</div>
+    <div class="stats-row">
+      <span>Total submissions: 28</span>
+      <div style="display:flex; gap:1rem; margin-left:auto;">
+        <span class="stat-item"><span style="display:inline-block;width:24px;height:10px;border-radius:2px;background:var(--gold);"></span> &times;3</span>
+        <span class="stat-item"><span style="display:inline-block;width:24px;height:10px;border-radius:2px;background:var(--silver);"></span> &times;1</span>
+        <span class="stat-item"><span style="display:inline-block;width:24px;height:10px;border-radius:2px;background:var(--bronze);"></span> &times;2</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+
+<!-- ========================================
+     COMPARISON
+     ======================================== -->
+<section class="style-section" id="compare">
+  <div class="style-header">
+    <h2>At a Glance</h2>
+  </div>
+
+  <div class="comparison-grid">
+    <div class="cell"></div>
+    <div class="cell header">A. Ribbon</div>
+    <div class="cell header">B. Banner</div>
+
+    <div class="label">Art unobscured</div>
+    <div class="cell meh">Partial (corner)</div>
+    <div class="cell meh">Partial (bottom)</div>
+
+    <div class="label">Readable at small size</div>
+    <div class="cell meh">Tight</div>
+    <div class="cell meh">Tight</div>
+
+    <div class="label">Rank instantly clear</div>
+    <div class="cell check">Yes</div>
+    <div class="cell check">Yes</div>
+
+    <div class="label">Fits Pop Art theme</div>
+    <div class="cell check">Yes</div>
+    <div class="cell check">Yes</div>
+
+    <div class="label">Implementation ease</div>
+    <div class="cell meh">Medium</div>
+    <div class="cell check">Simple</div>
+  </div>
+</section>
+
+</body>
+</html>

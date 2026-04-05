@@ -50,7 +50,7 @@ You'll add these as environment variables later.
 3. APIs & Services → Credentials → Create Credentials → OAuth client ID
 4. Configure consent screen first if prompted:
    - User type: External
-   - App name: "2 Colors 2 Shapes"
+   - App name: "Shapepaint"
    - Support email: your email
    - Authorized domains: add `supabase.co` and your custom domain later
 5. Create OAuth client ID:
@@ -572,7 +572,7 @@ To allow anyone to log in (not just test users), you need to verify your app wit
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com) → APIs & Services → OAuth consent screen
 2. Fill in required fields:
-   - **App name**: 2 Colors 2 Shapes
+   - **App name**: Shapepaint
    - **User support email**: your email
    - **App logo**: (optional, can add later)
    - **App domain**: `https://2-colors-2-shapes.netlify.app`

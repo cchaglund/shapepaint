@@ -1,6 +1,6 @@
 # Description of project
 
-2 Colors 2 Shapes is a daily creative challenge web app where users create constrained artwork using 2 randomly-assigned colors and 2 geometric shapes on a Figma-style canvas editor, with community voting and ELO-based rankings.
+Shapepaint is a daily creative challenge web app where users create constrained artwork using 2 randomly-assigned colors and 2 geometric shapes on a Figma-style canvas editor, with community voting and ELO-based rankings.
 
 # Best Practices
 Ask yourself "what's the best way to do this?", NOT "what's the easiest/quickest way to do this?".
@@ -26,14 +26,7 @@ When testing things using the browser, it often helps to be logged in. Read how 
 
 ## Browser Automation
 
-Use `agent-browser` for web automation, to e.g. test things yourself. Run `agent-browser --help` for all commands.
-
-Core workflow:
-
-1. `agent-browser open <url>` - Navigate to page
-2. `agent-browser snapshot -i` - Get interactive elements with refs (@e1, @e2)
-3. `agent-browser click @e1` / `fill @e2 "text"` - Interact using refs
-4. Re-snapshot after page changes
+Use playwright mcp for browser automation tasks. .
 
 ## Design Context
 

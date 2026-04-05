@@ -1,4 +1,4 @@
-# Architecture Diagrams: 2 Colors 2 Shapes
+# Architecture Diagrams: Shapepaint
 
 > Auto-generated architecture visualization. Re-generate by asking Claude to update this file.
 

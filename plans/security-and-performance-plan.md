@@ -1,6 +1,6 @@
 # Security & Performance Plan
 
-Production readiness audit for 2 Colors 2 Shapes. Covers security vulnerabilities, performance bottlenecks, data integrity, and scalability.
+Production readiness audit for Shapepaint. Covers security vulnerabilities, performance bottlenecks, data integrity, and scalability.
 
 ## Architecture
 
