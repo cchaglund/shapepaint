@@ -8,6 +8,7 @@ import {
   fetchAdjacentSubmissionDates,
   type SubmissionRow,
 } from '../../lib/api';
+import { MAX_SHAPES } from '../../utils/shapeLimit';
 import type { Shape, ShapeGroup } from '../../types';
 
 export type Submission = SubmissionRow;
@@ -30,14 +31,18 @@ export function useSubmissions(userId: string | undefined, todayDate?: string) {
       return;
     }
 
-    setHasCheckedSubmission(false);
+    let cancelled = false;
     const check = async () => {
       const exists = await checkSubmissionExists(userId, todayDate);
-      setHasSubmittedToday(exists);
-      setHasCheckedSubmission(true);
+      if (!cancelled) {
+        setHasSubmittedToday(exists);
+        setHasCheckedSubmission(true);
+      }
     };
 
+    setHasCheckedSubmission(false); // eslint-disable-line react-hooks/set-state-in-effect -- intentional reset before async check
     check();
+    return () => { cancelled = true; };
   }, [userId, todayDate]);
 
   const mySubmissionsCache = useRef<{ userId: string; data: Submission[] } | null>(null);
@@ -50,7 +55,6 @@ export function useSubmissions(userId: string | undefined, todayDate?: string) {
         return { success: false, error: 'Not authenticated — try refreshing the page' };
       }
 
-      const MAX_SHAPES = 1000;
       if (params.shapes.length > MAX_SHAPES) {
         console.error(`[saveSubmission] Shape limit exceeded: ${params.shapes.length}/${MAX_SHAPES}`);
         return { success: false, error: `Maximum ${MAX_SHAPES} shapes per canvas` };

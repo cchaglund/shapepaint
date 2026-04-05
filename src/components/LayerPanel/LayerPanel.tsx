@@ -7,6 +7,7 @@ import type { LayerPanelProps, LayerItem } from './types';
 import { LayerItem as LayerItemComponent } from './LayerItem';
 import { GroupHeader } from './GroupHeader';
 import { useCanvasEditor } from '../../contexts/useCanvasEditor';
+import { MAX_SHAPES, getShapeLimitSeverity, getShapeLimitColor } from '../../utils/shapeLimit';
 
 export function LayerPanel({ onToggle }: LayerPanelProps) {
   const {
@@ -313,8 +314,11 @@ export function LayerPanel({ onToggle }: LayerPanelProps) {
         </svg>
         <span className="text-sm font-bold text-(--color-text-primary)">Layers</span>
         {/* Count badge */}
-        <span className="text-xs font-medium px-1.5 py-0.5 rounded-(--radius-pill) bg-(--color-bg-tertiary) text-(--color-text-secondary) leading-none">
-          {shapes.length}
+        <span
+          className="text-xs font-medium px-1.5 py-0.5 rounded-(--radius-pill) bg-(--color-bg-tertiary) leading-none"
+          style={{ color: getShapeLimitColor(getShapeLimitSeverity(shapes.length)) ?? 'var(--color-text-secondary)' }}
+        >
+          {shapes.length} / {MAX_SHAPES}
         </span>
 
         <div className="flex-1" />

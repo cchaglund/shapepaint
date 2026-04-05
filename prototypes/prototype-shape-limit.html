@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shape Limit Prototypes — Shapepaint</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Lilita+One&display=swap" rel="stylesheet">
+<style>
+  /* ── Pop Art Theme A (Light) ── */
+  :root {
+    --color-accent: #FF3366;
+    --color-accent-hover: #e6204d;
+    --color-accent-subtle: rgba(255, 51, 102, 0.12);
+    --color-accent-text: #ffffff;
+    --color-danger: #c45c4a;
+    --color-danger-hover: #a84a3a;
+    --color-bg-primary: #FFFBF7;
+    --color-bg-secondary: #FFF8F2;
+    --color-bg-tertiary: #FFF5ED;
+    --color-text-primary: #2D1B69;
+    --color-text-secondary: #5a4880;
+    --color-text-tertiary: #8B7EC8;
+    --color-text-faint: #b5a8c8;
+    --color-border: #2D1B69;
+    --color-border-light: #E8E8E8;
+    --color-card-bg: #ffffff;
+    --color-hover: rgba(45, 27, 105, 0.06);
+    --color-selected: #F0EDFF;
+    --color-checkered-bg: #FFF5ED;
+    --border-width: 2px;
+    --radius-sm: 0.5rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.25rem;
+    --radius-pill: 1.25rem;
+    --shadow-card: 4px 4px 0 #2D1B69;
+    --shadow-btn: 2px 2px 0 #2D1B69;
+
+    /* Severity palette */
+    --color-ok: #2D1B69;
+    --color-warn: #E09B20;
+    --color-warn-bg: rgba(224, 155, 32, 0.12);
+    --color-critical: #FF3366;
+    --color-critical-bg: rgba(255, 51, 102, 0.10);
+    --color-limit: #c45c4a;
+    --color-limit-bg: rgba(196, 92, 74, 0.12);
+    --color-safe-green: #3DAA6D;
+    --color-safe-green-bg: rgba(61, 170, 109, 0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Fredoka', sans-serif;
+    background: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    padding: 2rem;
+    line-height: 1.5;
+  }
+
+  /* ── Page header ── */
+  .page-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .page-header h1 {
+    font-family: 'Lilita One', cursive;
+    font-size: 2rem;
+    letter-spacing: 0.02em;
+    margin-bottom: 0.25rem;
+  }
+  .page-header p {
+    color: var(--color-text-tertiary);
+    font-size: 0.875rem;
+  }
+
+  /* ── Global slider ── */
+  .global-controls {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: var(--color-card-bg);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card);
+    padding: 1rem 1.5rem;
+    margin-bottom: 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .global-controls label {
+    font-weight: 600;
+    font-size: 0.8125rem;
+    white-space: nowrap;
+  }
+  .global-controls input[type="range"] {
+    flex: 1;
+    accent-color: var(--color-accent);
+    height: 6px;
+  }
+  .count-display {
+    font-family: 'Lilita One', cursive;
+    font-size: 1.25rem;
+    min-width: 4rem;
+    text-align: right;
+  }
+  .preset-btns {
+    display: flex;
+    gap: 0.375rem;
+  }
+  .preset-btn {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    box-shadow: var(--shadow-btn);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .preset-btn:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 var(--color-border);
+  }
+  .preset-btn:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 var(--color-border);
+  }
+
+  /* ── Prototype sections ── */
+  .prototype {
+    margin-bottom: 3rem;
+  }
+  .prototype-label {
+    font-family: 'Lilita One', cursive;
+    font-size: 1.125rem;
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .prototype-label .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    background: var(--color-accent);
+    color: white;
+    font-size: 0.75rem;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+  }
+  .prototype-desc {
+    color: var(--color-text-tertiary);
+    font-size: 0.8125rem;
+    margin-bottom: 1rem;
+  }
+
+  /* Canvas simulation area */
+  .canvas-sim {
+    position: relative;
+    background:
+      repeating-conic-gradient(var(--color-checkered-bg) 0% 25%, var(--color-bg-primary) 0% 50%) 50% / 20px 20px;
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  /* ── Shared small UI pieces ── */
+  .shape-btn {
+    width: 2.125rem;
+    height: 2.125rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: background 0.15s, opacity 0.2s, transform 0.1s;
+  }
+  .shape-btn:hover:not(.disabled) {
+    background: var(--color-hover);
+  }
+  .shape-btn:active:not(.disabled) {
+    transform: scale(0.9);
+  }
+  .shape-btn.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .divider-v {
+    width: 1px;
+    height: 1.5rem;
+    background: var(--color-border-light);
+    margin: 0 0.125rem;
+    flex-shrink: 0;
+  }
+
+  .section-label {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-tertiary);
+    padding: 0 0.25rem;
+    flex-shrink: 0;
+  }
+
+  /* shape icon SVGs in buttons */
+  .shape-btn svg { pointer-events: none; }
+
+  /* ══════════════════════════════════════════
+     PROTOTYPE 1 — Bottom Bar Integration
+     ══════════════════════════════════════════ */
+  .p1-canvas { height: 200px; }
+  .p1-bar-wrap {
+    position: absolute;
+    bottom: 0.75rem;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .p1-bar {
+    display: flex;
+    align-items: center;
+    height: 3rem;
+    gap: 0.375rem;
+    padding: 0 1rem;
+    background: var(--color-card-bg);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card);
+    white-space: nowrap;
+  }
+  .p1-counter {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition: background 0.3s, color 0.3s;
+    position: relative;
+    cursor: default;
+  }
+  .p1-counter .count-num {
+    font-family: 'Lilita One', cursive;
+    font-size: 0.875rem;
+  }
+  .p1-counter .count-slash {
+    opacity: 0.4;
+  }
+  .p1-counter .count-max {
+    opacity: 0.5;
+    font-size: 0.6875rem;
+  }
+  .p1-counter[data-severity="ok"] {
+    color: var(--color-text-secondary);
+  }
+  .p1-counter[data-severity="warn"] {
+    background: var(--color-warn-bg);
+    color: var(--color-warn);
+  }
+  .p1-counter[data-severity="critical"] {
+    background: var(--color-critical-bg);
+    color: var(--color-critical);
+  }
+  .p1-counter[data-severity="limit"] {
+    background: var(--color-limit-bg);
+    color: var(--color-limit);
+    animation: p1-pulse 2s ease-in-out infinite;
+  }
+  @keyframes p1-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+  .p1-tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--color-text-primary);
+    color: var(--color-bg-primary);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    padding: 0.375rem 0.625rem;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(45, 27, 105, 0.2);
+    z-index: 10;
+  }
+  .p1-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: var(--color-text-primary);
+  }
+  .p1-counter:hover .p1-tooltip {
+    display: block;
+  }
+  .p1-shapes-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* ══════════════════════════════════════════
+     PROTOTYPE 2 — Floating Badge + Ring
+     ══════════════════════════════════════════ */
+  .p2-canvas { height: 200px; }
+  .p2-bottom-right {
+    position: absolute;
+    bottom: 0.75rem;
+    right: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+  }
+  .p2-zoom {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .p2-zoom-btn {
+    height: 1.875rem;
+    padding: 0 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 0.75rem;
+    background: var(--color-card-bg);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-btn);
+    color: var(--color-text-primary);
+    cursor: default;
+  }
+  .p2-badge {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .p2-badge-inner {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.5rem;
+    background: var(--color-card-bg);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-btn);
+    font-size: 0.75rem;
+    font-weight: 600;
+    min-height: 1.875rem;
+    transition: all 0.3s;
+  }
+  .p2-ring-wrap {
+    position: relative;
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+  }
+  .p2-ring-bg, .p2-ring-fill {
+    position: absolute;
+    inset: 0;
+  }
+  .p2-ring-bg circle, .p2-ring-fill circle {
+    fill: none;
+    cx: 11;
+    cy: 11;
+    r: 9;
+    stroke-width: 2.5;
+    transform: rotate(-90deg);
+    transform-origin: center;
+  }
+  .p2-ring-bg circle { stroke: var(--color-border-light); }
+  .p2-ring-fill circle {
+    stroke: var(--color-text-tertiary);
+    stroke-dasharray: 56.55;
+    stroke-dashoffset: 56.55;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.5s ease, stroke 0.3s;
+  }
+  .p2-count-text {
+    transition: color 0.3s;
+    white-space: nowrap;
+  }
+  .p2-max-text {
+    font-size: 0.625rem;
+    opacity: 0.5;
+    transition: opacity 0.3s;
+  }
+  .p2-badge[data-severity="ok"] .p2-ring-fill circle { stroke: var(--color-text-tertiary); }
+  .p2-badge[data-severity="warn"] .p2-ring-fill circle { stroke: var(--color-warn); }
+  .p2-badge[data-severity="warn"] .p2-count-text { color: var(--color-warn); }
+  .p2-badge[data-severity="critical"] .p2-ring-fill circle { stroke: var(--color-critical); }
+  .p2-badge[data-severity="critical"] .p2-count-text { color: var(--color-critical); }
+  .p2-badge[data-severity="limit"] .p2-ring-fill circle { stroke: var(--color-limit); }
+  .p2-badge[data-severity="limit"] .p2-count-text { color: var(--color-limit); }
+  .p2-badge[data-severity="limit"] .p2-badge-inner {
+    animation: p2-glow 2s ease-in-out infinite;
+  }
+  @keyframes p2-glow {
+    0%, 100% { box-shadow: var(--shadow-btn), 0 0 0 0 rgba(196, 92, 74, 0); }
+    50% { box-shadow: var(--shadow-btn), 0 0 0 3px rgba(196, 92, 74, 0.15); }
+  }
+
+  .p2-popover {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 0;
+    background: var(--color-card-bg);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    padding: 0.625rem 0.75rem;
+    font-size: 0.75rem;
+    width: 180px;
+    z-index: 20;
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+  }
+  .p2-popover.show { display: block; }
+  .p2-popover strong {
+    display: block;
+    color: var(--color-text-primary);
+    font-weight: 700;
+    margin-bottom: 0.125rem;
+  }
+
+  /* ══════════════════════════════════════════
+     PROTOTYPE 3 — Contextual Warning Toast
+     ══════════════════════════════════════════ */
+  .p3-canvas { height: 220px; }
+  .p3-toast-area {
+    position: absolute;
+    bottom: 4.5rem;
+    right: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    z-index: 20;
+    pointer-events: none;
+  }
+  .p3-toast {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--color-card-bg);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+    transform: translateX(0);
+    opacity: 1;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s;
+  }
+  .p3-toast.hidden {
+    transform: translateX(calc(100% + 1rem));
+    opacity: 0;
+    pointer-events: none;
+  }
+  .p3-toast-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .p3-toast.warn .p3-toast-icon {
+    background: var(--color-warn-bg);
+    color: var(--color-warn);
+  }
+  .p3-toast.warn {
+    border-color: var(--color-warn);
+  }
+  .p3-toast.error .p3-toast-icon {
+    background: var(--color-limit-bg);
+    color: var(--color-limit);
+  }
+  .p3-toast.error {
+    border-color: var(--color-limit);
+  }
+  .p3-toast.error.shake {
+    animation: p3-shake 0.5s ease-in-out;
+  }
+  @keyframes p3-shake {
+    0%, 100% { transform: translateX(0); }
+    15% { transform: translateX(-6px); }
+    30% { transform: translateX(5px); }
+    45% { transform: translateX(-4px); }
+    60% { transform: translateX(3px); }
+    75% { transform: translateX(-2px); }
+  }
+  .p3-toast-dismiss {
+    width: 16px;
+    height: 16px;
+    border: none;
+    background: transparent;
+    color: var(--color-text-tertiary);
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+  }
+  .p3-toast-dismiss:hover {
+    background: var(--color-hover);
+    color: var(--color-text-primary);
+  }
+  .p3-add-btn-sim {
+    position: absolute;
+    bottom: 0.75rem;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .p3-bar {
+    display: flex;
+    align-items: center;
+    height: 3rem;
+    gap: 0.375rem;
+    padding: 0 1rem;
+    background: var(--color-card-bg);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card);
+  }
+  .p3-try-add {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    padding: 0.375rem 0.75rem;
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-accent);
+    color: white;
+    cursor: pointer;
+    box-shadow: var(--shadow-btn);
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .p3-try-add:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 var(--color-border);
+  }
+  .p3-try-add:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 var(--color-border);
+  }
+
+  /* ══════════════════════════════════════════
+     PROTOTYPE 4 — Progress Bar in Top Bar
+     ══════════════════════════════════════════ */
+  .p4-canvas { height: 240px; }
+  .p4-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1rem;
+    height: 3rem;
+    background: var(--color-card-bg);
+    border-bottom: var(--border-width) solid var(--color-border);
+    position: relative;
+  }
+  .p4-top-left, .p4-top-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+  .p4-top-center {
+    font-family: 'Lilita One', cursive;
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+  }
+  .p4-progress-track {
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 0px;
+    background: var(--color-border-light);
+    overflow: hidden;
+    transition: height 0.4s ease;
+    z-index: 5;
+  }
+  .p4-progress-fill {
+    height: 100%;
+    width: 0%;
+    transition: width 0.5s ease, background 0.3s;
+    background: var(--color-text-tertiary);
+    position: relative;
+  }
+  .p4-progress-track[data-severity="emerging"] { height: 2px; }
+  .p4-progress-track[data-severity="warn"] { height: 3px; }
+  .p4-progress-track[data-severity="critical"] {
+    height: 4px;
+    animation: p4-bar-pulse 1.5s ease-in-out infinite;
+  }
+  .p4-progress-track[data-severity="limit"] {
+    height: 4px;
+    animation: p4-bar-pulse 1s ease-in-out infinite;
+  }
+  @keyframes p4-bar-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+  .p4-progress-fill[data-severity="emerging"] { background: var(--color-text-tertiary); }
+  .p4-progress-fill[data-severity="warn"] { background: var(--color-warn); }
+  .p4-progress-fill[data-severity="critical"] { background: var(--color-critical); }
+  .p4-progress-fill[data-severity="limit"] { background: var(--color-limit); }
+
+  .p4-progress-tooltip {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--color-text-primary);
+    color: var(--color-bg-primary);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    font-family: 'Fredoka', sans-serif;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    z-index: 10;
+  }
+  .p4-progress-tooltip::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-bottom-color: var(--color-text-primary);
+  }
+  .p4-progress-track:hover .p4-progress-tooltip {
+    display: block;
+  }
+
+  .p4-body {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .p4-bottom-bar-wrap {
+    position: absolute;
+    bottom: 0.75rem;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .p4-bar {
+    display: flex;
+    align-items: center;
+    height: 3rem;
+    gap: 0.375rem;
+    padding: 0 1rem;
+    background: var(--color-card-bg);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card);
+    white-space: nowrap;
+  }
+  .p4-blocked-ring {
+    position: relative;
+  }
+  .p4-blocked-ring::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: calc(var(--radius-sm) + 3px);
+    border: 2px solid transparent;
+    transition: border-color 0.2s;
+    pointer-events: none;
+  }
+  .p4-blocked-ring.at-limit:hover::after {
+    border-color: var(--color-limit);
+  }
+
+  /* ══════════════════════════════════════════
+     PROTOTYPE 5 — Layer Panel Footer Counter
+     ══════════════════════════════════════════ */
+  .p5-canvas {
+    height: 300px;
+    display: flex;
+  }
+  .p5-main {
+    flex: 1;
+    position: relative;
+  }
+  .p5-panel {
+    width: 200px;
+    background: var(--color-card-bg);
+    border-left: var(--border-width) solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s;
+  }
+  .p5-panel.collapsed {
+    width: 0;
+    border-left: none;
+    overflow: hidden;
+  }
+  .p5-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--color-border-light);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-secondary);
+  }
+  .p5-panel-close {
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--color-text-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    transition: background 0.15s;
+  }
+  .p5-panel-close:hover {
+    background: var(--color-hover);
+    color: var(--color-text-primary);
+  }
+  .p5-layers-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.375rem;
+  }
+  .p5-layer-item {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+    cursor: default;
+  }
+  .p5-layer-item:hover {
+    background: var(--color-hover);
+  }
+  .p5-layer-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .p5-panel-footer {
+    border-top: 1px solid var(--color-border-light);
+    padding: 0.625rem 0.75rem;
+  }
+  .p5-gauge-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    margin-bottom: 0.375rem;
+    transition: color 0.3s;
+  }
+  .p5-gauge-label .count {
+    font-family: 'Lilita One', cursive;
+    font-size: 0.8125rem;
+  }
+  .p5-gauge-track {
+    height: 6px;
+    background: var(--color-border-light);
+    border-radius: 3px;
+    overflow: hidden;
+    display: flex;
+  }
+  .p5-gauge-segment {
+    height: 100%;
+    transition: width 0.4s ease, background 0.3s;
+  }
+  .p5-gauge-green { background: var(--color-safe-green); }
+  .p5-gauge-yellow { background: var(--color-warn); }
+  .p5-gauge-orange { background: #E07A5F; }
+  .p5-gauge-red { background: var(--color-limit); }
+
+  /* Collapsed toggle button */
+  .p5-collapsed-toggle {
+    position: absolute;
+    right: 0.75rem;
+    top: 0.75rem;
+    display: none;
+    align-items: center;
+    gap: 0.375rem;
+    height: 2.5rem;
+    padding: 0 0.75rem;
+    background: var(--color-card-bg);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-btn);
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition: border-color 0.3s;
+    color: var(--color-text-secondary);
+  }
+  .p5-panel.collapsed ~ .p5-collapsed-toggle {
+    display: flex;
+  }
+  .p5-collapsed-toggle .badge {
+    font-family: 'Lilita One', cursive;
+    font-size: 0.8125rem;
+    transition: color 0.3s;
+  }
+  .p5-lock-icon {
+    display: none;
+    color: var(--color-limit);
+  }
+  .p5-panel-footer[data-severity="limit"] .p5-lock-icon {
+    display: inline;
+  }
+
+  /* Severity label in footer */
+  .p5-gauge-label[data-severity="ok"] { color: var(--color-text-secondary); }
+  .p5-gauge-label[data-severity="warn"] .count { color: var(--color-warn); }
+  .p5-gauge-label[data-severity="critical"] .count { color: var(--color-critical); }
+  .p5-gauge-label[data-severity="limit"] .count { color: var(--color-limit); }
+  .p5-gauge-label[data-severity="limit"] .label-text { color: var(--color-limit); }
+
+  /* p5 toggle button */
+  .p5-toggle-wrap {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 0.5rem;
+  }
+  .p5-toggle-btn {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    padding: 0.25rem 0.625rem;
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    box-shadow: var(--shadow-btn);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .p5-toggle-btn:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 var(--color-border);
+  }
+  .p5-toggle-btn:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 var(--color-border);
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Shape Limit Indicator</h1>
+  <p>5 prototypes for communicating the 1,000-shape limit on the canvas editor</p>
+</div>
+
+<!-- ── Global shape-count slider ── -->
+<div class="global-controls">
+  <label for="shapeSlider">Shapes</label>
+  <input type="range" id="shapeSlider" min="0" max="1050" value="42">
+  <div class="count-display" id="countDisplay">42</div>
+  <div class="preset-btns">
+    <button class="preset-btn" onclick="setCount(42)">42</button>
+    <button class="preset-btn" onclick="setCount(500)">500</button>
+    <button class="preset-btn" onclick="setCount(842)">842</button>
+    <button class="preset-btn" onclick="setCount(960)">960</button>
+    <button class="preset-btn" onclick="setCount(1000)">1000</button>
+    <button class="preset-btn" onclick="setCount(1050)">1050</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     PROTOTYPE 1 — Bottom Bar Integration
+     ════════════════════════════════════════════════════════════ -->
+<div class="prototype">
+  <div class="prototype-label"><span class="num">1</span> Bottom Bar Integration</div>
+  <p class="prototype-desc">Shape counter lives inside the bottom toolbar. Escalates from subtle to urgent as limit approaches. Add buttons disable at limit.</p>
+
+  <div class="canvas-sim p1-canvas">
+    <div class="p1-bar-wrap">
+      <div class="p1-bar" id="p1-bar">
+        <span class="section-label">Add</span>
+        <div style="display:flex; align-items:center; gap:0.25rem;" id="p1-shape-btns">
+          <button class="shape-btn" title="Add circle (pink)">
+            <svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="#FF3366" stroke="#2D1B69" stroke-width="1.5"/></svg>
+          </button>
+          <button class="shape-btn" title="Add triangle (pink)">
+            <svg width="16" height="16" viewBox="0 0 16 16"><polygon points="8,1.5 14.5,14 1.5,14" fill="#FF3366" stroke="#2D1B69" stroke-width="1.5"/></svg>
+          </button>
+          <div class="divider-v"></div>
+          <button class="shape-btn" title="Add circle (cyan)">
+            <svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="#33CCFF" stroke="#2D1B69" stroke-width="1.5"/></svg>
+          </button>
+          <button class="shape-btn" title="Add triangle (cyan)">
+            <svg width="16" height="16" viewBox="0 0 16 16"><polygon points="8,1.5 14.5,14 1.5,14" fill="#33CCFF" stroke="#2D1B69" stroke-width="1.5"/></svg>
+          </button>
+        </div>
+
+        <div class="divider-v"></div>
+
+        <div class="p1-counter" id="p1-counter" data-severity="ok">
+          <svg class="p1-shapes-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+            <polyline points="2 17 12 22 22 17"/>
+            <polyline points="2 12 12 17 22 12"/>
+          </svg>
+          <span class="count-num" id="p1-count">42</span>
+          <span class="count-slash">/</span>
+          <span class="count-max">1000</span>
+          <div class="p1-tooltip" id="p1-tooltip">Maximum 1,000 shapes per canvas</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════
+     PROTOTYPE 2 — Floating Badge + Progress Ring
+     ════════════════════════════════════════════════════════════ -->
+<div class="prototype">
+  <div class="prototype-label"><span class="num">2</span> Floating Badge Near Zoom Controls</div>
+  <p class="prototype-desc">A compact badge below the zoom controls. Expands with a progress ring as the count grows. Pulses at limit. Click for details.</p>
+
+  <div class="canvas-sim p2-canvas">
+    <div class="p2-bottom-right">
+      <div class="p2-zoom">
+        <div class="p2-zoom-btn">+</div>
+        <div class="p2-zoom-btn" style="padding: 0 0.625rem;">100%</div>
+        <div class="p2-zoom-btn">−</div>
+      </div>
+      <div class="p2-badge" id="p2-badge" data-severity="ok" onclick="p2TogglePopover()">
+        <div class="p2-badge-inner">
+          <div class="p2-ring-wrap" id="p2-ring-wrap" style="display:none;">
+            <svg class="p2-ring-bg" viewBox="0 0 22 22"><circle/></svg>
+            <svg class="p2-ring-fill" viewBox="0 0 22 22"><circle id="p2-ring-circle"/></svg>
+          </div>
+          <span class="p2-count-text" id="p2-count">42</span>
+          <span class="p2-max-text" id="p2-max" style="display:none;">/ 1000</span>
+        </div>
+        <div class="p2-popover" id="p2-popover">
+          <strong>Shape limit</strong>
+          Each canvas supports up to 1,000 shapes. Remove some shapes to add more.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════
+     PROTOTYPE 3 — Contextual Warning Toast
+     ════════════════════════════════════════════════════════════ -->
+<div class="prototype">
+  <div class="prototype-label"><span class="num">3</span> Contextual Warning Toast</div>
+  <p class="prototype-desc">No permanent indicator. Toasts appear only when approaching or hitting the limit. Error toast shakes when adding is blocked.</p>
+
+  <div class="canvas-sim p3-canvas">
+    <div class="p3-add-btn-sim">
+      <div class="p3-bar">
+        <span class="section-label">Add</span>
+        <div style="display:flex; align-items:center; gap:0.25rem;">
+          <button class="shape-btn">
+            <svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="#FF3366" stroke="#2D1B69" stroke-width="1.5"/></svg>
+          </button>
+          <button class="shape-btn">
+            <svg width="16" height="16" viewBox="0 0 16 16"><polygon points="8,1.5 14.5,14 1.5,14" fill="#FF3366" stroke="#2D1B69" stroke-width="1.5"/></svg>
+          </button>
+          <div class="divider-v"></div>
+          <button class="shape-btn">
+            <svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="#33CCFF" stroke="#2D1B69" stroke-width="1.5"/></svg>
+          </button>
+          <button class="shape-btn">
+            <svg width="16" height="16" viewBox="0 0 16 16"><polygon points="8,1.5 14.5,14 1.5,14" fill="#33CCFF" stroke="#2D1B69" stroke-width="1.5"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    <button class="p3-try-add" id="p3-try-add" onclick="p3TriggerError()">Try adding a shape</button>
+
+    <div class="p3-toast-area" id="p3-toast-area">
+      <div class="p3-toast warn hidden" id="p3-warn-toast">
+        <div class="p3-toast-icon">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <span id="p3-warn-text">Using 842 of 1,000 shapes</span>
+        <button class="p3-toast-dismiss" onclick="p3DismissWarn()">
+          <svg width="10" height="10" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="p3-toast error hidden" id="p3-error-toast">
+        <div class="p3-toast-icon">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
+        </div>
+        <span>Shape limit reached (1,000 max)</span>
+        <button class="p3-toast-dismiss" onclick="p3DismissError()">
+          <svg width="10" height="10" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════
+     PROTOTYPE 4 — Progress Bar in Top Bar
+     ════════════════════════════════════════════════════════════ -->
+<div class="prototype">
+  <div class="prototype-label"><span class="num">4</span> Progress Bar in Top Bar</div>
+  <p class="prototype-desc">A thin progress line under the top bar. Invisible until 500+ shapes, then grows and escalates in color. Blocked add buttons get a red ring on hover.</p>
+
+  <div class="canvas-sim p4-canvas" style="display:flex; flex-direction:column;">
+    <div class="p4-top-bar">
+      <div class="p4-top-left">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        Theme A
+      </div>
+      <div class="p4-top-center">Daily Challenge</div>
+      <div class="p4-top-right">
+        <span style="font-size:0.75rem; color:var(--color-text-tertiary);" id="p4-save-btn">Submit!</span>
+      </div>
+      <div class="p4-progress-track" id="p4-track">
+        <div class="p4-progress-fill" id="p4-fill">
+          <div class="p4-progress-tooltip" id="p4-tooltip">42 / 1,000 shapes</div>
+        </div>
+      </div>
+    </div>
+    <div class="p4-body">
+      <div class="p4-bottom-bar-wrap">
+        <div class="p4-bar">
+          <span class="section-label">Add</span>
+          <div style="display:flex; align-items:center; gap:0.25rem;" id="p4-shape-btns">
+            <div class="p4-blocked-ring" id="p4-ring-0">
+              <button class="shape-btn">
+                <svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="#FF3366" stroke="#2D1B69" stroke-width="1.5"/></svg>
+              </button>
+            </div>
+            <div class="p4-blocked-ring" id="p4-ring-1">
+              <button class="shape-btn">
+                <svg width="16" height="16" viewBox="0 0 16 16"><polygon points="8,1.5 14.5,14 1.5,14" fill="#FF3366" stroke="#2D1B69" stroke-width="1.5"/></svg>
+              </button>
+            </div>
+            <div class="divider-v"></div>
+            <div class="p4-blocked-ring" id="p4-ring-2">
+              <button class="shape-btn">
+                <svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="#33CCFF" stroke="#2D1B69" stroke-width="1.5"/></svg>
+              </button>
+            </div>
+            <div class="p4-blocked-ring" id="p4-ring-3">
+              <button class="shape-btn">
+                <svg width="16" height="16" viewBox="0 0 16 16"><polygon points="8,1.5 14.5,14 1.5,14" fill="#33CCFF" stroke="#2D1B69" stroke-width="1.5"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════
+     PROTOTYPE 5 — Layer Panel Footer Counter
+     ════════════════════════════════════════════════════════════ -->
+<div class="prototype">
+  <div class="prototype-label"><span class="num">5</span> Layer Panel Footer Counter</div>
+  <p class="prototype-desc">A gauge meter in the layers panel footer. Segmented bar changes color by severity. Collapsed button badge matches severity color. Lock icon at limit.</p>
+
+  <div class="p5-toggle-wrap">
+    <button class="p5-toggle-btn" id="p5-toggle-btn" onclick="p5TogglePanel()">Collapse panel</button>
+  </div>
+
+  <div class="canvas-sim p5-canvas">
+    <div class="p5-main">
+      <div class="p5-collapsed-toggle" id="p5-collapsed-toggle" onclick="p5TogglePanel()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+          <polyline points="2 17 12 22 22 17"/>
+          <polyline points="2 12 12 17 22 12"/>
+        </svg>
+        <span class="badge" id="p5-collapsed-badge">42</span>
+      </div>
+    </div>
+    <div class="p5-panel" id="p5-panel">
+      <div class="p5-panel-header">
+        Layers
+        <button class="p5-panel-close" onclick="p5TogglePanel()">
+          <svg width="12" height="12" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="p5-layers-list">
+        <div class="p5-layer-item"><div class="p5-layer-dot" style="background:#FF3366;"></div>Circle 1</div>
+        <div class="p5-layer-item"><div class="p5-layer-dot" style="background:#33CCFF;"></div>Triangle 1</div>
+        <div class="p5-layer-item"><div class="p5-layer-dot" style="background:#FF3366;"></div>Circle 2</div>
+        <div class="p5-layer-item"><div class="p5-layer-dot" style="background:#33CCFF;"></div>Triangle 2</div>
+        <div class="p5-layer-item"><div class="p5-layer-dot" style="background:#FF3366;"></div>Circle 3</div>
+        <div class="p5-layer-item" style="color:var(--color-text-faint); font-style:italic; font-size:0.6875rem; padding-top:0.25rem;">
+          <span id="p5-more-text">…and 37 more</span>
+        </div>
+      </div>
+      <div class="p5-panel-footer" id="p5-footer" data-severity="ok">
+        <div class="p5-gauge-label" id="p5-gauge-label" data-severity="ok">
+          <span class="label-text">
+            <svg class="p5-lock-icon" id="p5-lock" width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-1px; margin-right:2px;">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            Shapes
+          </span>
+          <span class="count" id="p5-gauge-count">42 / 1,000</span>
+        </div>
+        <div class="p5-gauge-track">
+          <div class="p5-gauge-segment p5-gauge-green" id="p5-seg-green" style="width:4.2%;"></div>
+          <div class="p5-gauge-segment p5-gauge-yellow" id="p5-seg-yellow" style="width:0;"></div>
+          <div class="p5-gauge-segment p5-gauge-orange" id="p5-seg-orange" style="width:0;"></div>
+          <div class="p5-gauge-segment p5-gauge-red" id="p5-seg-red" style="width:0;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const MAX = 1000;
+const slider = document.getElementById('shapeSlider');
+const display = document.getElementById('countDisplay');
+
+function getSeverity(n) {
+  if (n >= MAX) return 'limit';
+  if (n >= 950) return 'critical';
+  if (n >= 800) return 'warn';
+  return 'ok';
+}
+
+function setCount(n) {
+  slider.value = n;
+  updateAll(n);
+}
+
+slider.addEventListener('input', () => updateAll(+slider.value));
+
+function updateAll(n) {
+  display.textContent = n;
+  const sev = getSeverity(n);
+  updateP1(n, sev);
+  updateP2(n, sev);
+  updateP3(n, sev);
+  updateP4(n, sev);
+  updateP5(n, sev);
+}
+
+/* ── Prototype 1 ── */
+function updateP1(n, sev) {
+  const counter = document.getElementById('p1-counter');
+  document.getElementById('p1-count').textContent = n;
+  counter.dataset.severity = sev;
+  const tooltip = document.getElementById('p1-tooltip');
+  if (sev === 'limit') tooltip.textContent = 'Shape limit reached — remove shapes to add more';
+  else if (sev === 'critical') tooltip.textContent = `Only ${MAX - n} shapes remaining`;
+  else if (sev === 'warn') tooltip.textContent = `${MAX - n} shapes remaining of 1,000`;
+  else tooltip.textContent = 'Maximum 1,000 shapes per canvas';
+
+  const btns = document.querySelectorAll('#p1-shape-btns .shape-btn');
+  btns.forEach(b => {
+    if (n >= MAX) b.classList.add('disabled');
+    else b.classList.remove('disabled');
+  });
+}
+
+/* ── Prototype 2 ── */
+let p2PopoverOpen = false;
+function p2TogglePopover() {
+  p2PopoverOpen = !p2PopoverOpen;
+  document.getElementById('p2-popover').classList.toggle('show', p2PopoverOpen);
+}
+
+function updateP2(n, sev) {
+  const badge = document.getElementById('p2-badge');
+  badge.dataset.severity = sev;
+
+  const ringWrap = document.getElementById('p2-ring-wrap');
+  const maxText = document.getElementById('p2-max');
+  const countText = document.getElementById('p2-count');
+  const circle = document.getElementById('p2-ring-circle');
+
+  const showExpanded = n >= 800;
+  ringWrap.style.display = showExpanded ? 'block' : 'none';
+  maxText.style.display = showExpanded ? 'inline' : 'none';
+
+  countText.textContent = n;
+
+  if (showExpanded) {
+    const circumference = 2 * Math.PI * 9; // r=9
+    const pct = Math.min(n / MAX, 1);
+    circle.style.strokeDashoffset = circumference * (1 - pct);
+  }
+}
+
+/* ── Prototype 3 ── */
+let p3WarnDismissed = false;
+let p3ErrorTimeout = null;
+
+function updateP3(n, sev) {
+  const warnToast = document.getElementById('p3-warn-toast');
+  const errorToast = document.getElementById('p3-error-toast');
+
+  // Warning toast — shows when approaching limit
+  if (sev === 'warn' || sev === 'critical') {
+    if (!p3WarnDismissed) {
+      warnToast.classList.remove('hidden');
+      document.getElementById('p3-warn-text').textContent =
+        sev === 'critical'
+          ? `Only ${MAX - n} shapes remaining!`
+          : `Using ${n.toLocaleString()} of 1,000 shapes`;
+    }
+  } else {
+    warnToast.classList.add('hidden');
+    p3WarnDismissed = false;
+  }
+
+  // Error toast auto-shows at limit
+  if (sev === 'limit') {
+    errorToast.classList.remove('hidden');
+  } else {
+    errorToast.classList.add('hidden');
+  }
+
+  // Update button text
+  const btn = document.getElementById('p3-try-add');
+  btn.textContent = n >= MAX ? 'Try adding a shape' : 'Try adding a shape';
+  btn.style.display = n >= MAX ? 'block' : 'block';
+}
+
+function p3DismissWarn() {
+  document.getElementById('p3-warn-toast').classList.add('hidden');
+  p3WarnDismissed = true;
+}
+function p3DismissError() {
+  document.getElementById('p3-error-toast').classList.add('hidden');
+}
+
+function p3TriggerError() {
+  const n = +slider.value;
+  if (n >= MAX) {
+    const toast = document.getElementById('p3-error-toast');
+    toast.classList.remove('hidden');
+    toast.classList.remove('shake');
+    // Force reflow to restart animation
+    void toast.offsetWidth;
+    toast.classList.add('shake');
+    clearTimeout(p3ErrorTimeout);
+    p3ErrorTimeout = setTimeout(() => toast.classList.remove('shake'), 600);
+  }
+}
+
+/* ── Prototype 4 ── */
+function updateP4(n, sev) {
+  const track = document.getElementById('p4-track');
+  const fill = document.getElementById('p4-fill');
+  const tooltip = document.getElementById('p4-tooltip');
+
+  const pct = Math.min((n / MAX) * 100, 100);
+  fill.style.width = pct + '%';
+
+  tooltip.textContent = `${n.toLocaleString()} / 1,000 shapes`;
+
+  // Determine bar severity
+  let barSev = 'hidden';
+  if (n >= MAX) barSev = 'limit';
+  else if (n >= 950) barSev = 'critical';
+  else if (n >= 800) barSev = 'warn';
+  else if (n >= 500) barSev = 'emerging';
+
+  if (barSev === 'hidden') {
+    track.removeAttribute('data-severity');
+    track.style.height = '0';
+  } else {
+    track.dataset.severity = barSev;
+    fill.dataset.severity = barSev;
+  }
+
+  // Red ring on add buttons at limit
+  const rings = document.querySelectorAll('.p4-blocked-ring');
+  rings.forEach(r => {
+    if (n >= MAX) r.classList.add('at-limit');
+    else r.classList.remove('at-limit');
+  });
+
+  // Disable buttons at limit
+  const btns = document.querySelectorAll('#p4-shape-btns .shape-btn');
+  btns.forEach(b => {
+    if (n >= MAX) b.classList.add('disabled');
+    else b.classList.remove('disabled');
+  });
+}
+
+/* ── Prototype 5 ── */
+let p5PanelCollapsed = false;
+
+function p5TogglePanel() {
+  p5PanelCollapsed = !p5PanelCollapsed;
+  document.getElementById('p5-panel').classList.toggle('collapsed', p5PanelCollapsed);
+  document.getElementById('p5-toggle-btn').textContent = p5PanelCollapsed ? 'Expand panel' : 'Collapse panel';
+}
+
+function updateP5(n, sev) {
+  const gaugeCount = document.getElementById('p5-gauge-count');
+  const gaugeLabel = document.getElementById('p5-gauge-label');
+  const footer = document.getElementById('p5-footer');
+  const lock = document.getElementById('p5-lock');
+  const badge = document.getElementById('p5-collapsed-badge');
+  const moreText = document.getElementById('p5-more-text');
+
+  gaugeCount.textContent = `${n.toLocaleString()} / 1,000`;
+  gaugeLabel.dataset.severity = sev;
+  footer.dataset.severity = sev;
+
+  badge.textContent = n;
+  badge.style.color =
+    sev === 'limit' ? 'var(--color-limit)' :
+    sev === 'critical' ? 'var(--color-critical)' :
+    sev === 'warn' ? 'var(--color-warn)' :
+    'inherit';
+
+  // Collapsed toggle border color
+  const toggle = document.getElementById('p5-collapsed-toggle');
+  toggle.style.borderColor =
+    sev === 'limit' ? 'var(--color-limit)' :
+    sev === 'critical' ? 'var(--color-critical)' :
+    'var(--color-border)';
+
+  // "…and N more" text
+  const more = Math.max(0, n - 5);
+  moreText.textContent = more > 0 ? `…and ${more.toLocaleString()} more` : '';
+
+  // Segmented gauge
+  const segGreen = document.getElementById('p5-seg-green');
+  const segYellow = document.getElementById('p5-seg-yellow');
+  const segOrange = document.getElementById('p5-seg-orange');
+  const segRed = document.getElementById('p5-seg-red');
+
+  const pct = Math.min(n / MAX, 1) * 100;
+
+  if (n <= 500) {
+    segGreen.style.width = pct + '%';
+    segYellow.style.width = '0';
+    segOrange.style.width = '0';
+    segRed.style.width = '0';
+  } else if (n <= 800) {
+    segGreen.style.width = '50%';
+    segYellow.style.width = ((n - 500) / MAX * 100) + '%';
+    segOrange.style.width = '0';
+    segRed.style.width = '0';
+  } else if (n <= 950) {
+    segGreen.style.width = '50%';
+    segYellow.style.width = '30%';
+    segOrange.style.width = ((n - 800) / MAX * 100) + '%';
+    segRed.style.width = '0';
+  } else {
+    segGreen.style.width = '50%';
+    segYellow.style.width = '30%';
+    segOrange.style.width = '15%';
+    segRed.style.width = ((Math.min(n, MAX) - 950) / MAX * 100) + '%';
+  }
+}
+
+// Init
+updateAll(42);
+</script>
+</body>
+</html>

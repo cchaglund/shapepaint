@@ -28,6 +28,7 @@ import { UndoRedoToast } from '../components/canvas/UndoRedoToast';
 import { CanvasModals } from '../components/canvas/CanvasModals';
 import { LayerPanel } from '../components/LayerPanel';
 import { OnboardingModal } from '../components/modals/OnboardingModal';
+import { MAX_SHAPES, getShapeLimitSeverity, getShapeLimitColor } from '../utils/shapeLimit';
 import { ChallengePreview } from '../components/shared/ChallengePreview';
 import { useTour } from '../hooks/ui/useTour';
 import { TourOverlay } from '../components/tour/TourOverlay';
@@ -301,6 +302,7 @@ export function CanvasEditorPage({ challenge, todayDate, themeMode, onSetThemeMo
         isLoggedIn={!!user}
         profile={profile}
         profileLoading={profileLoading}
+        shapeCount={canvasState.shapes.length}
       />
 
       {/* Canvas area wrapper (everything below top bar) */}
@@ -443,8 +445,11 @@ export function CanvasEditorPage({ challenge, todayDate, themeMode, onSetThemeMo
               <polyline points="2 17 12 22 22 17" />
               <polyline points="2 12 12 17 22 12" />
             </svg>
-            <span className="text-xs font-semibold leading-none">
-              {canvasState.shapes.length}
+            <span
+              className="text-xs font-semibold leading-none"
+              style={{ color: getShapeLimitColor(getShapeLimitSeverity(canvasState.shapes.length)) }}
+            >
+              {canvasState.shapes.length} / {MAX_SHAPES}
             </span>
           </button>
         )}
