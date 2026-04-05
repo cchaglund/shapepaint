@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Continue Voting — Final Prototype</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&family=Lilita+One&display=swap" rel="stylesheet">
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  [data-theme="a"][data-mode="light"] {
+    font-family: 'Fredoka', sans-serif;
+    --font-display: 'Lilita One', cursive;
+    --radius-sm: 0.5rem; --radius-md: 0.75rem; --radius-lg: 1rem; --radius-pill: 1.25rem;
+    --border-width: 2px;
+    --color-accent: #FF3366; --color-accent-hover: #e6204d; --color-accent-subtle: rgba(255, 51, 102, 0.12); --color-accent-text: #ffffff;
+    --color-bg-primary: #FFFBF7; --color-bg-secondary: #FFF8F2; --color-bg-tertiary: #FFF5ED;
+    --color-text-primary: #2D1B69; --color-text-secondary: #5a4880; --color-text-tertiary: #8B7EC8; --color-text-faint: #b5a8c8;
+    --color-border: #2D1B69; --color-border-light: #E8E8E8;
+    --color-selected: #F0EDFF; --color-selected-hover: #E0DBFF;
+    --shadow-card: 4px 4px 0 #2D1B69; --shadow-btn: 2px 2px 0 #2D1B69; --shadow-modal: 8px 8px 0 #2D1B69;
+    --color-hover: rgba(45, 27, 105, 0.06);
+    color: var(--color-text-primary); background-color: var(--color-bg-primary);
+  }
+
+  [data-theme="a"][data-mode="dark"] {
+    font-family: 'Fredoka', sans-serif;
+    --font-display: 'Lilita One', cursive;
+    --radius-sm: 0.5rem; --radius-md: 0.75rem; --radius-lg: 1rem; --radius-pill: 1.25rem;
+    --border-width: 2px;
+    --color-accent: #FF3366; --color-accent-hover: #ff4d7a; --color-accent-subtle: rgba(255, 51, 102, 0.2); --color-accent-text: #ffffff;
+    --color-bg-primary: #1A1230; --color-bg-secondary: #241B3D; --color-bg-tertiary: #2D2248;
+    --color-text-primary: #E8E0FF; --color-text-secondary: #8B7EC8; --color-text-tertiary: rgba(232, 224, 255, 0.4); --color-text-faint: rgba(232, 224, 255, 0.2);
+    --color-border: #4A3B6B; --color-border-light: #3A2D55;
+    --color-selected: rgba(255, 51, 102, 0.2); --color-selected-hover: rgba(255, 51, 102, 0.3);
+    --shadow-card: 4px 4px 0 rgba(0, 0, 0, 0.3); --shadow-btn: 3px 3px 0 rgba(0, 0, 0, 0.3); --shadow-modal: 8px 8px 0 rgba(0, 0, 0, 0.4);
+    --color-hover: rgba(255, 255, 255, 0.06);
+    color: var(--color-text-primary); background-color: var(--color-bg-primary);
+  }
+
+  body { background: #111; padding: 2rem; line-height: 1.5; }
+
+  .page-header { text-align: center; color: #fff; margin-bottom: 2rem; font-family: 'Fredoka', sans-serif; }
+  .page-header h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+  .page-header p { font-size: 0.875rem; color: rgba(255,255,255,0.6); }
+
+  .section-title {
+    color: #fff; font-family: 'Fredoka', sans-serif; font-size: 1.125rem; font-weight: 600;
+    margin: 3rem 0 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.15);
+  }
+  .section-desc {
+    color: rgba(255,255,255,0.5); font-family: 'Fredoka', sans-serif; font-size: 0.8125rem;
+    margin-bottom: 1.5rem; line-height: 1.6; max-width: 700px;
+  }
+
+  .variant-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;
+  }
+  @media (max-width: 1100px) { .variant-grid { grid-template-columns: 1fr; } }
+
+  .variant-cell {
+    border-radius: var(--radius-lg, 1rem); padding: 1.5rem;
+    background: var(--color-bg-secondary); border: var(--border-width, 2px) solid var(--color-border);
+    box-shadow: var(--shadow-card); font-family: 'Fredoka', sans-serif;
+  }
+  .variant-label {
+    font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--color-text-tertiary); margin-bottom: 1rem;
+  }
+
+  /* ── Modal card ── */
+  .modal-card {
+    border-radius: var(--radius-lg); padding: 1.25rem 1.5rem;
+    background: var(--color-bg-primary); border: var(--border-width) solid var(--color-border);
+    box-shadow: var(--shadow-modal); text-align: center; max-width: 420px; margin: 0 auto;
+  }
+  .emoji { font-size: 1.75rem; margin-bottom: 0.5rem; }
+  .modal-title {
+    font-size: 1.125rem; font-weight: 600; color: var(--color-text-primary);
+    font-family: var(--font-display); margin-bottom: 0.375rem;
+  }
+  .modal-body { font-size: 0.8125rem; color: var(--color-text-secondary); line-height: 1.5; }
+
+  /* ── Buttons ── */
+  .btn-primary {
+    display: block; width: 100%; padding: 0.5rem 1rem;
+    border: var(--border-width) solid var(--color-border); border-radius: var(--radius-pill);
+    background: var(--color-accent); color: var(--color-accent-text);
+    font-size: 0.875rem; font-weight: 600; cursor: pointer;
+    box-shadow: var(--shadow-btn); font-family: inherit;
+  }
+  .btn-link {
+    background: none; border: none; color: var(--color-text-secondary); font-family: inherit;
+    font-size: 0.8125rem; font-weight: 600; cursor: pointer; padding: 0.25rem 0;
+    text-decoration: none;
+  }
+  .btn-link:hover { text-decoration: underline; color: var(--color-text-primary); }
+
+  /* ── Art placeholders ── */
+  .pair-row { display: flex; gap: 0.75rem; justify-content: center; padding: 0.5rem 0; }
+  .art-thumb {
+    width: 160px; height: 160px; border-radius: var(--radius-md); overflow: hidden;
+    border: 1px solid var(--color-border);
+  }
+  .art-thumb-img { width: 100%; height: 100%; }
+  .art-thumb-img.a { background: linear-gradient(135deg, #4dd0b8 0%, #2db89a 100%); }
+  .art-thumb-img.b { background: linear-gradient(135deg, #f8b4c8 0%, #e88fa8 100%); }
+  .art-thumb-img.c { background: linear-gradient(135deg, #7eb8e0 0%, #5a9cc8 100%); }
+  .art-thumb-img.d { background: linear-gradient(135deg, #f0c060 0%, #d4a840 100%); }
+
+  .vote-btn-secondary {
+    padding: 0.375rem 0.875rem; border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-pill); background: var(--color-bg-primary); color: var(--color-text-primary);
+    font-size: 0.75rem; font-weight: 600; cursor: pointer; box-shadow: var(--shadow-btn);
+    font-family: inherit; margin-top: 0.5rem;
+  }
+  .vote-btn-secondary:hover { background: var(--color-bg-secondary); }
+
+  /* ── Wall preview ── */
+  .wall-section { text-align: center; }
+  .wall-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.25rem;
+    max-width: 220px; margin: 0.5rem auto 0;
+  }
+  /* Centered grid for fewer items */
+  .wall-grid.cols-1 { grid-template-columns: 1fr; max-width: 72px; }
+  .wall-grid.cols-2 { grid-template-columns: repeat(2, 1fr); max-width: 148px; }
+  .wall-thumb { aspect-ratio: 1; border-radius: var(--radius-sm); }
+  .wall-thumb:nth-child(1) { background: #c8b8e0; }
+  .wall-thumb:nth-child(2) { background: #f0c8a0; }
+  .wall-thumb:nth-child(3) { background: #a0d8c0; }
+  .wall-thumb:nth-child(4) { background: #d0a8b8; }
+  .wall-thumb:nth-child(5) { background: #b0c8e0; }
+  .wall-thumb:nth-child(6) { background: #e0d0a0; }
+
+  /* ── Voting zone ── */
+  .voting-zone {
+    background: var(--color-selected);
+    border: var(--border-width) solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    padding: 0.75rem;
+    text-align: center;
+  }
+  .voting-zone .zone-trigger {
+    display: flex; align-items: center; justify-content: center; gap: 0.375rem;
+    width: 100%; padding: 0; cursor: pointer; font-family: inherit;
+    background: transparent; border: none;
+    color: var(--color-text-secondary); font-size: 0.8125rem; font-weight: 600;
+    transition: color 0.15s;
+  }
+  .voting-zone .zone-trigger:hover { color: var(--color-text-primary); }
+  .voting-zone .zone-trigger .chevron { width: 14px; height: 14px; transition: transform 0.2s; }
+  .voting-zone .zone-trigger[aria-expanded="true"] .chevron { transform: rotate(180deg); }
+
+  .voting-zone .zone-word {
+    font-size: 0.75rem; color: var(--color-text-tertiary); margin-top: 0.5rem;
+  }
+  .voting-zone .zone-word strong { color: var(--color-text-secondary); font-weight: 600; }
+
+  .accordion-content {
+    overflow: hidden; transition: max-height 0.3s ease, opacity 0.2s ease;
+    max-height: 0; opacity: 0;
+  }
+  .accordion-content.open { max-height: 600px; opacity: 1; }
+
+  /* ── Spec notes ── */
+  .spec-notes {
+    max-width: 700px; color: rgba(255,255,255,0.65); font-family: 'Fredoka', sans-serif;
+    font-size: 0.8125rem; line-height: 1.7; margin: 2rem 0 3rem;
+  }
+  .spec-notes strong { color: #fff; }
+  .spec-notes ul { margin: 0.5rem 0 1rem 1.25rem; }
+  .spec-notes li { margin-bottom: 0.25rem; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Continue Voting — Final Prototype</h1>
+  <p>Collapsed by default &middot; No divider line &middot; Centered wall thumbnails &middot; Pop Art light + dark</p>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     COLLAPSED (DEFAULT)
+     ════════════════════════════════════════ -->
+
+<div class="section-title">Default State (collapsed)</div>
+<div class="section-desc">
+  Voting zone collapsed by default. Short trigger text: "Continue voting (optional)".
+  No divider line — the shaded zone and spacing are sufficient separation.
+  Wall thumbnails centered with rounded corners.
+</div>
+
+<div class="variant-grid">
+  <div class="variant-cell" data-theme="a" data-mode="light">
+    <div class="variant-label">Pop Art Light — Collapsed</div>
+    <div class="modal-card">
+      <div class="emoji">🎉</div>
+      <div class="modal-title">Your art has been entered!</div>
+      <div class="modal-body">
+        Tomorrow users will be able to vote on your artwork, with winners announced the following day.
+      </div>
+
+      <div style="height: 1.25rem;"></div>
+
+      <div class="voting-zone">
+        <button class="zone-trigger" aria-expanded="false" onclick="this.setAttribute('aria-expanded', this.getAttribute('aria-expanded')==='true'?'false':'true'); this.closest('.voting-zone').querySelector('.accordion-content').classList.toggle('open')">
+          Continue voting (optional)
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="accordion-content">
+          <div class="zone-word">Word of the day was "<strong>creativity</strong>"</div>
+          <div class="pair-row">
+            <div>
+              <div class="art-thumb"><div class="art-thumb-img a"></div></div>
+              <button class="vote-btn-secondary">Vote for this one</button>
+            </div>
+            <div>
+              <div class="art-thumb"><div class="art-thumb-img b"></div></div>
+              <button class="vote-btn-secondary">Vote for this one</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="height: 1.25rem;"></div>
+
+      <div class="wall-section">
+        <a href="#" class="btn-link">See what others submitted:</a>
+        <div class="wall-grid">
+          <div class="wall-thumb"></div><div class="wall-thumb"></div><div class="wall-thumb"></div>
+          <div class="wall-thumb"></div><div class="wall-thumb"></div><div class="wall-thumb"></div>
+        </div>
+      </div>
+
+      <div style="height: 1rem;"></div>
+      <button class="btn-primary">Done</button>
+    </div>
+  </div>
+
+  <div class="variant-cell" data-theme="a" data-mode="dark">
+    <div class="variant-label">Pop Art Dark — Collapsed</div>
+    <div class="modal-card">
+      <div class="emoji">🎉</div>
+      <div class="modal-title">Your art has been entered!</div>
+      <div class="modal-body">
+        Tomorrow users will be able to vote on your artwork, with winners announced the following day.
+      </div>
+
+      <div style="height: 1.25rem;"></div>
+
+      <div class="voting-zone">
+        <button class="zone-trigger" aria-expanded="false" onclick="this.setAttribute('aria-expanded', this.getAttribute('aria-expanded')==='true'?'false':'true'); this.closest('.voting-zone').querySelector('.accordion-content').classList.toggle('open')">
+          Continue voting (optional)
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="accordion-content">
+          <div class="zone-word">Word of the day was "<strong>creativity</strong>"</div>
+          <div class="pair-row">
+            <div>
+              <div class="art-thumb"><div class="art-thumb-img d"></div></div>
+              <button class="vote-btn-secondary">Vote for this one</button>
+            </div>
+            <div>
+              <div class="art-thumb"><div class="art-thumb-img a"></div></div>
+              <button class="vote-btn-secondary">Vote for this one</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="height: 1.25rem;"></div>
+
+      <div class="wall-section">
+        <a href="#" class="btn-link">See what others submitted:</a>
+        <div class="wall-grid">
+          <div class="wall-thumb"></div><div class="wall-thumb"></div><div class="wall-thumb"></div>
+          <div class="wall-thumb"></div><div class="wall-thumb"></div><div class="wall-thumb"></div>
+        </div>
+      </div>
+
+      <div style="height: 1rem;"></div>
+      <button class="btn-primary">Done</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     EXPANDED
+     ════════════════════════════════════════ -->
+
+<div class="section-title">Expanded State</div>
+
+<div class="variant-grid">
+  <div class="variant-cell" data-theme="a" data-mode="light">
+    <div class="variant-label">Pop Art Light — Expanded</div>
+    <div class="modal-card">
+      <div class="emoji">🎉</div>
+      <div class="modal-title">Your art has been entered!</div>
+      <div class="modal-body">
+        Tomorrow users will be able to vote on your artwork, with winners announced the following day.
+      </div>
+
+      <div style="height: 1.25rem;"></div>
+
+      <div class="voting-zone">
+        <button class="zone-trigger" aria-expanded="true" onclick="this.setAttribute('aria-expanded', this.getAttribute('aria-expanded')==='true'?'false':'true'); this.closest('.voting-zone').querySelector('.accordion-content').classList.toggle('open')">
+          Continue voting (optional)
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="accordion-content open">
+          <div class="zone-word">Word of the day was "<strong>creativity</strong>"</div>
+          <div class="pair-row">
+            <div>
+              <div class="art-thumb"><div class="art-thumb-img a"></div></div>
+              <button class="vote-btn-secondary">Vote for this one</button>
+            </div>
+            <div>
+              <div class="art-thumb"><div class="art-thumb-img c"></div></div>
+              <button class="vote-btn-secondary">Vote for this one</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="height: 1.25rem;"></div>
+
+      <div class="wall-section">
+        <a href="#" class="btn-link">See what others submitted:</a>
+        <div class="wall-grid">
+          <div class="wall-thumb"></div><div class="wall-thumb"></div><div class="wall-thumb"></div>
+          <div class="wall-thumb"></div><div class="wall-thumb"></div><div class="wall-thumb"></div>
+        </div>
+      </div>
+
+      <div style="height: 1rem;"></div>
+      <button class="btn-primary">Done</button>
+    </div>
+  </div>
+
+  <div class="variant-cell" data-theme="a" data-mode="dark">
+    <div class="variant-label">Pop Art Dark — Expanded</div>
+    <div class="modal-card">
+      <div class="emoji">🎉</div>
+      <div class="modal-title">Your art has been entered!</div>
+      <div class="modal-body">
+        Tomorrow users will be able to vote on your artwork, with winners announced the following day.
+      </div>
+
+      <div style="height: 1.25rem;"></div>
+
+      <div class="voting-zone">
+        <button class="zone-trigger" aria-expanded="true" onclick="this.setAttribute('aria-expanded', this.getAttribute('aria-expanded')==='true'?'false':'true'); this.closest('.voting-zone').querySelector('.accordion-content').classList.toggle('open')">
+          Continue voting (optional)
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="accordion-content open">
+          <div class="zone-word">Word of the day was "<strong>creativity</strong>"</div>
+          <div class="pair-row">
+            <div>
+              <div class="art-thumb"><div class="art-thumb-img b"></div></div>
+              <button class="vote-btn-secondary">Vote for this one</button>
+            </div>
+            <div>
+              <div class="art-thumb"><div class="art-thumb-img d"></div></div>
+              <button class="vote-btn-secondary">Vote for this one</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="height: 1.25rem;"></div>
+
+      <div class="wall-section">
+        <a href="#" class="btn-link">See what others submitted:</a>
+        <div class="wall-grid">
+          <div class="wall-thumb"></div><div class="wall-thumb"></div><div class="wall-thumb"></div>
+          <div class="wall-thumb"></div><div class="wall-thumb"></div><div class="wall-thumb"></div>
+        </div>
+      </div>
+
+      <div style="height: 1rem;"></div>
+      <button class="btn-primary">Done</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     WALL PREVIEW — CENTERED VARIANTS
+     ════════════════════════════════════════ -->
+
+<div class="section-title">Wall Preview — Centered for 1, 2, 3, 4 Submissions</div>
+<div class="section-desc">
+  Thumbnails always centered regardless of count. Rounded corners on all.
+  No gradient fade at the bottom. Max 6 shown; the "See what others submitted" link takes users to the full wall.
+</div>
+
+<div class="variant-grid">
+  <div class="variant-cell" data-theme="a" data-mode="light">
+    <div class="variant-label">1 submission</div>
+    <div class="modal-card" style="padding-bottom: 1.5rem;">
+      <div class="wall-section">
+        <a href="#" class="btn-link">See what others submitted:</a>
+        <div class="wall-grid cols-1">
+          <div class="wall-thumb"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="variant-cell" data-theme="a" data-mode="light">
+    <div class="variant-label">2 submissions</div>
+    <div class="modal-card" style="padding-bottom: 1.5rem;">
+      <div class="wall-section">
+        <a href="#" class="btn-link">See what others submitted:</a>
+        <div class="wall-grid cols-2">
+          <div class="wall-thumb"></div><div class="wall-thumb"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="variant-cell" data-theme="a" data-mode="light">
+    <div class="variant-label">3 submissions</div>
+    <div class="modal-card" style="padding-bottom: 1.5rem;">
+      <div class="wall-section">
+        <a href="#" class="btn-link">See what others submitted:</a>
+        <div class="wall-grid">
+          <div class="wall-thumb"></div><div class="wall-thumb"></div><div class="wall-thumb"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="variant-cell" data-theme="a" data-mode="light">
+    <div class="variant-label">4 submissions</div>
+    <div class="modal-card" style="padding-bottom: 1.5rem;">
+      <div class="wall-section">
+        <a href="#" class="btn-link">See what others submitted:</a>
+        <div class="wall-grid">
+          <div class="wall-thumb"></div><div class="wall-thumb"></div><div class="wall-thumb"></div>
+          <div class="wall-thumb"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     EDGE: NO MORE PAIRS
+     ════════════════════════════════════════ -->
+
+<div class="section-title">Edge: No More Pairs to Vote On</div>
+<div class="section-desc">
+  When all pairs are exhausted, the voting zone is simply not shown. No "You've ranked all submissions" message.
+  The modal is just confirmation + wall preview + Done.
+</div>
+
+<div class="variant-grid">
+  <div class="variant-cell" data-theme="a" data-mode="light">
+    <div class="variant-label">Pop Art Light — No more pairs</div>
+    <div class="modal-card">
+      <div class="emoji">🎉</div>
+      <div class="modal-title">Your art has been entered!</div>
+      <div class="modal-body">
+        Tomorrow users will be able to vote on your artwork, with winners announced the following day.
+      </div>
+
+      <div style="height: 1.25rem;"></div>
+
+      <div class="wall-section">
+        <a href="#" class="btn-link">See what others submitted:</a>
+        <div class="wall-grid">
+          <div class="wall-thumb"></div><div class="wall-thumb"></div><div class="wall-thumb"></div>
+          <div class="wall-thumb"></div><div class="wall-thumb"></div><div class="wall-thumb"></div>
+        </div>
+      </div>
+
+      <div style="height: 1rem;"></div>
+      <button class="btn-primary">Done</button>
+    </div>
+  </div>
+
+  <div class="variant-cell" data-theme="a" data-mode="dark">
+    <div class="variant-label">Pop Art Dark — No more pairs</div>
+    <div class="modal-card">
+      <div class="emoji">🎉</div>
+      <div class="modal-title">Your art has been entered!</div>
+      <div class="modal-body">
+        Tomorrow users will be able to vote on your artwork, with winners announced the following day.
+      </div>
+
+      <div style="height: 1.25rem;"></div>
+
+      <div class="wall-section">
+        <a href="#" class="btn-link">See what others submitted:</a>
+        <div class="wall-grid">
+          <div class="wall-thumb"></div><div class="wall-thumb"></div><div class="wall-thumb"></div>
+          <div class="wall-thumb"></div><div class="wall-thumb"></div><div class="wall-thumb"></div>
+        </div>
+      </div>
+
+      <div style="height: 1rem;"></div>
+      <button class="btn-primary">Done</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="spec-notes">
+  <strong>Changes in this final revision:</strong>
+  <ul>
+    <li><strong>Trigger text</strong> changed to "Continue voting (optional)" — clearer, shorter</li>
+    <li><strong>Collapsed by default</strong> — the zone is visible but compact, user opts in to expand</li>
+    <li><strong>Divider line removed</strong> — the shaded voting zone and spacing provide sufficient visual separation; the 65% divider was redundant</li>
+    <li><strong>No "You've ranked all submissions"</strong> — when no more pairs exist, the voting zone simply doesn't render</li>
+    <li><strong>Wall thumbnails rounded</strong> — using <code>border-radius: var(--radius-sm)</code> on all</li>
+    <li><strong>Wall grid centered</strong> for any count (1-6) using max-width constraints and <code>margin: auto</code></li>
+    <li><strong>No gradient fade</strong> at bottom of wall section — the link at the top already communicates "there's more"</li>
+    <li><strong>Consistent spacing</strong> — 1.25rem between each section (confirmation → voting zone → wall), 1rem before Done button</li>
+  </ul>
+
+  <strong>Implementation notes:</strong>
+  <ul>
+    <li><code>VotingPairComparison</code> component should accept a <code>size</code> prop for smaller thumbnails in this context (160px vs 288px default)</li>
+    <li>Wall grid centering: when count ≤ 3, use <code>grid-template-columns: repeat(count, 1fr)</code> with appropriate max-width. When count > 3, use <code>repeat(3, 1fr)</code></li>
+    <li>The voting zone background uses <code>--color-selected</code> with <code>--color-border-light</code> border — matching ViewToggle container pattern</li>
+  </ul>
+</div>
+
+</body>
+</html>

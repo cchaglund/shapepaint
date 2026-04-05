@@ -15,13 +15,24 @@ export interface VotingPairViewProps {
   onSkipVoting: () => void;
 }
 
+export interface VotingPairComparisonProps {
+  currentPair: VotingPair;
+  challenge: DailyChallenge;
+  submitting: boolean;
+  onVote: (winnerId: string) => void;
+  /** Smaller thumbnails for inline/secondary contexts (e.g. continue voting) */
+  compact?: boolean;
+  /** Use secondary (outlined) vote buttons instead of primary */
+  secondaryButtons?: boolean;
+}
+
 export interface VotingConfirmationProps {
   isEntered: boolean;
   wallDate: string;
-  canContinueVoting: boolean;
-  onContinue: () => void;
   onDone: () => void;
   userId: string;
+  /** Content rendered between the Done button and the wall preview (e.g. continue voting) */
+  children?: React.ReactNode;
 }
 
 export interface VotingOptInPromptProps {

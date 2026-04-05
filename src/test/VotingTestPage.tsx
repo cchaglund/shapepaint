@@ -16,6 +16,7 @@ import {
   VotingConfirmation,
   VotingOptInPrompt,
   VotingProgress,
+  ContinueVotingZone,
 } from '../components/voting';
 import {
   MOCK_CHALLENGE,
@@ -150,12 +151,7 @@ export function VotingTestPage() {
         setFlowHasEnteredRanking(true);
         setFlowShowConfirmation(true);
       }
-    }, 1500);
-  };
-
-
-  const handleFlowContinueVoting = () => {
-    setFlowShowConfirmation(false);
+    }, 500);
   };
 
   const handleFlowDone = () => {
@@ -276,24 +272,27 @@ export function VotingTestPage() {
             </div>
 
             {/* Interactive voting UI or confirmation */}
-            <div className="flex items-center justify-center min-h-125">
+            <div className="flex flex-col items-center justify-center min-h-125">
               {flowShowConfirmation ? (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                  <VotingConfirmation
-                    isEntered={true}
-                    wallDate={MOCK_CHALLENGE.date}
-                    canContinueVoting={flowPairIndex < flowTotalPairs}
-                    onContinue={handleFlowContinueVoting}
-                    onDone={handleFlowDone}
-                    userId="mock-user-id"
-                  />
-                </div>
+                <VotingConfirmation
+                  isEntered={true}
+                  wallDate={MOCK_CHALLENGE.date}
+                  onDone={handleFlowDone}
+                  userId="mock-user-id"
+                >
+                  {!noMorePairs && (
+                    <ContinueVotingZone
+                      currentPair={flowPair}
+                      challenge={MOCK_CHALLENGE}
+                      submitting={flowSubmitting}
+                      onVote={handleFlowVote}
+                    />
+                  )}
+                </VotingConfirmation>
               ) : noMorePairs ? (
                 <VotingConfirmation
                   isEntered={flowHasEnteredRanking}
                   wallDate={MOCK_CHALLENGE.date}
-                  canContinueVoting={false}
-                  onContinue={() => {}}
                   onDone={handleFlowDone}
                   userId="mock-user-id"
                 />
@@ -336,16 +335,21 @@ export function VotingTestPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <p className="text-sm text-(--color-text-secondary) mb-2">
-                  Entered ranking (with other submissions)
+                  Entered ranking (with continue voting)
                 </p>
                 <VotingConfirmation
                   isEntered={true}
                   wallDate={todayDate}
-                  canContinueVoting={false}
-                  onContinue={() => {}}
                   onDone={() => {}}
                   userId="mock-user-id"
-                />
+                >
+                  <ContinueVotingZone
+                    currentPair={MOCK_VOTING_PAIRS[0]}
+                    challenge={MOCK_CHALLENGE}
+                    submitting={false}
+                    onVote={() => {}}
+                  />
+                </VotingConfirmation>
               </div>
               <div>
                 <p className="text-sm text-(--color-text-secondary) mb-2">
@@ -354,8 +358,6 @@ export function VotingTestPage() {
                 <VotingConfirmation
                   isEntered={true}
                   wallDate="1999-01-01"
-                  canContinueVoting={false}
-                  onContinue={() => {}}
                   onDone={() => {}}
                   userId="mock-user-id"
                 />
@@ -383,8 +385,7 @@ export function VotingTestPage() {
                 <VotingConfirmation
                   isEntered={true}
                   wallDate={MOCK_CHALLENGE.date}
-                  canContinueVoting={false}
-                  onContinue={() => {}}
+
                   onDone={() => {}}
                   userId="mock-user-id"
                 />
@@ -397,22 +398,19 @@ export function VotingTestPage() {
                 <VotingConfirmation
                   isEntered={false}
                   wallDate={MOCK_CHALLENGE.date}
-                  canContinueVoting={false}
-                  onContinue={() => {}}
+
                   onDone={() => {}}
                   userId="mock-user-id"
                 />
               </div>
-              {/* Scenario: Entered with continue voting option */}
+              {/* Scenario: All pairs exhausted — no continue voting zone shown */}
               <div>
                 <p className="text-sm text-(--color-text-secondary) mb-2">
-                  Entered with more pairs available
+                  All pairs exhausted
                 </p>
                 <VotingConfirmation
                   isEntered={true}
                   wallDate={MOCK_CHALLENGE.date}
-                  canContinueVoting={true}
-                  onContinue={() => {}}
                   onDone={() => {}}
                   userId="mock-user-id"
                 />

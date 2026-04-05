@@ -7,13 +7,14 @@ import { Modal } from '../shared/Modal';
 import { VotingPairView } from './VotingPairView';
 import { VotingConfirmation } from './VotingConfirmation';
 import { VotingOptInPrompt } from './VotingOptInPrompt';
+import { ContinueVotingZone } from './ContinueVotingZone';
 
 interface VotingModalProps {
   userId: string;
-  challengeDate: string; // The date to vote on (yesterday)
+  challengeDate: string;
   onComplete: () => void;
   onSkipVoting: () => void;
-  onOptInToRanking?: () => void; // Called when user opts in without voting (bootstrap case)
+  onOptInToRanking?: () => void;
 }
 
 export function VotingModal({
@@ -23,15 +24,9 @@ export function VotingModal({
   onSkipVoting,
   onOptInToRanking,
 }: VotingModalProps) {
-  // Track if user dismissed confirmation to continue voting
-  const [dismissedConfirmation, setDismissedConfirmation] = useState(false);
-  // Track confirmation state after opt-in prompt: 'entered' | 'skipped' | null
   const [optInConfirmation, setOptInConfirmation] = useState<'entered' | 'skipped' | null>(null);
 
-  // Today's date for Wall URL
   const todayDate = useMemo(() => getTodayDateUTC(), []);
-
-  // Fetch challenge for the date being voted on
   const { challenge } = useDailyChallenge(challengeDate);
 
   const {
@@ -49,7 +44,6 @@ export function VotingModal({
     initializeVoting,
   } = useVoting(userId, challengeDate);
 
-  // Initialize voting on mount + prefetch wall data for confirmation preview
   useEffect(() => {
     initializeVoting().then(() => {
       fetchNextPair();
@@ -57,81 +51,72 @@ export function VotingModal({
     fetchWallSubmissions(todayDate);
   }, [initializeVoting, fetchNextPair, todayDate]);
 
-  // Derive showConfirmation from state instead of using an effect
-  const showConfirmation = hasEnteredRanking && !dismissedConfirmation;
-
-  // Close action depends on modal state: confirmation/opt-in screens → onComplete, voting → onSkipVoting
+  const showConfirmation = hasEnteredRanking;
   const handleClose = showConfirmation || optInConfirmation ? onComplete : onSkipVoting;
 
   const handleVote = async (winnerId: string) => {
     await vote(winnerId);
   };
 
-  const handleContinueVoting = () => {
-    setDismissedConfirmation(true);
-  };
-
   const handleOptIn = () => {
-    // User opts in to ranking without voting (bootstrap case)
     onOptInToRanking?.();
     setOptInConfirmation('entered');
   };
 
   const handleOptInSkip = () => {
-    // User skips ranking (bootstrap case)
     setOptInConfirmation('skipped');
   };
 
-  // Determine content to render
   const renderContent = () => {
-    // Show confirmation after opt-in prompt action
     if (optInConfirmation) {
       return (
         <VotingConfirmation
           isEntered={optInConfirmation === 'entered'}
           wallDate={todayDate}
-          canContinueVoting={false}
-          onContinue={() => {}} // Not used when canContinueVoting is false
           onDone={onComplete}
           userId={userId}
         />
       );
     }
 
-    // Bootstrap case: No submissions yesterday
     if ((noSubmissions || submissionCount === 0) && !loading) {
       return <VotingOptInPrompt onOptIn={handleOptIn} onSkip={handleOptInSkip} />;
     }
 
-    // Confirmation screen after reaching required votes
     if (showConfirmation) {
+      // Only show continue voting zone if there are more pairs available
+      const continueVoting = !noMorePairs && challenge ? (
+        <ContinueVotingZone
+          currentPair={currentPair}
+          challenge={challenge}
+          submitting={submitting}
+          onVote={handleVote}
+        />
+      ) : null;
+
       return (
         <VotingConfirmation
           isEntered={true}
           wallDate={todayDate}
-          canContinueVoting={!noMorePairs}
-          onContinue={handleContinueVoting}
           onDone={onComplete}
           userId={userId}
-        />
+        >
+          {continueVoting}
+        </VotingConfirmation>
       );
     }
 
-    // No more pairs to vote on - show confirmation with canContinueVoting=false
     if (noMorePairs && !loading) {
       return (
         <VotingConfirmation
           isEntered={hasEnteredRanking}
           wallDate={todayDate}
-          canContinueVoting={false}
-          onContinue={() => {}} // Not used when canContinueVoting is false
           onDone={onComplete}
           userId={userId}
         />
       );
     }
 
-    // Main voting UI
     if (loading || !currentPair || !challenge) {
       return (
         <div className="bg-(--color-bg-primary) border border-(--color-border) rounded-(--radius-xl) p-6 w-full max-w-3xl mx-auto shadow-(--shadow-modal)">
@@ -159,7 +144,7 @@ export function VotingModal({
   return (
     <Modal
       onClose={handleClose}
-      size="max-w-4xl"
+      size="max-w-[700px]"
       className="p-0! border-0! bg-transparent! rounded-none! shadow-none! overflow-visible!"
       ariaLabelledBy="voting-title"
       dataTestId="voting-modal"
