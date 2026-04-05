@@ -131,6 +131,15 @@
    * Switched via data-theme and data-mode attributes on <html>
    */
 
+  /* Remove default focus outline; show only on keyboard navigation */
+  *:focus {
+    outline: none;
+  }
+  *:focus-visible {
+    outline: 2px solid var(--color-accent, #3b82f6);
+    outline-offset: 2px;
+  }
+
   /* ── Base (non-theme) ── */
   :root {
     font-size: 112.5%; /* 18px — scales all rem-based values up from the 16px default */

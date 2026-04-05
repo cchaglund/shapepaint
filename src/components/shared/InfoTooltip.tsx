@@ -48,7 +48,7 @@ export function Tooltip({ content, text, children, capitalize, placement: placem
         // eslint-disable-next-line react-hooks/refs -- callback ref from floating-ui
         ref={setReference}
         {...getReferenceProps()}
-        className="inline-block h-full"
+        className="inline-flex h-full"
       >
         {children}
       </div>
@@ -76,7 +76,7 @@ export function InfoTooltip({ text }: { text: string }) {
   return (
     <Tooltip content={text}>
       <span
-        className="align-middle inline-flex items-center justify-center w-4 h-4 ml-1.5 cursor-help text-(--color-text-tertiary) hover:text-(--color-accent) transition-colors"
+        className="align-middle inline-flex items-center justify-center w-4 h-4 cursor-help text-(--color-text-tertiary) hover:text-(--color-accent) transition-colors"
         aria-label="More information"
       >
         <Info size={16} strokeWidth={1.5} />

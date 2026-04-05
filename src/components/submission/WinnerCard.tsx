@@ -40,10 +40,10 @@ export function WinnerCard({
           />
         </div>
       </div>
-      <p className="mt-2 flex items-center gap-1.5 text-sm font-medium text-(--color-text-primary)">
+      <span className="mt-2 flex items-center gap-1.5 text-sm font-medium text-(--color-text-primary)">
         <AvatarImage avatarUrl={entry.avatar_url} initial={(entry.nickname || 'A')[0].toUpperCase()} size="sm" />
         {entry.nickname}
-      </p>
+      </span>
     </Link>
   );
 }
