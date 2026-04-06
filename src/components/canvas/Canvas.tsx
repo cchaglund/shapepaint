@@ -40,6 +40,7 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
     commitToHistory: onCommitToHistory,
     duplicateShapes: onDuplicateShapes,
     lastDuplicatedIdsRef,
+    pendingAnimationIdsRef,
     deleteSelectedShapes: onDeleteSelectedShapes,
     undo: onUndo, redo: onRedo,
     mirrorHorizontal: onMirrorHorizontal,
@@ -70,27 +71,43 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
   }, [visibleShapes, selectedShapeIds, shapes, groups]);
 
   // Track newly added shapes for entrance animation.
-  // Track newly added shapes for entrance animations.
   // knownShapeIds holds all IDs from the previous render cycle. New IDs that
   // aren't in this set trigger the bounce-in animation on ShapeElement.
   // The state update is deferred to an effect so the render that first detects
   // new IDs can pass them to ShapeElement before they become "known".
-  // Bulk loads (>3 new shapes, e.g. Supabase hydration) skip animation.
+  // Bulk loads (e.g. Supabase hydration) skip animation unless the shapes were
+  // explicitly created by a user action (tracked via pendingAnimationIdsRef).
   const [knownShapeIds, setKnownShapeIds] = useState(() => new Set(shapes.map(s => s.id)));
   const newShapeIds: ReadonlySet<string> = useMemo(() => {
     const added = new Set<string>();
     for (const s of shapes) {
       if (!knownShapeIds.has(s.id)) added.add(s.id);
     }
+    // Always animate shapes explicitly created by user actions.
+    // Only suppress animation for bulk loads (e.g. Supabase hydration).
+    // Safe to read ref during render: it's set synchronously by the same
+    // state transition that causes this render.
+    /* eslint-disable react-hooks/refs */
+    const pending = pendingAnimationIdsRef.current;
+    if (pending.length > 0) {
+      const pendingSet = new Set(pending);
+      const userCreated = new Set<string>();
+      for (const id of added) {
+        if (pendingSet.has(id)) userCreated.add(id);
+      }
+      if (userCreated.size > 0) return userCreated;
+    }
+    /* eslint-enable react-hooks/refs */
     return added.size > 3 ? new Set<string>() : added;
-  }, [shapes, knownShapeIds]);
+  }, [shapes, knownShapeIds, pendingAnimationIdsRef]);
 
   useEffect(() => {
     // Intentionally deferred: the render that first detects new IDs must
     // complete before we mark them as known, so ShapeElement can animate.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setKnownShapeIds(new Set(shapes.map(s => s.id)));
-  }, [shapes]);
+    // Clear pending animation IDs after they've been consumed.
+    pendingAnimationIdsRef.current = [];
+  }, [shapes, pendingAnimationIdsRef]);
 
   // Use extracted hooks
   const { getSVGPoint, getClientPoint } = useCanvasCoordinates(svgRef);

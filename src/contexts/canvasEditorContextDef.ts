@@ -21,6 +21,7 @@ export interface CanvasEditorContextValue {
   commitToHistory: (label?: string) => void;
   duplicateShapes: (ids: string[]) => void;
   lastDuplicatedIdsRef: RefObject<string[]>;
+  pendingAnimationIdsRef: RefObject<string[]>;
   deleteShape: (id: string) => void;
   deleteSelectedShapes: () => void;
   setBackgroundColor: (colorIndex: number | null) => void;

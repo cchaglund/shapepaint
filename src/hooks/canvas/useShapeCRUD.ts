@@ -25,6 +25,9 @@ export function useShapeCRUD(
   // Track the IDs of shapes created by the last duplicate operation,
   // so pressing duplicate with no selection re-duplicates them.
   const lastDuplicatedIdsRef = useRef<string[]>([]);
+  // IDs of shapes just created by a user action (add/duplicate).
+  // Canvas reads & clears this to animate them regardless of batch size.
+  const pendingAnimationIdsRef = useRef<string[]>([]);
 
   const addShape = useCallback(
     (shapeIndex: number, colorIndex: number, options?: { x?: number; y?: number; size?: number }) => {
@@ -52,6 +55,8 @@ export function useShapeCRUD(
           zIndex: maxZIndex + 1,
         };
 
+        pendingAnimationIdsRef.current = [...pendingAnimationIdsRef.current, newShape.id];
+
         return {
           ...prev,
           shapes: [...prev.shapes, newShape],
@@ -78,6 +83,7 @@ export function useShapeCRUD(
         };
 
         lastDuplicatedIdsRef.current = [id];
+        pendingAnimationIdsRef.current = [...pendingAnimationIdsRef.current, newShape.id];
 
         return {
           ...prev,
@@ -134,6 +140,7 @@ export function useShapeCRUD(
         }
 
         lastDuplicatedIdsRef.current = ids;
+        pendingAnimationIdsRef.current = [...pendingAnimationIdsRef.current, ...newSelectedIds];
 
         return {
           ...prev,
@@ -208,6 +215,7 @@ export function useShapeCRUD(
     duplicateShape,
     duplicateShapes,
     lastDuplicatedIdsRef,
+    pendingAnimationIdsRef,
     updateShape,
     updateShapes,
     deleteShape,

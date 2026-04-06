@@ -52,9 +52,9 @@ export function ShapeElement({
 
   return (
     <motion.g
-      initial={{ scale: 0 }}
+      initial={{ scale: 1.2 }}
       animate={{ scale: 1 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 15, mass: 0.8 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 15 }}
       style={{ transformOrigin: `${cx}px ${cy}px` }}
       onAnimationComplete={() => setAnimating(false)}
     >
