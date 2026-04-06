@@ -44,7 +44,8 @@ export function SVGShape({
 
   const transform = `translate(${x}, ${y}) translate(${centerX}, ${centerY}) scale(${scaleX}, ${scaleY}) translate(${-centerX}, ${-centerY}) rotate(${rotation}, ${centerX}, ${centerY})`;
 
-  const fillProps = { fill: color, style };
+  // Tiny stroke matching fill closes hairline anti-aliasing gaps on iOS Safari
+  const fillProps = { fill: color, stroke: color, strokeWidth: 0.5, style };
 
   const shapeElement = (
     <>
