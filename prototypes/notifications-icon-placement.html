@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notification Icon Placement — Options</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Lilita+One&display=swap');
+
+  [data-theme="dark"] {
+    --bg-page: #0f0a1e;
+    --bg-primary: #1A1230;
+    --bg-secondary: #241B3D;
+    --bg-tertiary: #2D2248;
+    --bg-elevated: #352A55;
+    --text-primary: #E8E0FF;
+    --text-secondary: #8B7EC8;
+    --text-tertiary: rgba(232,224,255,0.4);
+    --accent: #FF3366;
+    --accent-subtle: rgba(255,51,102,0.2);
+    --border: #4A3B6B;
+    --border-light: #3A2D55;
+    --shadow-btn: 3px 3px 0 rgba(0,0,0,0.3);
+    --shadow-modal: 8px 8px 0 rgba(0,0,0,0.4);
+    --toggle-bg: #352A55;
+  }
+
+  [data-theme="light"] {
+    --bg-page: #f0eaff;
+    --bg-primary: #FFFBF7;
+    --bg-secondary: #FFF8F2;
+    --bg-tertiary: #FFF5ED;
+    --bg-elevated: #ffffff;
+    --text-primary: #2D1B69;
+    --text-secondary: #5a4880;
+    --text-tertiary: #8B7EC8;
+    --accent: #FF3366;
+    --accent-subtle: rgba(255,51,102,0.12);
+    --border: #2D1B69;
+    --border-light: #E8E8E8;
+    --shadow-btn: 2px 2px 0 #2D1B69;
+    --shadow-modal: 6px 6px 0 #2D1B69;
+    --toggle-bg: #FFF5ED;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg-page);
+    font-family: 'Fredoka', sans-serif;
+    color: var(--text-primary);
+    padding: 1.5rem;
+    min-height: 100vh;
+    transition: background 0.25s, color 0.25s;
+  }
+
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 2rem; gap: 1rem; }
+  .page-title { font-family: 'Lilita One', cursive; font-size: 1.75rem; }
+  .page-subtitle { color: var(--text-secondary); font-size: 0.8125rem; margin-top: 0.25rem; max-width: 540px; line-height: 1.6; }
+
+  .theme-toggle {
+    flex-shrink: 0; padding: 0.375rem 0.75rem;
+    border: 2px solid var(--border); border-radius: 999px;
+    background: var(--toggle-bg); color: var(--text-secondary);
+    font-family: 'Fredoka', sans-serif; font-size: 0.75rem; font-weight: 600;
+    cursor: pointer; box-shadow: var(--shadow-btn); transition: all 0.15s;
+  }
+  .theme-toggle:hover { color: var(--text-primary); }
+
+  .options-col { display: flex; flex-direction: column; gap: 1.75rem; max-width: 700px; }
+
+  .option-card {
+    background: var(--bg-primary);
+    border: 2px solid var(--border);
+    border-radius: 1rem;
+    box-shadow: var(--shadow-modal);
+    overflow: hidden;
+    transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
+  }
+
+  .option-header { padding: 0.875rem 1.125rem; border-bottom: 2px solid var(--border); }
+  .option-label { font-family: 'Lilita One', cursive; font-size: 1.05rem; color: var(--accent); }
+  .option-desc { font-size: 0.6875rem; color: var(--text-secondary); line-height: 1.5; margin-top: 0.2rem; }
+
+  .fake-header {
+    background: var(--bg-secondary);
+    padding: 0.625rem 1rem;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .fake-logo { font-family: 'Lilita One', cursive; font-size: 0.875rem; color: var(--text-secondary); }
+  .header-right { display: flex; align-items: center; gap: 0.5rem; }
+
+  .btn-base {
+    border-radius: 999px;
+    border: 2px solid var(--border);
+    background: var(--bg-tertiary);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--shadow-btn);
+    transition: all 0.15s;
+    color: var(--text-secondary);
+  }
+  .btn-base:hover { background: var(--bg-elevated); transform: translateY(-1px); }
+  .btn-base:active { transform: translateY(0.5px); }
+
+  .bell-w { width: 32px; height: 32px; position: relative; }
+  .bell-w svg { width: 14px; height: 14px; }
+
+  .badge-num {
+    position: absolute; top: -5px; right: -5px;
+    min-width: 16px; height: 16px; padding: 0 3px;
+    border-radius: 999px; background: var(--accent); color: #fff;
+    font-size: 0.5rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid var(--bg-secondary); line-height: 1;
+  }
+
+  .badge-dot {
+    position: absolute; top: -2px; right: -2px;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--accent); border: 2px solid var(--bg-secondary);
+  }
+
+  .avatar-32 {
+    width: 32px; height: 32px; border-radius: 999px;
+    background: linear-gradient(135deg, var(--accent), #9333ea);
+    border: 2px solid var(--border); flex-shrink: 0;
+  }
+  .avatar-28 {
+    width: 28px; height: 28px; border-radius: 999px;
+    background: linear-gradient(135deg, var(--accent), #9333ea);
+    border: 2px solid var(--border); flex-shrink: 0;
+  }
+
+  .user-btn {
+    padding: 3px 10px 3px 4px;
+    gap: 0.375rem;
+    height: 36px;
+  }
+  .user-name { font-size: 0.6875rem; font-weight: 600; color: var(--text-primary); }
+  .chevron { width: 11px; height: 11px; color: var(--text-tertiary); }
+
+  /* Placement-specific */
+  .p3-avatar-wrap { position: relative; }
+  .p3-dot {
+    position: absolute; top: -2px; right: -2px;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--accent); border: 2px solid var(--bg-secondary);
+  }
+  .p4-avatar-wrap { position: relative; }
+  .p4-badge {
+    position: absolute; top: -5px; right: -6px;
+    min-width: 16px; height: 16px; padding: 0 3px;
+    border-radius: 999px; background: var(--accent); color: #fff;
+    font-size: 0.5rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid var(--bg-secondary); line-height: 1;
+  }
+  .bell-inline-wrap { position: relative; width: 16px; height: 16px; }
+  .bell-inline-wrap svg { width: 16px; height: 16px; color: var(--text-secondary); }
+  .bell-inline-dot {
+    position: absolute; top: -3px; right: -3px;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent); border: 1.5px solid var(--bg-tertiary);
+  }
+
+  .state-row {
+    padding: 0.5rem 1rem;
+    display: flex; gap: 0.375rem; align-items: center;
+    border-top: 1px solid var(--border-light);
+  }
+  .state-label { font-size: 0.5625rem; color: var(--text-tertiary); }
+  .state-btn {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.5625rem; font-weight: 600;
+    padding: 3px 8px; border-radius: 999px;
+    border: 1.5px solid var(--border);
+    background: var(--bg-tertiary); color: var(--text-secondary);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .state-btn:hover { background: var(--bg-elevated); color: var(--text-primary); }
+  .state-btn.active { background: var(--accent-subtle); color: var(--accent); border-color: var(--accent); }
+
+  .notes {
+    padding: 0.625rem 1rem;
+    border-top: 2px solid var(--border);
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0.25rem 0.75rem;
+  }
+  .notes p { font-size: 0.5625rem; color: var(--text-tertiary); line-height: 1.5; }
+  .pro { color: rgba(34,197,94,0.85) !important; }
+  [data-theme="light"] .pro { color: #166534 !important; }
+  .con { color: rgba(255,100,100,0.7) !important; }
+  [data-theme="light"] .con { color: #991b1b !important; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div>
+    <div class="page-title">Icon Placement Options</div>
+    <p class="page-subtitle">Where does the notification indicator live in the header? Includes a note on why standalone vs. integrated is a meaningful architectural choice — not just visual.</p>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme(this)">☀️ Light mode</button>
+</div>
+
+<div class="options-col">
+
+  <!-- 1: Separate bell -->
+  <div class="option-card">
+    <div class="option-header">
+      <div class="option-label">1 — Separate bell icon</div>
+      <div class="option-desc">Dedicated bell button next to the user button. Two separate dropdowns: bell opens notifications panel, avatar opens social menu (followers/logout). <strong>Clearest UX — each button has one job.</strong></div>
+    </div>
+    <div class="fake-header">
+      <span class="fake-logo">shapepaint</span>
+      <div class="header-right">
+        <div class="btn-base bell-w" style="position:relative">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="badge-num" id="p1-badge" style="display:flex">3</span>
+        </div>
+        <div class="btn-base user-btn">
+          <div class="avatar-28"></div>
+          <span class="user-name">cristoph</span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+      </div>
+    </div>
+    <div class="state-row">
+      <span class="state-label">States:</span>
+      <button class="state-btn active" onclick="setP1(this,'3')">3 unread</button>
+      <button class="state-btn" onclick="setP1(this,'12')">12 unread</button>
+      <button class="state-btn" onclick="setP1(this,'0')">0 unread</button>
+    </div>
+    <div class="notes">
+      <p class="pro">✓ Clear affordance — bell = notifications</p>
+      <p class="pro">✓ Large, easy tap target</p>
+      <p class="pro">✓ Scales well: notifications panel can grow independently</p>
+      <p class="con">✗ Adds another button to an already-busy header</p>
+    </div>
+  </div>
+
+  <!-- 2: Bell inside user button -->
+  <div class="option-card">
+    <div class="option-header">
+      <div class="option-label">2 — Bell icon inside user button</div>
+      <div class="option-desc">Bell tucked into the left side of the user button. <strong>Problem: one button, one action.</strong> Clicking opens the user menu — but then what? You'd need to add a "Notifications" tab inside the existing social menu, which is already complex.</div>
+    </div>
+    <div class="fake-header">
+      <span class="fake-logo">shapepaint</span>
+      <div class="header-right">
+        <div class="btn-base user-btn">
+          <div class="bell-inline-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="bell-inline-dot" id="p2-dot"></span>
+          </div>
+          <div class="avatar-28"></div>
+          <span class="user-name">cristoph</span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+      </div>
+    </div>
+    <div class="state-row">
+      <span class="state-label">States:</span>
+      <button class="state-btn active" onclick="setP2(this,'dot')">Has unread</button>
+      <button class="state-btn" onclick="setP2(this,'none')">No unread</button>
+    </div>
+    <div class="notes">
+      <p class="pro">✓ Saves header space</p>
+      <p class="con">✗ Bell icon has no independent click target</p>
+      <p class="con">✗ Forces notifications into the user menu (competing with social content)</p>
+      <p class="con">✗ Dot-only: no count visible</p>
+    </div>
+  </div>
+
+  <!-- 3: Dot on avatar -->
+  <div class="option-card">
+    <div class="option-header">
+      <div class="option-label">3 — Dot on avatar, no bell</div>
+      <div class="option-desc">No bell at all — the avatar gets an accent dot when there are unread notifications. Ultra-minimal, but same problem as option 2: clicking the user button must choose between showing the social panel or notifications.</div>
+    </div>
+    <div class="fake-header">
+      <span class="fake-logo">shapepaint</span>
+      <div class="header-right">
+        <div class="btn-base user-btn">
+          <div class="p3-avatar-wrap">
+            <div class="avatar-28"></div>
+            <span class="p3-dot" id="p3-dot"></span>
+          </div>
+          <span class="user-name">cristoph</span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+      </div>
+    </div>
+    <div class="state-row">
+      <span class="state-label">States:</span>
+      <button class="state-btn active" onclick="setP3(this,'dot')">Has unread</button>
+      <button class="state-btn" onclick="setP3(this,'none')">No unread</button>
+    </div>
+    <div class="notes">
+      <p class="pro">✓ Cleanest header possible</p>
+      <p class="con">✗ No count visible</p>
+      <p class="con">✗ Notifications still hidden inside user menu</p>
+      <p class="con">✗ Easy to miss a small dot on the avatar</p>
+    </div>
+  </div>
+
+  <!-- 4: Count badge on avatar -->
+  <div class="option-card">
+    <div class="option-header">
+      <div class="option-label">4 — Count badge on avatar</div>
+      <div class="option-desc">No bell, but a numbered badge overlays the avatar (mobile app-style). Shows count clearly. Same structural problem: one button must decide what it opens.</div>
+    </div>
+    <div class="fake-header">
+      <span class="fake-logo">shapepaint</span>
+      <div class="header-right">
+        <div class="btn-base user-btn">
+          <div class="p4-avatar-wrap">
+            <div class="avatar-28"></div>
+            <span class="p4-badge" id="p4-badge">3</span>
+          </div>
+          <span class="user-name">cristoph</span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+      </div>
+    </div>
+    <div class="state-row">
+      <span class="state-label">States:</span>
+      <button class="state-btn active" onclick="setP4(this,'3')">3 unread</button>
+      <button class="state-btn" onclick="setP4(this,'12')">12 unread</button>
+      <button class="state-btn" onclick="setP4(this,'0')">0 unread</button>
+    </div>
+    <div class="notes">
+      <p class="pro">✓ Familiar from mobile apps</p>
+      <p class="pro">✓ Shows count without a separate button</p>
+      <p class="con">✗ Badge visually fights with the avatar</p>
+      <p class="con">✗ Same structural conflict: one button, two concerns</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function toggleTheme(btn) {
+    const h = document.documentElement;
+    h.dataset.theme = h.dataset.theme === 'dark' ? 'light' : 'dark';
+    btn.textContent = h.dataset.theme === 'dark' ? '☀️ Light mode' : '🌙 Dark mode';
+  }
+
+  function clearActive(btn) {
+    btn.closest('.state-row').querySelectorAll('.state-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  function setP1(btn, state) {
+    clearActive(btn);
+    const badge = document.getElementById('p1-badge');
+    badge.style.display = state === '0' ? 'none' : 'flex';
+    badge.textContent = state;
+  }
+
+  function setP2(btn, state) {
+    clearActive(btn);
+    document.getElementById('p2-dot').style.display = state === 'none' ? 'none' : 'block';
+  }
+
+  function setP3(btn, state) {
+    clearActive(btn);
+    document.getElementById('p3-dot').style.display = state === 'none' ? 'none' : 'block';
+  }
+
+  function setP4(btn, state) {
+    clearActive(btn);
+    const badge = document.getElementById('p4-badge');
+    badge.style.display = state === '0' ? 'none' : 'flex';
+    badge.textContent = state;
+  }
+</script>
+</body>
+</html>

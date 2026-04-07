@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Toast System — Playground</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Lilita+One&display=swap');
+
+  [data-theme="dark"] {
+    --bg-page: #1A1230;
+    --bg-secondary: #241B3D;
+    --bg-tertiary: #2D2248;
+    --bg-elevated: #352A55;
+    --text-primary: #E8E0FF;
+    --text-secondary: #8B7EC8;
+    --text-tertiary: rgba(232,224,255,0.4);
+    --accent: #FF3366;
+    --accent-subtle: rgba(255,51,102,0.2);
+    --border: #4A3B6B;
+    --border-light: #3A2D55;
+    --shadow-btn: 3px 3px 0 rgba(0,0,0,0.3);
+    --shadow-modal: 8px 8px 0 rgba(0,0,0,0.4);
+    --shadow-toast: 6px 6px 0 rgba(0,0,0,0.35);
+    --toggle-bg: #352A55;
+    --canvas-check-a: #241B3D;
+    --canvas-check-b: #2D2248;
+    --gold: #FFD700;
+  }
+
+  [data-theme="light"] {
+    --bg-page: #FFFBF7;
+    --bg-secondary: #FFF8F2;
+    --bg-tertiary: #FFF5ED;
+    --bg-elevated: #ffffff;
+    --text-primary: #2D1B69;
+    --text-secondary: #5a4880;
+    --text-tertiary: #8B7EC8;
+    --accent: #FF3366;
+    --accent-subtle: rgba(255,51,102,0.12);
+    --border: #2D1B69;
+    --border-light: #E8E8E8;
+    --shadow-btn: 2px 2px 0 #2D1B69;
+    --shadow-modal: 6px 6px 0 #2D1B69;
+    --shadow-toast: 4px 4px 0 #2D1B69;
+    --toggle-bg: #FFF5ED;
+    --canvas-check-a: #FFF5ED;
+    --canvas-check-b: #FFFBF7;
+    --gold: #b8860b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg-page);
+    font-family: 'Fredoka', sans-serif;
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow: hidden;
+    transition: background 0.25s, color 0.25s;
+  }
+
+  /* ---- Fake app ---- */
+  .fake-app { position: fixed; inset: 0; display: flex; flex-direction: column; }
+
+  .fake-header {
+    background: var(--bg-secondary);
+    border-bottom: 2px solid var(--border);
+    padding: 0.625rem 1.25rem;
+    display: flex; align-items: center; justify-content: space-between;
+    z-index: 10; flex-shrink: 0;
+    transition: background 0.25s, border-color 0.25s;
+  }
+
+  .fake-logo { font-family: 'Lilita One', cursive; font-size: 0.9375rem; color: var(--text-secondary); }
+
+  .fake-canvas {
+    flex: 1;
+    background-color: var(--canvas-check-a);
+    background-image:
+      linear-gradient(45deg, var(--canvas-check-b) 25%, transparent 25%),
+      linear-gradient(-45deg, var(--canvas-check-b) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, var(--canvas-check-b) 75%),
+      linear-gradient(-45deg, transparent 75%, var(--canvas-check-b) 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    transition: background 0.25s;
+  }
+
+  .canvas-artwork {
+    width: 280px; height: 280px;
+    border: 2px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--bg-secondary);
+    overflow: hidden; position: relative;
+    box-shadow: var(--shadow-modal);
+  }
+  .canvas-artwork::before {
+    content: ''; position: absolute;
+    width: 110px; height: 110px; border-radius: 50%;
+    background: var(--accent); opacity: 0.35;
+    top: 35px; left: 50px;
+  }
+  .canvas-artwork::after {
+    content: ''; position: absolute;
+    width: 90px; height: 90px;
+    background: #9333ea; opacity: 0.3;
+    bottom: 40px; right: 50px; transform: rotate(25deg);
+  }
+
+  /* ---- Controls overlay ---- */
+  .controls {
+    position: fixed;
+    top: 58px; left: 1rem;
+    background: var(--bg-elevated);
+    border: 2px solid var(--border);
+    border-radius: 1rem;
+    box-shadow: var(--shadow-modal);
+    padding: 0.875rem;
+    z-index: 100;
+    width: 240px;
+    transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
+  }
+
+  .controls-title { font-family: 'Lilita One', cursive; font-size: 0.9375rem; color: var(--accent); margin-bottom: 0.625rem; }
+  .controls-section { margin-bottom: 0.625rem; }
+  .controls-section:last-child { margin-bottom: 0; }
+  .controls-label { font-size: 0.5625rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.07em; font-weight: 600; margin-bottom: 0.3rem; display: block; }
+
+  .trigger-btn {
+    display: block; width: 100%;
+    padding: 0.4rem 0.625rem; margin-bottom: 0.25rem;
+    border: 2px solid var(--border); border-radius: 0.625rem;
+    background: var(--bg-secondary); color: var(--text-primary);
+    font-family: 'Fredoka', sans-serif; font-size: 0.6875rem; font-weight: 600;
+    cursor: pointer; text-align: left;
+    box-shadow: var(--shadow-btn); transition: all 0.15s;
+  }
+  .trigger-btn:hover { background: var(--bg-elevated); transform: translateY(-1px); }
+  .trigger-btn:active { transform: translateY(0.5px); }
+  .trigger-btn:last-child { margin-bottom: 0; }
+  .trigger-btn .hint { font-size: 0.5rem; color: var(--text-tertiary); font-weight: 500; display: block; margin-top: 1px; }
+
+  .toggle-row { display: flex; gap: 0.3rem; }
+  .tog-btn {
+    flex: 1; padding: 0.3rem 0.25rem;
+    border: 1.5px solid var(--border); border-radius: 0.5rem;
+    background: var(--bg-secondary); color: var(--text-tertiary);
+    font-family: 'Fredoka', sans-serif; font-size: 0.5625rem; font-weight: 600;
+    cursor: pointer; text-align: center; transition: all 0.15s;
+  }
+  .tog-btn:hover { color: var(--text-secondary); }
+  .tog-btn.active { background: var(--accent-subtle); color: var(--accent); border-color: var(--accent); }
+
+  .clear-btn {
+    display: block; width: 100%; margin-top: 0.4rem;
+    padding: 0.3rem; border: 1.5px solid var(--border); border-radius: 0.5rem;
+    background: transparent; color: var(--text-tertiary);
+    font-family: 'Fredoka', sans-serif; font-size: 0.5625rem; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .clear-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+  .theme-toggle {
+    display: block; width: 100%; margin-top: 0.375rem;
+    padding: 0.3rem; border: 1.5px solid var(--border); border-radius: 0.5rem;
+    background: var(--bg-secondary); color: var(--text-secondary);
+    font-family: 'Fredoka', sans-serif; font-size: 0.5625rem; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .theme-toggle:hover { color: var(--text-primary); }
+
+  /* ---- Toast container ---- */
+  .toast-container {
+    position: fixed; z-index: 200;
+    display: flex; flex-direction: column; gap: 0.5rem;
+    pointer-events: none;
+    max-width: 360px; width: 100%;
+    transition: all 0.15s;
+  }
+
+  .pos-bottom-right { bottom: 1.25rem; right: 1.25rem; align-items: flex-end; }
+  .pos-top-right    { top: 58px; right: 1.25rem; align-items: flex-end; }
+  .pos-bottom-left  { bottom: 1.25rem; left: 260px; align-items: flex-start; }
+  /* bottom-left offset to clear the controls panel */
+
+  /* ---- Toast ---- */
+  .toast {
+    pointer-events: auto;
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.75rem;
+    border: 2px solid var(--border);
+    box-shadow: var(--shadow-toast);
+    cursor: pointer;
+    transition: all 0.15s;
+    animation: toastIn 0.3s cubic-bezier(0.16,1,0.3,1);
+    position: relative; overflow: hidden;
+  }
+
+  .toast:hover { transform: translateY(-2px); }
+  .toast.exiting { animation: toastOut 0.22s cubic-bezier(0.4,0,1,1) forwards; }
+
+  .style-solid { background: var(--bg-elevated); }
+  .style-frosted {
+    background: rgba(36,27,61,0.88);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border-color: rgba(74,59,107,0.55);
+  }
+  [data-theme="light"] .style-frosted {
+    background: rgba(255,248,242,0.92);
+    backdrop-filter: blur(10px);
+    border-color: rgba(45,27,105,0.25);
+  }
+  .style-tinted.type-like    { background: linear-gradient(140deg, rgba(255,51,102,0.12), var(--bg-elevated)); }
+  .style-tinted.type-follow  { background: linear-gradient(140deg, rgba(147,51,234,0.12), var(--bg-elevated)); }
+  .style-tinted.type-submit  { background: linear-gradient(140deg, rgba(34,197,94,0.1), var(--bg-elevated)); }
+  .style-tinted.type-win     { background: linear-gradient(140deg, rgba(255,215,0,0.1), var(--bg-elevated)); }
+  .style-tinted.type-mile    { background: linear-gradient(140deg, rgba(59,130,246,0.1), var(--bg-elevated)); }
+
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateX(32px) scale(0.96); }
+    to   { opacity: 1; transform: translateX(0) scale(1); }
+  }
+  @keyframes toastOut {
+    to { opacity: 0; transform: translateX(32px) scale(0.96); }
+  }
+
+  .toast-icon {
+    flex-shrink: 0; width: 28px; height: 28px;
+    border-radius: 0.375rem;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem;
+  }
+  .toast-icon.like   { background: rgba(255,51,102,0.18); }
+  .toast-icon.follow { background: rgba(147,51,234,0.18); }
+  .toast-icon.submit { background: rgba(34,197,94,0.15); }
+  .toast-icon.win    { background: rgba(255,215,0,0.15); }
+  .toast-icon.mile   { background: rgba(59,130,246,0.15); }
+
+  .toast-body { flex: 1; min-width: 0; }
+  .toast-text { font-size: 0.6875rem; color: var(--text-primary); line-height: 1.3; }
+  .toast-text strong { font-weight: 600; }
+  .toast-action { font-size: 0.5rem; color: var(--text-tertiary); margin-top: 1px; }
+
+  .toast-thumb {
+    flex-shrink: 0; width: 32px; height: 32px;
+    border-radius: 0.375rem; border: 1px solid var(--border-light);
+  }
+
+  .toast-close {
+    position: absolute; top: 3px; right: 5px;
+    width: 14px; height: 14px;
+    border: none; background: none;
+    color: var(--text-tertiary); cursor: pointer;
+    font-size: 0.625rem;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.12s;
+  }
+  .toast:hover .toast-close { opacity: 1; }
+  .toast-close:hover { color: var(--text-primary); }
+
+  .toast-progress {
+    position: absolute; bottom: 0; left: 0;
+    height: 2px; background: var(--accent); opacity: 0.45;
+    animation: progressDrain var(--dur, 5s) linear forwards;
+  }
+  @keyframes progressDrain { from { width: 100%; } to { width: 0%; } }
+  .toast:hover .toast-progress { animation-play-state: paused; }
+</style>
+</head>
+<body>
+
+<div class="fake-app">
+  <div class="fake-header">
+    <span class="fake-logo">shapepaint</span>
+    <div style="display:flex;align-items:center;gap:0.5rem;">
+      <div style="width:28px;height:28px;border-radius:999px;background:linear-gradient(135deg,var(--accent),#9333ea);border:2px solid var(--border);"></div>
+    </div>
+  </div>
+  <div class="fake-canvas">
+    <div class="canvas-artwork"></div>
+  </div>
+</div>
+
+<div class="controls">
+  <div class="controls-title">Toast Playground</div>
+
+  <div class="controls-section">
+    <span class="controls-label">Trigger events</span>
+    <button class="trigger-btn" onclick="fire('like')">❤️ Someone liked your submission<span class="hint">→ navigate to submission</span></button>
+    <button class="trigger-btn" onclick="fire('follow')">👤 New follower<span class="hint">→ navigate to their profile</span></button>
+    <button class="trigger-btn" onclick="fire('submit')">🎨 Friend just submitted<span class="hint">→ navigate to their submission</span></button>
+    <button class="trigger-btn" onclick="fire('win')">🏆 You placed 1st!<span class="hint">→ navigate to rankings</span></button>
+    <button class="trigger-btn" onclick="fire('mile')">🔥 Milestone reached<span class="hint">→ navigate to submission</span></button>
+  </div>
+
+  <div class="controls-section">
+    <span class="controls-label">Position</span>
+    <div class="toggle-row">
+      <button class="tog-btn active" onclick="setPos(this,'bottom-right')">↘ Bot right</button>
+      <button class="tog-btn" onclick="setPos(this,'top-right')">↗ Top right</button>
+      <button class="tog-btn" onclick="setPos(this,'bottom-left')">↙ Bot left</button>
+    </div>
+  </div>
+
+  <div class="controls-section">
+    <span class="controls-label">Style</span>
+    <div class="toggle-row">
+      <button class="tog-btn active" onclick="setStyle(this,'solid')">Solid</button>
+      <button class="tog-btn" onclick="setStyle(this,'frosted')">Frosted</button>
+      <button class="tog-btn" onclick="setStyle(this,'tinted')">Tinted</button>
+    </div>
+  </div>
+
+  <button class="clear-btn" onclick="clearAll()">✕ Clear all</button>
+  <button class="theme-toggle" onclick="toggleTheme(this)">☀️ Light mode</button>
+</div>
+
+<div class="toast-container pos-bottom-right" id="tc"></div>
+
+<script>
+  let pos = 'bottom-right', style = 'solid', tid = 0;
+
+  const data = {
+    like:   { icon:'❤️', cls:'like',   names:['Mika','artdude42','pixel_witch','Elena_creates'], text: n => `<strong>${n}</strong> liked your submission`, action: 'View submission →', thumb: true, grads: ['#FF3366,#9333ea','#22c55e,#3b82f6','#eab308,#f97316'] },
+    follow: { icon:'👤', cls:'follow', names:['artdude42','shapequeen','colorblind_carl'], text: n => `<strong>${n}</strong> started following you`, action: 'View profile →', thumb: false },
+    submit: { icon:'🎨', cls:'submit', names:['Elena_creates','pixel_witch','brutalist_bob'], text: n => `<strong>${n}</strong> just submitted`, action: 'View submission →', thumb: true, grads: ['#22c55e,#06b6d4','#f97316,#ef4444','#8b5cf6,#ec4899'] },
+    win:    { icon:'🏆', cls:'win',    names:['You'], text: () => `You placed <strong style="color:var(--gold)">1st</strong> in today's challenge!`, action: 'View rankings →', thumb: false },
+    mile:   { icon:'🔥', cls:'mile',   names:[''],    milestones: ['10 likes','25 likes','50 likes','100 likes'], text: (_, m) => `Your submission hit <strong>${m}</strong>!`, action: 'View submission →', thumb: false },
+  };
+
+  function fire(type) {
+    const d = data[type];
+    const name = d.names[Math.floor(Math.random() * d.names.length)];
+    const ms = d.milestones ? d.milestones[Math.floor(Math.random() * d.milestones.length)] : '';
+    const id = ++tid;
+    const tc = document.getElementById('tc');
+
+    // Evict oldest if stacked > 4
+    if (tc.children.length >= 4) {
+      dismiss(tc.children[0].id);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `toast style-${style} type-${type}`;
+    toast.id = `t${id}`;
+    toast.style.setProperty('--dur', '5s');
+
+    let thumbHtml = '';
+    if (d.thumb && d.grads) {
+      const g = d.grads[Math.floor(Math.random() * d.grads.length)];
+      thumbHtml = `<div class="toast-thumb" style="background:linear-gradient(135deg,${g})"></div>`;
+    }
+
+    toast.innerHTML = `
+      <div class="toast-icon ${d.cls}">${d.icon}</div>
+      <div class="toast-body">
+        <div class="toast-text">${d.text(name, ms)}</div>
+        <div class="toast-action">${d.action}</div>
+      </div>
+      ${thumbHtml}
+      <button class="toast-close" onclick="event.stopPropagation();dismiss('t${id}')">✕</button>
+      <div class="toast-progress"></div>
+    `;
+
+    toast.addEventListener('click', () => {
+      toast.style.outline = '2px solid var(--accent)';
+      setTimeout(() => dismiss(`t${id}`), 250);
+    });
+
+    tc.appendChild(toast);
+    setTimeout(() => dismiss(`t${id}`), 5000);
+  }
+
+  function dismiss(id) {
+    const t = document.getElementById(id);
+    if (!t) return;
+    t.classList.add('exiting');
+    setTimeout(() => t.remove(), 220);
+  }
+
+  function clearAll() {
+    Array.from(document.getElementById('tc').children).forEach((t, i) => {
+      setTimeout(() => { t.classList.add('exiting'); setTimeout(() => t.remove(), 220); }, i * 50);
+    });
+  }
+
+  function setPos(btn, p) {
+    btn.closest('.toggle-row').querySelectorAll('.tog-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    pos = p;
+    const tc = document.getElementById('tc');
+    tc.className = `toast-container pos-${p}`;
+  }
+
+  function setStyle(btn, s) {
+    btn.closest('.toggle-row').querySelectorAll('.tog-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    style = s;
+  }
+
+  function toggleTheme(btn) {
+    const h = document.documentElement;
+    h.dataset.theme = h.dataset.theme === 'dark' ? 'light' : 'dark';
+    btn.textContent = h.dataset.theme === 'dark' ? '☀️ Light mode' : '🌙 Dark mode';
+  }
+</script>
+</body>
+</html>

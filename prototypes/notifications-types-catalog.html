@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notification Types — Catalog & Variants (SVG Icons)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Lilita+One&display=swap');
+
+  [data-theme="dark"] {
+    --bg-page: #0f0a1e;
+    --bg-primary: #1A1230;
+    --bg-secondary: #241B3D;
+    --bg-tertiary: #2D2248;
+    --bg-elevated: #352A55;
+    --text-primary: #E8E0FF;
+    --text-secondary: #8B7EC8;
+    --text-tertiary: rgba(232,224,255,0.4);
+    --accent: #FF3366;
+    --accent-subtle: rgba(255,51,102,0.2);
+    --border: #4A3B6B;
+    --border-light: #3A2D55;
+    --hover: rgba(232,224,255,0.06);
+    --unread-bg: rgba(255,51,102,0.06);
+    --shadow-btn: 3px 3px 0 rgba(0,0,0,0.3);
+    --shadow-modal: 8px 8px 0 rgba(0,0,0,0.4);
+    --gold: #FFD700; --silver: #C0C0C0; --bronze: #CD7F32;
+    --toggle-bg: #352A55;
+  }
+
+  [data-theme="light"] {
+    --bg-page: #f0eaff;
+    --bg-primary: #FFFBF7;
+    --bg-secondary: #FFF8F2;
+    --bg-tertiary: #FFF5ED;
+    --bg-elevated: #ffffff;
+    --text-primary: #2D1B69;
+    --text-secondary: #5a4880;
+    --text-tertiary: #8B7EC8;
+    --accent: #FF3366;
+    --accent-subtle: rgba(255,51,102,0.12);
+    --border: #2D1B69;
+    --border-light: #E8E8E8;
+    --hover: rgba(45,27,105,0.06);
+    --unread-bg: rgba(255,51,102,0.06);
+    --shadow-btn: 2px 2px 0 #2D1B69;
+    --shadow-modal: 6px 6px 0 #2D1B69;
+    --gold: #b8860b; --silver: #4a4a5a; --bronze: #7a3f10;
+    --toggle-bg: #FFF5ED;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg-page);
+    font-family: 'Fredoka', sans-serif;
+    color: var(--text-primary);
+    padding: 1.5rem;
+    min-height: 100vh;
+    transition: background 0.25s, color 0.25s;
+  }
+
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 2rem; gap: 1rem; }
+  .page-title { font-family: 'Lilita One', cursive; font-size: 1.75rem; }
+  .page-subtitle { color: var(--text-secondary); font-size: 0.8125rem; margin-top: 0.25rem; max-width: 600px; line-height: 1.6; }
+
+  .theme-toggle {
+    flex-shrink: 0; padding: 0.375rem 0.75rem;
+    border: 2px solid var(--border); border-radius: 999px;
+    background: var(--toggle-bg); color: var(--text-secondary);
+    font-family: 'Fredoka', sans-serif; font-size: 0.75rem; font-weight: 600;
+    cursor: pointer; box-shadow: var(--shadow-btn); transition: all 0.15s;
+  }
+  .theme-toggle:hover { color: var(--text-primary); }
+
+  /* ---- Section header ---- */
+  .section-title {
+    font-family: 'Lilita One', cursive; font-size: 1.3rem;
+    color: var(--text-primary); margin-bottom: 0.375rem;
+  }
+  .section-desc { color: var(--text-secondary); font-size: 0.75rem; margin-bottom: 1.25rem; line-height: 1.5; max-width: 600px; }
+
+  /* ======================================================
+     DESIGN VARIANTS SECTION
+  ====================================================== */
+  .variants-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .variant-card {
+    background: var(--bg-primary);
+    border: 2px solid var(--border);
+    border-radius: 1rem;
+    box-shadow: var(--shadow-modal);
+    overflow: hidden;
+    transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
+  }
+
+  .variant-header {
+    padding: 0.625rem 0.875rem;
+    border-bottom: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .variant-name { font-family: 'Lilita One', cursive; font-size: 0.875rem; color: var(--accent); }
+  .variant-tag {
+    font-size: 0.5rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em;
+    padding: 2px 6px; border-radius: 4px;
+    background: var(--accent-subtle); color: var(--accent);
+  }
+
+  .variant-body { padding: 0.75rem; }
+
+  /* ---- Variant A: Compact (current) ---- */
+  .va-item {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.5rem 0.375rem; border-radius: 0.5rem;
+    cursor: pointer; transition: background 0.12s; position: relative;
+  }
+  .va-item:hover { background: var(--hover); }
+  .va-item.unread { background: var(--unread-bg); }
+  .va-unread-dot {
+    position: absolute; left: 2px; top: 50%; transform: translateY(-50%);
+    width: 5px; height: 5px; border-radius: 50%; background: var(--accent);
+  }
+  .va-icon {
+    flex-shrink: 0; width: 30px; height: 30px; border-radius: 0.5rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .va-icon svg { width: 15px; height: 15px; }
+  .va-icon.like   { background: var(--accent-subtle); color: var(--accent); }
+  .va-icon.follow { background: rgba(147,51,234,0.18); color: #a855f7; }
+  .va-icon.win    { background: rgba(255,215,0,0.15); color: var(--gold); }
+  .va-icon.submit { background: rgba(34,197,94,0.15); color: #22c55e; }
+  .va-icon.mile   { background: rgba(59,130,246,0.15); color: #3b82f6; }
+  .va-icon.sys    { background: rgba(128,128,128,0.12); color: var(--text-secondary); }
+  [data-theme="light"] .va-icon.follow { color: #7c3aed; }
+  [data-theme="light"] .va-icon.win { color: #a16207; }
+  .va-text { font-size: 0.6875rem; color: var(--text-primary); line-height: 1.35; flex: 1; min-width: 0; }
+  .va-text strong { font-weight: 600; }
+  .va-sub { font-size: 0.5625rem; color: var(--text-tertiary); margin-top: 1px; }
+  .va-time { font-size: 0.5rem; color: var(--text-tertiary); flex-shrink: 0; }
+  .va-thumb {
+    flex-shrink: 0; width: 32px; height: 32px;
+    border-radius: 0.375rem; border: 1px solid var(--border-light);
+  }
+  .va-sep { height: 1px; background: var(--border-light); margin: 0 0.25rem; }
+
+  /* ---- Variant B: Social (avatar-forward) ---- */
+  .vb-item {
+    display: flex; align-items: flex-start; gap: 0.625rem;
+    padding: 0.625rem 0.375rem; cursor: pointer;
+    border-radius: 0.5rem; transition: background 0.12s; position: relative;
+  }
+  .vb-item:hover { background: var(--hover); }
+  .vb-item.unread { background: var(--unread-bg); }
+  .vb-avatar-wrap { flex-shrink: 0; position: relative; }
+  .vb-avatar {
+    width: 38px; height: 38px; border-radius: 999px;
+    border: 2px solid var(--border);
+  }
+  .vb-icon-badge {
+    position: absolute; bottom: -2px; right: -2px;
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 2px solid var(--bg-primary);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+  }
+  .vb-icon-badge svg { width: 9px; height: 9px; }
+  .vb-icon-badge.like   { background: var(--accent); }
+  .vb-icon-badge.follow { background: #9333ea; }
+  .vb-body { flex: 1; min-width: 0; }
+  .vb-text { font-size: 0.6875rem; color: var(--text-primary); line-height: 1.4; }
+  .vb-text strong { font-weight: 600; }
+  .vb-time { font-size: 0.5rem; color: var(--text-tertiary); margin-top: 2px; }
+  .vb-thumb {
+    flex-shrink: 0; width: 42px; height: 42px;
+    border-radius: 0.375rem; border: 2px solid var(--border-light);
+  }
+  .vb-unread { position: absolute; top: 50%; right: 4px; transform: translateY(-50%);
+    width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+  .vb-sep { height: 1px; background: var(--border-light); margin: 0 0.25rem; }
+
+  /* ---- Variant C: Card style ---- */
+  .vc-item {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: 0.625rem;
+    padding: 0.625rem 0.75rem;
+    margin-bottom: 0.5rem;
+    cursor: pointer; transition: all 0.12s; position: relative; overflow: hidden;
+  }
+  .vc-item:last-child { margin-bottom: 0; }
+  .vc-item:hover { border-color: var(--border); transform: translateY(-1px); box-shadow: var(--shadow-btn); }
+  .vc-item.unread { border-left: 3px solid var(--accent); padding-left: calc(0.75rem - 2px); }
+  .vc-top { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.375rem; }
+  .vc-icon {
+    flex-shrink: 0; width: 24px; height: 24px; border-radius: 0.375rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .vc-icon svg { width: 13px; height: 13px; }
+  .vc-label { font-size: 0.5625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-tertiary); }
+  .vc-time { font-size: 0.5rem; color: var(--text-tertiary); margin-left: auto; }
+  .vc-content { display: flex; align-items: center; gap: 0.5rem; }
+  .vc-text { font-size: 0.6875rem; color: var(--text-primary); line-height: 1.4; flex: 1; }
+  .vc-text strong { font-weight: 600; }
+  .vc-thumb {
+    flex-shrink: 0; width: 44px; height: 44px;
+    border-radius: 0.375rem; border: 1px solid var(--border-light);
+  }
+  .vc-action {
+    display: inline-block; margin-top: 0.375rem;
+    font-size: 0.5625rem; font-weight: 700; color: var(--accent);
+  }
+  .vc-action:hover { text-decoration: underline; }
+
+  /* ---- Variant D: Minimal / text-forward ---- */
+  .vd-item {
+    display: flex; align-items: baseline; gap: 0.5rem;
+    padding: 0.5rem 0.375rem; cursor: pointer;
+    border-radius: 0.375rem; transition: background 0.12s; position: relative;
+  }
+  .vd-item:hover { background: var(--hover); }
+  .vd-item.unread::before {
+    content: '';
+    position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+    width: 3px; height: 60%; border-radius: 2px; background: var(--accent);
+  }
+  .vd-dot {
+    flex-shrink: 0; width: 7px; height: 7px; border-radius: 50%; margin-top: 4px;
+    transition: background 0.2s;
+  }
+  .vd-dot.like   { background: var(--accent); }
+  .vd-dot.follow { background: #9333ea; }
+  .vd-dot.win    { background: var(--gold); }
+  .vd-dot.submit { background: #22c55e; }
+  .vd-dot.mile   { background: #3b82f6; }
+  .vd-dot.sys    { background: var(--text-tertiary); }
+  .vd-text { font-size: 0.75rem; color: var(--text-primary); line-height: 1.4; flex: 1; }
+  .vd-text strong { font-weight: 600; }
+  .vd-time { flex-shrink: 0; font-size: 0.5rem; color: var(--text-tertiary); white-space: nowrap; }
+  .vd-sep { height: 1px; background: var(--border-light); margin: 0.125rem 0.375rem; }
+
+  /* ======================================================
+     FULL CATALOG SECTION
+  ====================================================== */
+  .catalog { display: flex; flex-direction: column; gap: 1.5rem; max-width: 820px; }
+
+  .cat-section {
+    background: var(--bg-primary);
+    border: 2px solid var(--border);
+    border-radius: 1rem;
+    box-shadow: var(--shadow-modal);
+    overflow: hidden;
+    transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
+  }
+
+  .cat-header {
+    padding: 0.75rem 1.125rem;
+    border-bottom: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 0.375rem;
+  }
+  .cat-name { font-family: 'Lilita One', cursive; font-size: 0.9375rem; color: var(--accent); }
+  .cat-tags { display: flex; gap: 0.375rem; align-items: center; }
+  .tag {
+    font-size: 0.5rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 2px 6px; border-radius: 4px;
+  }
+  .tag.rt   { background: rgba(34,197,94,0.15); color: #4ade80; }
+  [data-theme="light"] .tag.rt { color: #166534; }
+  .tag.po   { background: rgba(234,179,8,0.15); color: #fbbf24; }
+  [data-theme="light"] .tag.po { color: #854d0e; }
+  .tag.nav  { background: rgba(59,130,246,0.15); color: #60a5fa; }
+  [data-theme="light"] .tag.nav { color: #1d4ed8; }
+
+  .cat-items { padding: 0.375rem 0.75rem 0.25rem; }
+
+  .ci {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.5rem 0.375rem; cursor: pointer;
+    border-radius: 0.5rem; transition: background 0.12s; position: relative;
+  }
+  .ci:hover { background: var(--hover); }
+  .ci.unread { background: var(--unread-bg); }
+  .ci-dot {
+    position: absolute; left: 2px; top: 50%; transform: translateY(-50%);
+    width: 5px; height: 5px; border-radius: 50%; background: var(--accent);
+  }
+  .ci-icon {
+    flex-shrink: 0; width: 32px; height: 32px; border-radius: 0.5rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ci-icon svg { width: 16px; height: 16px; }
+  .ci-icon.like    { background: var(--accent-subtle); color: var(--accent); }
+  .ci-icon.follow  { background: rgba(147,51,234,0.18); color: #a855f7; }
+  .ci-icon.wing    { background: rgba(255,215,0,0.15); color: var(--gold); }
+  .ci-icon.win2    { background: rgba(192,192,192,0.15); color: var(--silver); }
+  .ci-icon.win3    { background: rgba(205,127,50,0.15); color: var(--bronze); }
+  .ci-icon.submit  { background: rgba(34,197,94,0.15); color: #22c55e; }
+  .ci-icon.mile    { background: rgba(59,130,246,0.15); color: #3b82f6; }
+  .ci-icon.rank    { background: rgba(168,85,247,0.15); color: #a855f7; }
+  .ci-icon.win4    { background: rgba(255,215,0,0.15); color: var(--gold); }
+  .ci-icon.comment { background: rgba(6,182,212,0.15); color: #06b6d4; }
+  .ci-icon.sys     { background: rgba(128,128,128,0.12); color: var(--text-secondary); }
+  .ci-icon.remind  { background: rgba(249,115,22,0.15); color: #f97316; }
+  [data-theme="light"] .ci-icon.follow { color: #7c3aed; }
+  [data-theme="light"] .ci-icon.wing { color: #a16207; }
+  [data-theme="light"] .ci-icon.win4 { color: #a16207; }
+  [data-theme="light"] .ci-icon.rank { color: #7c3aed; }
+
+  .ci-body { flex: 1; min-width: 0; }
+  .ci-text { font-size: 0.6875rem; color: var(--text-primary); line-height: 1.35; }
+  .ci-text strong { font-weight: 600; }
+  .ci-sub { font-size: 0.5625rem; color: var(--text-tertiary); margin-top: 1px; }
+  .ci-time { font-size: 0.5rem; color: var(--text-tertiary); flex-shrink: 0; }
+  .ci-thumb {
+    flex-shrink: 0; width: 36px; height: 36px;
+    border-radius: 0.375rem; border: 1px solid var(--border-light);
+  }
+  .ci-avatar {
+    flex-shrink: 0; width: 34px; height: 34px; border-radius: 999px;
+    border: 2px solid var(--border);
+  }
+
+  .sub-label {
+    font-size: 0.5625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-tertiary); padding: 0.375rem 0.375rem 0;
+  }
+  .ci-sep { height: 1px; background: var(--border-light); margin: 0 0.25rem; }
+
+  /* Grouped notification style */
+  .ci-grouped {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.5rem 0.375rem; cursor: pointer;
+    border-radius: 0.5rem; transition: background 0.12s;
+    background: rgba(255,51,102,0.04);
+    border: 1px dashed var(--border-light); margin: 0.25rem 0;
+  }
+  .ci-grouped:hover { background: rgba(255,51,102,0.08); }
+
+  .avatar-stack { display: flex; flex-shrink: 0; }
+  .mini-av {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 2px solid var(--bg-secondary); margin-left: -7px;
+  }
+  .mini-av:first-child { margin-left: 0; }
+
+  .cat-footer {
+    padding: 0.5rem 1.125rem;
+    border-top: 1px solid var(--border-light);
+    background: rgba(0,0,0,0.04);
+  }
+  [data-theme="light"] .cat-footer { background: rgba(45,27,105,0.03); }
+  .cat-footer p { font-size: 0.5625rem; color: var(--text-tertiary); line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div>
+    <div class="page-title">Notification Types — Catalog & Variants</div>
+    <p class="page-subtitle">First section: 4 design directions for the notification list. Second section: full catalog of every event type with grouping, click actions, and toast/panel behavior.</p>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme(this)">☀️ Light mode</button>
+</div>
+
+<!-- ======================================================
+     DESIGN VARIANTS
+====================================================== -->
+<div class="section-title">Design Variants — Same data, 4 visual approaches</div>
+<p class="section-desc">All 4 show the same notifications (like, follower, competition win). Choose which visual language fits best — or mix approaches per event type.</p>
+
+<div class="variants-grid">
+
+  <!-- VARIANT A: Compact (current) -->
+  <div class="variant-card">
+    <div class="variant-header">
+      <span class="variant-name">A — Compact (current)</span>
+      <span class="variant-tag">emoji icon</span>
+    </div>
+    <div class="variant-body">
+      <div class="va-item unread">
+
+        <div class="va-icon like"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>
+        <div style="flex:1;min-width:0">
+          <div class="va-text"><strong>Mika</strong> liked your submission</div>
+          <div class="va-sub">2 min ago</div>
+        </div>
+        <div class="va-thumb" style="background:linear-gradient(135deg,#FF3366,#9333ea)"></div>
+      </div>
+      <div class="va-sep"></div>
+      <div class="va-item unread">
+
+        <div class="va-icon follow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></div>
+        <div style="flex:1;min-width:0">
+          <div class="va-text"><strong>artdude42</strong> started following you</div>
+          <div class="va-sub">18 min ago</div>
+        </div>
+      </div>
+      <div class="va-sep"></div>
+      <div class="va-item">
+        <div class="va-icon win"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg></div>
+        <div style="flex:1;min-width:0">
+          <div class="va-text">You placed <strong style="color:var(--gold)">1st</strong> in yesterday's challenge!</div>
+          <div class="va-sub">5 hours ago</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VARIANT B: Social (avatar-forward) -->
+  <div class="variant-card">
+    <div class="variant-header">
+      <span class="variant-name">B — Social (avatar-forward)</span>
+      <span class="variant-tag">people-first</span>
+    </div>
+    <div class="variant-body">
+      <div class="vb-item unread">
+        <div class="vb-unread"></div>
+        <div class="vb-avatar-wrap">
+          <div class="vb-avatar" style="background:linear-gradient(135deg,#FF3366,#9333ea)"></div>
+          <div class="vb-icon-badge like"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>
+        </div>
+        <div class="vb-body">
+          <div class="vb-text"><strong>Mika</strong> liked your submission</div>
+          <div class="vb-time">2 min ago</div>
+        </div>
+        <div class="vb-thumb" style="background:linear-gradient(135deg,#FF3366,#9333ea)"></div>
+      </div>
+      <div class="vb-sep"></div>
+      <div class="vb-item unread">
+        <div class="vb-unread"></div>
+        <div class="vb-avatar-wrap">
+          <div class="vb-avatar" style="background:linear-gradient(135deg,#22c55e,#06b6d4)"></div>
+          <div class="vb-icon-badge follow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></div>
+        </div>
+        <div class="vb-body">
+          <div class="vb-text"><strong>artdude42</strong> started following you</div>
+          <div class="vb-time">18 min ago</div>
+        </div>
+      </div>
+      <div class="vb-sep"></div>
+      <div class="vb-item">
+        <div class="vb-avatar-wrap">
+          <div class="vb-avatar" style="background:linear-gradient(135deg,var(--gold),#f97316);opacity:0.7"></div>
+          <div class="vb-icon-badge" style="background:#FFD700"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg></div>
+        </div>
+        <div class="vb-body">
+          <div class="vb-text">You placed <strong style="color:var(--gold)">1st</strong> in yesterday's challenge!</div>
+          <div class="vb-time">5 hours ago</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VARIANT C: Card style -->
+  <div class="variant-card">
+    <div class="variant-header">
+      <span class="variant-name">C — Card style</span>
+      <span class="variant-tag">action-oriented</span>
+    </div>
+    <div class="variant-body">
+      <div class="vc-item unread">
+        <div class="vc-top">
+          <div class="vc-icon like" style="background:var(--accent-subtle);color:var(--accent)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>
+          <span class="vc-label">Like</span>
+          <span class="vc-time">2m</span>
+        </div>
+        <div class="vc-content">
+          <div class="vc-text"><strong>Mika</strong> liked your submission<br><span class="vc-action">View →</span></div>
+          <div class="vc-thumb" style="background:linear-gradient(135deg,#FF3366,#9333ea)"></div>
+        </div>
+      </div>
+      <div class="vc-item unread">
+        <div class="vc-top">
+          <div class="vc-icon follow" style="background:rgba(147,51,234,0.18);color:#a855f7"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></div>
+          <span class="vc-label">Follower</span>
+          <span class="vc-time">18m</span>
+        </div>
+        <div class="vc-content">
+          <div class="vc-text"><strong>artdude42</strong> started following you<br><span class="vc-action">View profile →</span></div>
+        </div>
+      </div>
+      <div class="vc-item">
+        <div class="vc-top">
+          <div class="vc-icon win" style="background:rgba(255,215,0,0.15);color:var(--gold)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg></div>
+          <span class="vc-label">Result</span>
+          <span class="vc-time">5h</span>
+        </div>
+        <div class="vc-content">
+          <div class="vc-text">You placed <strong style="color:var(--gold)">1st</strong> in yesterday's challenge!<br><span class="vc-action">View rankings →</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VARIANT D: Minimal text-forward -->
+  <div class="variant-card">
+    <div class="variant-header">
+      <span class="variant-name">D — Minimal / text-forward</span>
+      <span class="variant-tag">list style</span>
+    </div>
+    <div class="variant-body">
+      <div class="vd-item unread">
+        <div class="vd-dot like"></div>
+        <div class="vd-text"><strong>Mika</strong> liked your submission</div>
+        <span class="vd-time">2m</span>
+      </div>
+      <div class="vd-sep"></div>
+      <div class="vd-item unread">
+        <div class="vd-dot follow"></div>
+        <div class="vd-text"><strong>artdude42</strong> started following you</div>
+        <span class="vd-time">18m</span>
+      </div>
+      <div class="vd-sep"></div>
+      <div class="vd-item">
+        <div class="vd-dot win"></div>
+        <div class="vd-text">You placed <strong>1st</strong> in yesterday's challenge</div>
+        <span class="vd-time">5h</span>
+      </div>
+      <div class="vd-sep"></div>
+      <div class="vd-item">
+        <div class="vd-dot submit"></div>
+        <div class="vd-text"><strong>Elena_creates</strong> just submitted</div>
+        <span class="vd-time">12m</span>
+      </div>
+      <div class="vd-sep"></div>
+      <div class="vd-item">
+        <div class="vd-dot mile"></div>
+        <div class="vd-text">Your submission hit <strong>25 likes!</strong></div>
+        <span class="vd-time">1h</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ======================================================
+     FULL CATALOG
+====================================================== -->
+<div class="section-title">Full Event Type Catalog</div>
+<p class="section-desc">Every notification event with click actions, grouping behavior, and whether it fires as a realtime toast or only shows in the panel.</p>
+
+<div class="catalog">
+
+  <!-- LIKES -->
+  <div class="cat-section">
+    <div class="cat-header">
+      <span class="cat-name">Likes</span>
+      <div class="cat-tags"><span class="tag rt">realtime toast</span><span class="tag nav">→ submission</span></div>
+    </div>
+    <div class="cat-items">
+      <div class="sub-label">Single</div>
+      <div class="ci unread">
+
+        <div class="ci-icon like"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>
+        <div class="ci-body"><div class="ci-text"><strong>Mika</strong> liked your submission</div><div class="ci-sub">Apr 5 challenge</div></div>
+        <div class="ci-thumb" style="background:linear-gradient(135deg,#FF3366,#9333ea)"></div>
+        <span class="ci-time">2m</span>
+      </div>
+      <div class="sub-label">Grouped (3+ on same submission)</div>
+      <div class="ci-grouped">
+        <div class="ci-icon like"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>
+        <div class="avatar-stack">
+          <div class="mini-av" style="background:linear-gradient(135deg,#FF3366,#9333ea)"></div>
+          <div class="mini-av" style="background:linear-gradient(135deg,#22c55e,#06b6d4)"></div>
+          <div class="mini-av" style="background:linear-gradient(135deg,#f97316,#fbbf24)"></div>
+        </div>
+        <div class="ci-body"><div class="ci-text"><strong>Mika</strong>, <strong>artdude42</strong>, and <strong>3 others</strong> liked your submission</div><div class="ci-sub">Apr 5 challenge</div></div>
+        <div class="ci-thumb" style="background:linear-gradient(135deg,#FF3366,#9333ea)"></div>
+        <span class="ci-time">18m</span>
+      </div>
+    </div>
+    <div class="cat-footer"><p>Toast fires only for the first like. Subsequent likes update the grouped notification in the panel silently.</p></div>
+  </div>
+
+  <!-- FOLLOWER -->
+  <div class="cat-section">
+    <div class="cat-header">
+      <span class="cat-name">New Follower</span>
+      <div class="cat-tags"><span class="tag rt">realtime toast</span><span class="tag nav">→ profile</span></div>
+    </div>
+    <div class="cat-items">
+      <div class="ci unread">
+
+        <div class="ci-icon follow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></div>
+        <div class="ci-body"><div class="ci-text"><strong>artdude42</strong> started following you</div></div>
+        <div class="ci-avatar" style="background:linear-gradient(135deg,#22c55e,#06b6d4)"></div>
+        <span class="ci-time">18m</span>
+      </div>
+      <div class="sub-label">Grouped</div>
+      <div class="ci-grouped">
+        <div class="ci-icon follow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></div>
+        <div class="avatar-stack">
+          <div class="mini-av" style="background:linear-gradient(135deg,#8b5cf6,#ec4899)"></div>
+          <div class="mini-av" style="background:linear-gradient(135deg,#f97316,#fbbf24)"></div>
+        </div>
+        <div class="ci-body"><div class="ci-text"><strong>shapequeen</strong> and <strong>1 other</strong> started following you</div></div>
+        <span class="ci-time">2h</span>
+      </div>
+    </div>
+    <div class="cat-footer"><p>Click navigates to follower's profile — useful for follow-back loop.</p></div>
+  </div>
+
+  <!-- COMPETITION WIN -->
+  <div class="cat-section">
+    <div class="cat-header">
+      <span class="cat-name">Competition Win (Missed)</span>
+      <div class="cat-tags"><span class="tag po">panel only</span><span class="tag nav">→ rankings</span></div>
+    </div>
+    <div class="cat-items">
+      <div class="sub-label">1st place</div>
+      <div class="ci unread">
+
+        <div class="ci-icon wing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg></div>
+        <div class="ci-body"><div class="ci-text">You placed <strong style="color:var(--gold)">1st</strong> in yesterday's challenge!</div><div class="ci-sub">Apr 4 · "Two circles, one truth"</div></div>
+        <span class="ci-time">5h</span>
+      </div>
+      <div class="sub-label">2nd place</div>
+      <div class="ci">
+        <div class="ci-icon win2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.21 15 2.66 7.14a2 2 0 0 1 .13-2.2L4.4 2.8A2 2 0 0 1 6 2h12a2 2 0 0 1 1.6.8l1.6 2.14a2 2 0 0 1 .14 2.2L16.79 15"/><path d="M11 12 5.12 2.2"/><path d="m13 12 5.88-9.8"/><path d="M8 7h8"/><circle cx="12" cy="17" r="5"/><path d="M12 18v-2h-.5"/></svg></div>
+        <div class="ci-body"><div class="ci-text">You placed <strong style="color:var(--silver)">2nd</strong> in Saturday's challenge</div><div class="ci-sub">Apr 3 · "Sharp corners only"</div></div>
+        <span class="ci-time">1d</span>
+      </div>
+      <div class="sub-label">3rd place</div>
+      <div class="ci">
+        <div class="ci-icon win3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.21 15 2.66 7.14a2 2 0 0 1 .13-2.2L4.4 2.8A2 2 0 0 1 6 2h12a2 2 0 0 1 1.6.8l1.6 2.14a2 2 0 0 1 .14 2.2L16.79 15"/><path d="M11 12 5.12 2.2"/><path d="m13 12 5.88-9.8"/><path d="M8 7h8"/><circle cx="12" cy="17" r="5"/><path d="M12 18v-2h-.5"/></svg></div>
+        <div class="ci-body"><div class="ci-text">You placed <strong style="color:var(--bronze)">3rd</strong> in Friday's challenge</div><div class="ci-sub">Apr 2 · "Sunset palette"</div></div>
+        <span class="ci-time">2d</span>
+      </div>
+    </div>
+    <div class="cat-footer"><p>Only generated when the user visits after the competition ended (missed the winner modal). Panel-only — retroactive, not a realtime event.</p></div>
+  </div>
+
+  <!-- FRIEND SUBMITTED -->
+  <div class="cat-section">
+    <div class="cat-header">
+      <span class="cat-name">Friend Submitted</span>
+      <div class="cat-tags"><span class="tag rt">realtime toast</span><span class="tag nav">→ submission</span></div>
+    </div>
+    <div class="cat-items">
+      <div class="ci unread">
+
+        <div class="ci-icon submit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg></div>
+        <div class="ci-body"><div class="ci-text"><strong>Elena_creates</strong> just submitted</div><div class="ci-sub">Today's challenge</div></div>
+        <div class="ci-thumb" style="background:linear-gradient(135deg,#22c55e,#3b82f6)"></div>
+        <span class="ci-time">12m</span>
+      </div>
+      <div class="ci-sep"></div>
+      <div class="ci">
+        <div class="ci-icon submit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg></div>
+        <div class="ci-body"><div class="ci-text"><strong>pixel_witch</strong> just submitted</div><div class="ci-sub">Today's challenge</div></div>
+        <div class="ci-thumb" style="background:linear-gradient(135deg,#f97316,#ef4444)"></div>
+        <span class="ci-time">45m</span>
+      </div>
+    </div>
+    <div class="cat-footer"><p>Only fires for people you follow. Each submission is its own notification — these don't collapse. Shows submission thumbnail.</p></div>
+  </div>
+
+  <!-- MILESTONES -->
+  <div class="cat-section">
+    <div class="cat-header">
+      <span class="cat-name">Milestones</span>
+      <div class="cat-tags"><span class="tag rt">realtime toast</span><span class="tag nav">→ submission / profile</span></div>
+    </div>
+    <div class="cat-items">
+      <div class="sub-label">Like milestones</div>
+      <div class="ci unread">
+
+        <div class="ci-icon mile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></div>
+        <div class="ci-body"><div class="ci-text">Your submission hit <strong>25 likes!</strong></div><div class="ci-sub">Apr 4 challenge</div></div>
+        <div class="ci-thumb" style="background:linear-gradient(135deg,#FF3366,#9333ea)"></div>
+        <span class="ci-time">1h</span>
+      </div>
+      <div class="ci-sep"></div>
+      <div class="sub-label">Follower milestones</div>
+      <div class="ci">
+        <div class="ci-icon mile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+        <div class="ci-body"><div class="ci-text">You reached <strong>50 followers!</strong></div></div>
+        <span class="ci-time">5d</span>
+      </div>
+    </div>
+    <div class="cat-footer"><p>Thresholds: 10, 25, 50, 100, 250, 500, 1000. Like milestones → submission. Follower milestones → your profile.</p></div>
+  </div>
+
+  <!-- RANKING UPDATE (future) -->
+  <div class="cat-section">
+    <div class="cat-header">
+      <span class="cat-name">Ranking Update (optional)</span>
+      <div class="cat-tags"><span class="tag po">panel only</span><span class="tag nav">→ rankings</span></div>
+    </div>
+    <div class="cat-items">
+      <div class="ci">
+        <div class="ci-icon rank"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+        <div class="ci-body"><div class="ci-text">You ranked <strong>#7</strong> out of 43 submissions</div><div class="ci-sub">Apr 4 challenge</div></div>
+        <span class="ci-time">5h</span>
+      </div>
+    </div>
+    <div class="cat-footer"><p>Optional: notify all participants of their final ranking, not just top 3. Could be noisy for daily submitters.</p></div>
+  </div>
+
+  <!-- FRIEND WON (future) -->
+  <div class="cat-section">
+    <div class="cat-header">
+      <span class="cat-name">Friend Won (optional)</span>
+      <div class="cat-tags"><span class="tag po">panel only</span><span class="tag nav">→ their submission</span></div>
+    </div>
+    <div class="cat-items">
+      <div class="ci">
+        <div class="ci-icon win4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg></div>
+        <div class="ci-body"><div class="ci-text"><strong>Elena_creates</strong> placed <strong style="color:var(--gold)">1st</strong> in yesterday's challenge!</div></div>
+        <div class="ci-avatar" style="background:linear-gradient(135deg,#22c55e,#06b6d4)"></div>
+        <span class="ci-time">5h</span>
+      </div>
+    </div>
+    <div class="cat-footer"><p>Social engagement loop. Could be spammy if you follow many prolific winners. Consider making it opt-in.</p></div>
+  </div>
+
+  <!-- COMMENTS (future) -->
+  <div class="cat-section">
+    <div class="cat-header">
+      <span class="cat-name">Comments (future)</span>
+      <div class="cat-tags"><span class="tag rt">realtime toast</span><span class="tag nav">→ submission + comments</span></div>
+    </div>
+    <div class="cat-items">
+      <div class="ci unread">
+
+        <div class="ci-icon comment"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></div>
+        <div class="ci-body">
+          <div class="ci-text"><strong>artdude42</strong> commented on your submission</div>
+          <div class="ci-sub" style="font-style:italic">"Love the negative space in this one"</div>
+        </div>
+        <div class="ci-thumb" style="background:linear-gradient(135deg,#FF3366,#9333ea)"></div>
+        <span class="ci-time">5m</span>
+      </div>
+      <div class="sub-label">Grouped</div>
+      <div class="ci-grouped">
+        <div class="ci-icon comment"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></div>
+        <div class="avatar-stack">
+          <div class="mini-av" style="background:linear-gradient(135deg,#22c55e,#06b6d4)"></div>
+          <div class="mini-av" style="background:linear-gradient(135deg,#f97316,#fbbf24)"></div>
+        </div>
+        <div class="ci-body"><div class="ci-text"><strong>artdude42</strong> and <strong>pixel_witch</strong> commented on your submission</div></div>
+        <div class="ci-thumb" style="background:linear-gradient(135deg,#FF3366,#9333ea)"></div>
+        <span class="ci-time">30m</span>
+      </div>
+    </div>
+    <div class="cat-footer"><p>Collapse multiple comments on the same submission. Show preview of most recent. Click → navigate to submission, scroll to comments.</p></div>
+  </div>
+
+  <!-- SYSTEM -->
+  <div class="cat-section">
+    <div class="cat-header">
+      <span class="cat-name">System / Announcements</span>
+      <div class="cat-tags"><span class="tag po">panel only</span></div>
+    </div>
+    <div class="cat-items">
+      <div class="ci">
+        <div class="ci-icon sys"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 13v-2z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg></div>
+        <div class="ci-body"><div class="ci-text">New feature: <strong>Comments</strong> are live!</div><div class="ci-sub">Leave feedback on any submission</div></div>
+        <span class="ci-time">2d</span>
+      </div>
+      <div class="ci-sep"></div>
+      <div class="ci">
+        <div class="ci-icon remind"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div class="ci-body"><div class="ci-text">Today's challenge closes in <strong>2 hours</strong></div><div class="ci-sub">You haven't submitted yet</div></div>
+        <span class="ci-time">now</span>
+      </div>
+    </div>
+    <div class="cat-footer"><p>Reminders (submission deadline nudges) could be opt-in to avoid annoyance. Announcements are admin-authored and rare.</p></div>
+  </div>
+
+</div>
+
+<script>
+  function toggleTheme(btn) {
+    const h = document.documentElement;
+    h.dataset.theme = h.dataset.theme === 'dark' ? 'light' : 'dark';
+    btn.textContent = h.dataset.theme === 'dark' ? '☀️ Light mode' : '🌙 Dark mode';
+  }
+</script>
+</body>
+</html>
