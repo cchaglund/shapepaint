@@ -28,6 +28,10 @@ When testing things using the browser, it often helps to be logged in. Read how 
 
 Use playwright mcp for browser automation tasks. .
 
+## Canvas Interaction Model
+
+If you're modifying shape selection, grouping, dragging, hover, or any canvas interaction behavior, read [docs/canvas-interaction-model.md](docs/canvas-interaction-model.md) first. It documents the intended behavior and the reasoning behind edge case decisions.
+
 ## Design Context
 
 See DESIGN.md for design context and guidelines.

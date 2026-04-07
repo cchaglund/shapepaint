@@ -87,6 +87,7 @@ export function useCanvasEditorState({ challenge, userId, keyMappings }: UseCanv
   });
 
   const [hoveredShapeIds, setHoveredShapeIds] = useState<Set<string> | null>(null);
+  const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
 
   const backgroundColor =
     canvasState.backgroundColorIndex !== null && challenge
@@ -130,7 +131,7 @@ export function useCanvasEditorState({ challenge, userId, keyMappings }: UseCanv
     createGroup, deleteGroup, ungroupShapes, renameGroup,
     toggleGroupCollapsed, toggleShapeVisibility, toggleGroupVisibility, toggleShapeLock, toggleGroupLock,
     selectGroup, keyMappings, showGrid, showOffCanvas, toggleGrid,
-    hoveredShapeIds, setHoveredShapeIds, toast, dismissToast,
+    hoveredShapeIds, setHoveredShapeIds, activeGroupId, setActiveGroupId, toast, dismissToast,
   };
 
   return {

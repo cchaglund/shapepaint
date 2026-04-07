@@ -20,6 +20,7 @@ interface UseMarqueeSelectionOptions {
   isSpacePressed: boolean;
   onSelectShapes: (ids: string[], options?: { additive?: boolean }) => void;
   onSelectShape: (id: string | null) => void;
+  activeGroupId: string | null;
 }
 
 export function useMarqueeSelection({
@@ -29,6 +30,7 @@ export function useMarqueeSelection({
   isSpacePressed,
   onSelectShapes,
   onSelectShape,
+  activeGroupId,
 }: UseMarqueeSelectionOptions) {
   const [marqueeState, setMarqueeState] = useState<MarqueeState | null>(null);
   const marqueeRef = useRef<MarqueeState | null>(null);
@@ -40,23 +42,35 @@ export function useMarqueeSelection({
   const getSVGPointRef = useRef(getSVGPoint);
   const onSelectShapesRef = useRef(onSelectShapes);
   const onSelectShapeRef = useRef(onSelectShape);
+  const activeGroupIdRef = useRef(activeGroupId);
   shapesRef.current = shapes;
   groupsRef.current = groups;
   getSVGPointRef.current = getSVGPoint;
   onSelectShapesRef.current = onSelectShapes;
   onSelectShapeRef.current = onSelectShape;
+  activeGroupIdRef.current = activeGroupId;
 
   const getIntersectingIds = useCallback(
     (rect: { minX: number; minY: number; maxX: number; maxY: number }) => {
       const visible = getVisibleShapes(shapesRef.current, groupsRef.current);
-      const ids: string[] = [];
+      const hitIds = new Set<string>();
       for (const shape of visible) {
         if (isShapeLocked(shape, groupsRef.current)) continue;
         if (shapeIntersectsRect(shape, rect)) {
-          ids.push(shape.id);
+          const groupId = shape.groupId;
+          if (groupId && groupId !== activeGroupIdRef.current) {
+            // Shape is in a group we haven't entered — select the entire group
+            for (const s of visible) {
+              if (s.groupId === groupId && !isShapeLocked(s, groupsRef.current)) {
+                hitIds.add(s.id);
+              }
+            }
+          } else {
+            hitIds.add(shape.id);
+          }
         }
       }
-      return ids;
+      return Array.from(hitIds);
     },
     []
   );

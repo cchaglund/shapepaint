@@ -1,5 +1,6 @@
 import type { Shape } from '../../types';
 import { getShapeSVGData } from '../../utils/shapes';
+import { getShapeAABB } from '../../utils/shapeBounds';
 
 interface TransformHandlesProps {
   shape: Shape;
@@ -511,37 +512,64 @@ export function MultiSelectTransformLayer({
   );
 }
 
-// Hover highlight layer - shows dashed outline for shapes hovered in the layer panel
+// Hover highlight layer - shows dashed outline for hovered shapes.
+// Single shape: outline around that shape. Multiple shapes (group hover): single bounding box.
 export function HoverHighlightLayer({ shapes, zoom = 1 }: { shapes: Shape[]; zoom?: number }) {
   const scale = 1 / zoom;
   const strokeWidth = 2 * scale;
   const dashLength = 6 * scale;
 
+  if (shapes.length === 0) return null;
+
+  // Multiple shapes (group hover): render a single bounding box
+  if (shapes.length > 1) {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const shape of shapes) {
+      const aabb = getShapeAABB(shape);
+      minX = Math.min(minX, aabb.minX);
+      minY = Math.min(minY, aabb.minY);
+      maxX = Math.max(maxX, aabb.maxX);
+      maxY = Math.max(maxY, aabb.maxY);
+    }
+    return (
+      <g style={{ pointerEvents: 'none' }}>
+        <rect
+          x={minX}
+          y={minY}
+          width={maxX - minX}
+          height={maxY - minY}
+          fill="none"
+          style={{ stroke: 'var(--color-accent)' }}
+          strokeWidth={strokeWidth}
+          strokeDasharray={`${dashLength},${dashLength}`}
+        />
+      </g>
+    );
+  }
+
+  // Single shape: outline around individual shape
+  const shape = shapes[0];
+  const { viewBox, dimensions } = getShapeSVGData(shape.type, shape.size);
+  const rW = dimensions?.width ?? viewBox.width;
+  const rH = dimensions?.height ?? viewBox.height;
+  const centerX = rW / 2;
+  const centerY = rH / 2;
+  const transform = buildShapeTransform(shape, centerX, centerY);
+
   return (
     <g style={{ pointerEvents: 'none' }}>
-      {shapes.map((shape) => {
-        const { viewBox, dimensions } = getShapeSVGData(shape.type, shape.size);
-        const rW = dimensions?.width ?? viewBox.width;
-        const rH = dimensions?.height ?? viewBox.height;
-        const centerX = rW / 2;
-        const centerY = rH / 2;
-        const transform = buildShapeTransform(shape, centerX, centerY);
-
-        return (
-          <g key={shape.id} transform={transform}>
-            <rect
-              x={0}
-              y={0}
-              width={rW}
-              height={rH}
-              fill="none"
-              style={{ stroke: 'var(--color-accent)' }}
-              strokeWidth={strokeWidth}
-              strokeDasharray={`${dashLength},${dashLength}`}
-            />
-          </g>
-        );
-      })}
+      <g transform={transform}>
+        <rect
+          x={0}
+          y={0}
+          width={rW}
+          height={rH}
+          fill="none"
+          style={{ stroke: 'var(--color-accent)' }}
+          strokeWidth={strokeWidth}
+          strokeDasharray={`${dashLength},${dashLength}`}
+        />
+      </g>
     </g>
   );
 }
