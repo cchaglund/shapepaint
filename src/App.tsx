@@ -1,13 +1,15 @@
 import { lazy, Suspense, useMemo, type ReactNode } from 'react';
 import { MotionConfig } from 'motion/react';
+import { AuthProvider, useAuthContext } from './contexts/AuthContext';
+import { HeaderProvider } from './contexts/HeaderContext';
 import { FollowsProvider } from './contexts/FollowsContext';
 import { getTodayDateUTC } from './utils/dailyChallenge';
 import { useDailyChallenge } from './hooks/challenge/useDailyChallenge';
 import { useAppRoute, isStandaloneRoute } from './hooks/useAppRoute';
 import { useThemeState } from './hooks/ui/useThemeState';
-import { useAuth } from './hooks/auth/useAuth';
 import { useAdmin } from './hooks/auth/useAdmin';
 import { useDateChangeReload } from './hooks/ui/useDateChangeReload';
+import { TopBar } from './components/canvas/TopBar';
 import { LoadingSpinner } from './components/shared/LoadingSpinner';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
 
@@ -23,7 +25,7 @@ const VotingTestPage = lazy(() => import('./test/VotingTestPage').then(m => ({ d
 const CanvasEditorPage = lazy(() => import('./pages/CanvasEditorPage').then(m => ({ default: m.CanvasEditorPage })));
 
 function AdminGuard({ children }: { children: ReactNode }) {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuthContext();
   const { isAdmin, loading: adminLoading } = useAdmin(user?.id);
 
   if (authLoading || adminLoading) return <LoadingSpinner size="lg" fullScreen />;
@@ -31,57 +33,81 @@ function AdminGuard({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+/** Admin/test routes that render standalone without the shared header layout */
+function StandaloneRoute({ route }: { route: { type: string } }) {
+  switch (route.type) {
+    case 'explorer': return <AdminGuard><ShapeExplorer /></AdminGuard>;
+    case 'voting-test': return <VotingTestPage />;
+    case 'dashboard': return <AdminGuard><Dashboard /></AdminGuard>;
+    case 'color-tester': return <ColorTester />;
+    default: return null;
+  }
+}
+
+const STANDALONE_ADMIN_ROUTES = new Set(['explorer', 'voting-test', 'dashboard', 'color-tester']);
+
 function AppContent() {
-  // Apply theme globally so all pages respect the selected theme + dark mode
   const { mode: themeMode, setMode: setThemeMode, theme: themeName, setTheme: setThemeName } = useThemeState();
-
-  // Resolve current route from URL params
   const route = useAppRoute();
-
-  // Only fetch today's challenge for the canvas editor (standalone pages fetch their own)
   const todayDate = useMemo(() => getTodayDateUTC(), []);
 
-  // Reload the page when the server confirms a new day's challenge exists
   useDateChangeReload(todayDate);
   const needsChallenge = route.type === 'canvas';
   const { challenge, loading: challengeLoading } = useDailyChallenge(needsChallenge ? todayDate : '');
 
-  // Render standalone pages (fetch their own data, no need to wait for today's challenge)
-  if (isStandaloneRoute(route)) {
-    const page = (() => {
-      switch (route.type) {
-        case 'explorer': return <AdminGuard><ShapeExplorer /></AdminGuard>;
-        case 'voting-test': return <VotingTestPage />;
-        case 'dashboard': return <AdminGuard><Dashboard /></AdminGuard>;
-        case 'color-tester': return <ColorTester />;
-        case 'gallery': return <FollowsProvider><GalleryPage tab={route.tab} year={route.year} month={route.month} date={route.date} themeMode={themeMode} onSetThemeMode={setThemeMode} themeName={themeName} onSetThemeName={setThemeName} /></FollowsProvider>;
-        case 'profile': return <FollowsProvider><UserProfilePage userId={route.userId} themeMode={themeMode} onSetThemeMode={setThemeMode} themeName={themeName} onSetThemeName={setThemeName} /></FollowsProvider>;
-        case 'winners-day': return <WinnersDayPage date={route.date} themeMode={themeMode} onSetThemeMode={setThemeMode} themeName={themeName} onSetThemeName={setThemeName} />;
-        case 'submission-by-id': return <FollowsProvider><SubmissionDetailPage submissionId={route.id} themeMode={themeMode} onSetThemeMode={setThemeMode} themeName={themeName} onSetThemeName={setThemeName} /></FollowsProvider>;
-        case 'submission-by-date': return <FollowsProvider><SubmissionDetailPage date={route.date} themeMode={themeMode} onSetThemeMode={setThemeMode} themeName={themeName} onSetThemeName={setThemeName} /></FollowsProvider>;
-      }
-    })();
-    return <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>{page}</Suspense>;
+  // Admin/test routes render standalone without the shared header
+  if (STANDALONE_ADMIN_ROUTES.has(route.type)) {
+    return (
+      <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
+        <StandaloneRoute route={route} />
+      </Suspense>
+    );
   }
 
-  // Only the canvas editor needs today's challenge loaded first
-  if (challengeLoading || !challenge) {
-    return <LoadingSpinner size="lg" fullScreen />;
-  }
+  // All main pages share the persistent header layout
+  const pageContent = (() => {
+    if (isStandaloneRoute(route)) {
+      switch (route.type) {
+        case 'gallery': return <FollowsProvider><GalleryPage tab={route.tab} year={route.year} month={route.month} date={route.date} /></FollowsProvider>;
+        case 'profile': return <FollowsProvider><UserProfilePage userId={route.userId} /></FollowsProvider>;
+        case 'winners-day': return <WinnersDayPage date={route.date} />;
+        case 'submission-by-id': return <FollowsProvider><SubmissionDetailPage submissionId={route.id} /></FollowsProvider>;
+        case 'submission-by-date': return <FollowsProvider><SubmissionDetailPage date={route.date} /></FollowsProvider>;
+      }
+    }
+
+    // Canvas editor — needs challenge data
+    if (challengeLoading || !challenge) {
+      return <LoadingSpinner size="lg" fullScreen />;
+    }
+    return <CanvasEditorPage challenge={challenge} todayDate={todayDate} />;
+  })();
 
   return (
-    <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
-      <CanvasEditorPage challenge={challenge} todayDate={todayDate} themeMode={themeMode} onSetThemeMode={setThemeMode} themeName={themeName} onSetThemeName={setThemeName} />
-    </Suspense>
+    <HeaderProvider>
+      <div className="h-dvh flex flex-col overflow-hidden">
+        <TopBar
+          themeMode={themeMode}
+          onSetThemeMode={setThemeMode}
+          themeName={themeName}
+          onSetThemeName={setThemeName}
+        />
+        <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
+          {pageContent}
+        </Suspense>
+      </div>
+    </HeaderProvider>
   );
 }
 
 function App() {
   return (
     <ErrorBoundary>
-      <MotionConfig reducedMotion="user">
-        <AppContent />
-      </MotionConfig>
+      <AuthProvider>
+        <MotionConfig reducedMotion="user">
+          <AppContent />
+        </MotionConfig>
+      </AuthProvider>
     </ErrorBoundary>
   );
 }

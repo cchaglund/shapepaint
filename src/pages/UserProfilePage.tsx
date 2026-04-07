@@ -1,11 +1,10 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import type { ThemeMode, ThemeName } from '../hooks/ui/useThemeState';
-import { Button } from '../components/shared/Button';
 import { useUserProfile } from '../hooks/social/useUserProfile';
 import { useAuth } from '../hooks/auth/useAuth';
 import { useSubmissions } from '../hooks/submission/useSubmissions';
 import { FollowButton } from '../components/social/FollowButton';
 import { AvatarImage } from '../components/shared/AvatarImage';
+import { BackButton } from '../components/shared/BackButton';
 import { getTodayDateUTC } from '../utils/dailyChallenge';
 import { fetchChallengesBatch } from '../hooks/challenge/useDailyChallenge';
 import { canViewCurrentDay } from '../utils/privacyRules';
@@ -18,18 +17,14 @@ import {
 import { CalendarGrid } from '../components/Calendar/CalendarGrid';
 import { CalendarDayCell } from '../components/Calendar/CalendarDayCell';
 import { ContentNavigation } from '../components/Calendar/ContentNavigation';
-import { TopBar } from '../components/canvas/TopBar';
+import { useSetHeader } from '../contexts/HeaderContext';
 import type { DailyChallenge } from '../types';
 
 interface UserProfilePageProps {
   userId: string;
-  themeMode: ThemeMode;
-  onSetThemeMode: (mode: ThemeMode) => void;
-  themeName: ThemeName;
-  onSetThemeName: (name: ThemeName) => void;
 }
 
-export function UserProfilePage({ userId, themeMode, onSetThemeMode, themeName, onSetThemeName }: UserProfilePageProps) {
+export function UserProfilePage({ userId }: UserProfilePageProps) {
   const { user } = useAuth();
   const todayDate = useMemo(() => getTodayDateUTC(), []);
   const { hasSubmittedToday } = useSubmissions(user?.id, todayDate);
@@ -111,38 +106,22 @@ export function UserProfilePage({ userId, themeMode, onSetThemeMode, themeName, 
     );
   }, [currentYear, currentMonth]);
 
-  const topBar = (
-    <TopBar
-      themeMode={themeMode}
-      onSetThemeMode={onSetThemeMode}
-      themeName={themeName}
-      onSetThemeName={onSetThemeName}
-      centerContent={
-        <span className="text-lg font-semibold text-(--color-text-primary) font-display">
-          {profile?.nickname || 'Profile'}
-        </span>
-      }
-      rightContent={
-        <Button as="a" variant="ghost" href="/" className="gap-1">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-          <span className="hidden md:inline">Back to canvas</span>
-        </Button>
-      }
-    />
-  );
+  useSetHeader({
+    centerContent: (
+      <span className="text-lg font-semibold text-(--color-text-primary) font-display">
+        {profile?.nickname || 'Profile'}
+      </span>
+    ),
+    rightContent: <BackButton href="/" label="Back to canvas" />,
+  });
 
   // Error state (network errors, etc.)
   if (error && !loading) {
     return (
-      <div className="h-screen flex flex-col overflow-hidden bg-(--color-bg-primary)">
-        {topBar}
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-(--color-text-secondary) mb-4">Something went wrong</p>
-            <p className="text-base text-(--color-text-tertiary) mb-4">{error}</p>
-          </div>
+      <div className="flex-1 flex items-center justify-center bg-(--color-bg-primary)">
+        <div className="text-center">
+          <p className="text-(--color-text-secondary) mb-4">Something went wrong</p>
+          <p className="text-base text-(--color-text-tertiary) mb-4">{error}</p>
         </div>
       </div>
     );
@@ -151,12 +130,9 @@ export function UserProfilePage({ userId, themeMode, onSetThemeMode, themeName, 
   // Not found state
   if (notFound && !loading) {
     return (
-      <div className="h-screen flex flex-col overflow-hidden bg-(--color-bg-primary)">
-        {topBar}
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-(--color-text-secondary) mb-4">User not found</p>
-          </div>
+      <div className="flex-1 flex items-center justify-center bg-(--color-bg-primary)">
+        <div className="text-center">
+          <p className="text-(--color-text-secondary) mb-4">User not found</p>
         </div>
       </div>
     );
@@ -165,19 +141,14 @@ export function UserProfilePage({ userId, themeMode, onSetThemeMode, themeName, 
   // Loading state
   if (loading) {
     return (
-      <div className="h-screen flex flex-col overflow-hidden bg-(--color-bg-primary)">
-        {topBar}
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-(--color-text-secondary)">Loading profile...</div>
-        </div>
+      <div className="flex-1 flex items-center justify-center bg-(--color-bg-primary)">
+        <div className="text-(--color-text-secondary)">Loading profile...</div>
       </div>
     );
   }
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-(--color-bg-primary)">
-      {topBar}
-      <div className="flex-1 overflow-auto p-4 md:p-8 theme-pattern">
+    <div className="flex-1 overflow-auto p-4 md:p-8 theme-pattern bg-(--color-bg-primary)">
         <div className="max-w-4xl mx-auto">
           {/* Profile header */}
           <div className="mb-6">
@@ -252,6 +223,5 @@ export function UserProfilePage({ userId, themeMode, onSetThemeMode, themeName, 
           </div>
         </div>
       </div>
-    </div>
   );
 }

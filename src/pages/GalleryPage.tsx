@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { navigate } from '../lib/router';
-import { Button } from '../components/shared/Button';
 import { useAuth } from '../hooks/auth/useAuth';
 import { useSubmissions, type Submission } from '../hooks/submission/useSubmissions';
 import { getTodayDateUTC, getTwoDaysAgoDateUTC } from '../utils/dailyChallenge';
@@ -17,8 +16,8 @@ import { CalendarDayCell } from '../components/Calendar/CalendarDayCell';
 import { CalendarStats } from '../components/Calendar/CalendarStats';
 import { WallTab } from '../components/Calendar/tabs/WallTab';
 import { FriendsFeedTab } from '../components/Calendar/tabs/FriendsFeedTab';
-import { TopBar } from '../components/canvas/TopBar';
-import type { ThemeMode, ThemeName } from '../hooks/ui/useThemeState';
+import { useSetHeader } from '../contexts/HeaderContext';
+import { BackButton } from '../components/shared/BackButton';
 
 const TAB_HEADERS: Record<ViewMode, { title: string; description: string }> = {
   'my-submissions': {
@@ -49,18 +48,14 @@ function TabHeader({ viewMode }: { viewMode: ViewMode }) {
   );
 }
 
-interface GalleryPageProps {
+export interface GalleryPageProps {
   tab?: string;
   year?: number;
   month?: number;
   date?: string;
-  themeMode: ThemeMode;
-  onSetThemeMode: (mode: ThemeMode) => void;
-  themeName: ThemeName;
-  onSetThemeName: (name: ThemeName) => void;
 }
 
-export function GalleryPage({ tab: initialTab, year: initialYear, month: initialMonth, date: initialDate, themeMode, onSetThemeMode, themeName, onSetThemeName }: GalleryPageProps) {
+export function GalleryPage({ tab: initialTab, year: initialYear, month: initialMonth, date: initialDate }: GalleryPageProps) {
   const { user } = useAuth();
   const todayStr = useMemo(() => getTodayDateUTC(), []);
   const { loadSubmissionsForMonth, loading, hasSubmittedToday: submittedToday, hasCheckedSubmission } = useSubmissions(user?.id, todayStr);
@@ -260,26 +255,13 @@ export function GalleryPage({ tab: initialTab, year: initialYear, month: initial
     ? 'Loading submissions...'
     : 'Loading winners...';
 
+  useSetHeader({
+    centerContent: <span className="text-lg font-semibold text-(--color-text-primary) font-display">Gallery</span>,
+    rightContent: <BackButton href="/" label="Back to canvas" />,
+  });
+
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-(--color-bg-primary)">
-      <TopBar
-        themeMode={themeMode}
-        onSetThemeMode={onSetThemeMode}
-        themeName={themeName}
-        onSetThemeName={onSetThemeName}
-        centerContent={
-          <span className="text-lg font-semibold text-(--color-text-primary) font-display">Gallery</span>
-        }
-        rightContent={
-          <Button as="a" variant="ghost" href="/" className="gap-1">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-            <span className="hidden md:inline">Back to canvas</span>
-          </Button>
-        }
-      />
-      <div className="flex-1 overflow-auto p-4 md:p-8 theme-pattern">
+    <div className="flex-1 overflow-auto p-4 md:p-8 theme-pattern bg-(--color-bg-primary)">
         <div className="max-w-4xl mx-auto flex flex-col" style={{ minHeight: 'calc(100vh - 8rem)' }}>
 
         {/* Tab toggle */}
@@ -374,6 +356,5 @@ export function GalleryPage({ tab: initialTab, year: initialYear, month: initial
         </AnimatePresence>
         </div>
       </div>
-    </div>
   );
 }

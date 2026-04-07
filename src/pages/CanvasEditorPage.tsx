@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
+import { RotateCcw } from 'lucide-react';
 import type { DailyChallenge, Shape } from '../types';
-import type { ThemeMode, ThemeName } from '../hooks/ui/useThemeState';
 import { getYesterdayDateUTC } from '../utils/dailyChallenge';
 import { invalidateWallCache } from '../hooks/challenge/useWallOfTheDay';
 import { setIncludedInRanking } from '../lib/api';
-import { useAuth } from '../hooks/auth/useAuth';
-import { useProfile } from '../hooks/auth/useProfile';
+import { useAuthContext } from '../contexts/AuthContext';
+import { useSetHeader } from '../contexts/HeaderContext';
 import { useCanvasEditorState } from '../hooks/canvas/useCanvasEditorState';
 import { useSidebarState } from '../hooks/ui/useSidebarState';
 import { useAppModals } from '../hooks/ui/useAppModals';
@@ -19,7 +19,8 @@ import { useSaveSubmission } from '../hooks/submission/useSaveSubmission';
 import { useSubmissionSync } from '../hooks/submission/useSubmissionSync';
 import { CanvasEditorProvider } from '../contexts/CanvasEditorContext';
 import { Canvas } from '../components/canvas/Canvas';
-import { TopBar } from '../components/canvas/TopBar';
+import { Button } from '../components/shared/Button';
+import { LoginPromptModal } from '../components/social/LoginPromptModal';
 import { BottomToolbar } from '../components/canvas/BottomToolbar';
 import { ToolsPanel } from '../components/canvas/ToolsPanel';
 import { ZoomControls } from '../components/canvas/ZoomControls';
@@ -52,16 +53,109 @@ function ChallengeDisplay({ challenge }: { challenge: DailyChallenge }) {
   );
 }
 
+function CanvasHeaderActions({
+  onReset,
+  onSave,
+  isSaving,
+  saveStatus,
+  saveError,
+  hasSubmittedToday,
+  isLoggedIn,
+  shapeCount,
+}: {
+  onReset: () => void;
+  onSave: () => void;
+  isSaving: boolean;
+  saveStatus: 'idle' | 'saved' | 'error';
+  saveError: string | null;
+  hasSubmittedToday: boolean;
+  isLoggedIn: boolean;
+  shapeCount: number;
+}) {
+  const isDesktop = useIsDesktop();
+  const showGallery = useBreakpoint(900);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+
+  const isOverLimit = shapeCount > MAX_SHAPES;
+
+  const saveLabel = isSaving
+    ? 'Saving...'
+    : isOverLimit
+      ? 'Remove shapes to submit'
+      : saveStatus === 'error'
+        ? 'Failed'
+        : saveStatus === 'saved'
+          ? 'Saved'
+          : hasSubmittedToday
+            ? 'Submitted'
+            : 'Submit!';
+
+  return (
+    <>
+      {/* Reset — icon-only on mobile */}
+      <Button
+        variant="secondary"
+        className="hover:text-(--color-danger)"
+        onClick={onReset}
+        title="Reset canvas"
+      >
+        {isDesktop ? 'Reset' : <RotateCcw size={14} />}
+      </Button>
+
+      {/* Submit */}
+      <div data-tour="submit">
+        {isLoggedIn ? (
+          <Button
+            variant={saveStatus === 'error' ? 'secondary' : 'primary'}
+            className={`px-4 font-bold disabled:opacity-50 disabled:cursor-not-allowed ${saveStatus === 'error' ? 'text-(--color-danger)' : ''}`}
+            onClick={onSave}
+            disabled={isSaving || hasSubmittedToday || isOverLimit}
+            title={isOverLimit ? `Too many shapes (${shapeCount}/${MAX_SHAPES}) — remove some to submit` : saveStatus === 'error' && saveError ? saveError : hasSubmittedToday ? 'Already submitted today' : 'Submit your creation'}
+          >
+            {saveLabel}
+          </Button>
+        ) : (
+          <>
+            <Button
+              variant="primary"
+              className="px-4 font-bold"
+              onClick={() => setShowLoginPrompt(true)}
+              title="Sign in to submit"
+            >
+              Submit!
+            </Button>
+            {showLoginPrompt && (
+              <LoginPromptModal
+                onClose={() => setShowLoginPrompt(false)}
+                title="Submit Your Creation"
+                message="Sign in to submit your artwork and join today's challenge."
+              />
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Divider + Gallery — hidden on mobile and narrow desktop */}
+      {showGallery && (
+        <>
+          <div className="w-px h-5 bg-(--color-border) mx-1" />
+          <div data-hint="gallery">
+            <Button as="a" variant="ghost" href="/?view=gallery">
+              Gallery
+            </Button>
+          </div>
+        </>
+      )}
+    </>
+  );
+}
+
 interface CanvasEditorPageProps {
   challenge: DailyChallenge;
   todayDate: string;
-  themeMode: ThemeMode;
-  onSetThemeMode: (mode: ThemeMode) => void;
-  themeName: ThemeName;
-  onSetThemeName: (name: ThemeName) => void;
 }
 
-export function CanvasEditorPage({ challenge, todayDate, themeMode, onSetThemeMode, themeName, onSetThemeName }: CanvasEditorPageProps) {
+export function CanvasEditorPage({ challenge, todayDate }: CanvasEditorPageProps) {
   // Modal states
   const {
     showKeyboardSettings,
@@ -82,8 +176,7 @@ export function CanvasEditorPage({ challenge, todayDate, themeMode, onSetThemeMo
   } = useAppModals();
 
   // Auth state
-  const { user } = useAuth();
-  const { profile, loading: profileLoading, updateNickname } = useProfile(user?.id);
+  const { user, profile, updateNickname } = useAuthContext();
   const { saveSubmission, loadSubmission, saving, hasSubmittedToday } = useSubmissions(user?.id, todayDate);
 
   // Winner announcement for yesterday's results
@@ -265,9 +358,25 @@ export function CanvasEditorPage({ challenge, todayDate, themeMode, onSetThemeMo
   const showOnboarding = user && profile && !profile.onboarding_complete;
   const anyModalOpen = !!(showOnboarding || showWinnerAnnouncement || showVotingModal || showResetConfirm || showFriendsModal);
 
+  // Push header config to the shared TopBar
+  useSetHeader({
+    centerContent: <ChallengeDisplay challenge={challenge} />,
+    rightContent: (
+      <CanvasHeaderActions
+        onReset={handleReset}
+        onSave={handleSave}
+        isSaving={saving}
+        saveStatus={saveStatus}
+        saveError={saveError}
+        hasSubmittedToday={hasSubmittedToday}
+        isLoggedIn={!!user}
+        shapeCount={canvasState.shapes.length}
+      />
+    ),
+  });
+
   return (
     <CanvasEditorProvider value={editorContext}>
-    <div className="flex flex-col h-dvh overflow-hidden">
       {showOnboarding && <OnboardingModal onComplete={updateNickname} />}
 
       <AnimatePresence>
@@ -286,26 +395,7 @@ export function CanvasEditorPage({ challenge, todayDate, themeMode, onSetThemeMo
         <DiscoveryHint hintId={hints.activeHint} onDismiss={hints.dismissHint} />
       )}
 
-      {/* Top bar */}
-      <TopBar
-        themeMode={themeMode}
-        onSetThemeMode={onSetThemeMode}
-        themeName={themeName}
-        onSetThemeName={onSetThemeName}
-        centerContent={<ChallengeDisplay challenge={challenge} />}
-        onReset={handleReset}
-        onSave={handleSave}
-        isSaving={saving}
-        saveStatus={saveStatus}
-        saveError={saveError}
-        hasSubmittedToday={hasSubmittedToday}
-        isLoggedIn={!!user}
-        profile={profile}
-        profileLoading={profileLoading}
-        shapeCount={canvasState.shapes.length}
-      />
-
-      {/* Canvas area wrapper (everything below top bar) */}
+      {/* Canvas area wrapper */}
       <div className="flex-1 relative overflow-hidden">
         {/* Canvas fills area */}
         <main
@@ -518,7 +608,6 @@ export function CanvasEditorPage({ challenge, todayDate, themeMode, onSetThemeMo
         showFriendsModal={showFriendsModal}
         onCloseFriendsModal={closeFriendsModal}
       />
-    </div>
     </CanvasEditorProvider>
   );
 }

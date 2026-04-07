@@ -1,26 +1,21 @@
 import { useState, useEffect } from 'react';
 import { navigate } from '../lib/router';
-import { Button } from '../components/shared/Button';
 import { useRanking } from '../hooks/challenge/useRanking';
 import { useDailyChallenge } from '../hooks/challenge/useDailyChallenge';
 import { WinnerCard } from '../components/submission/WinnerCard';
 import { SubmissionNavigation } from '../components/submission/SubmissionNavigation';
 import { getShapeSVGData } from '../utils/shapes';
 import { RANKING_CONFIDENCE_TOOLTIP } from '../utils/votingRules';
-import { TopBar } from '../components/canvas/TopBar';
+import { useSetHeader } from '../contexts/HeaderContext';
+import { BackButton } from '../components/shared/BackButton';
 import { ConfidencePill } from '../components/shared/ConfidencePill';
 import { InfoTooltip } from '../components/shared/InfoTooltip';
-import type { ThemeMode, ThemeName } from '../hooks/ui/useThemeState';
 
 interface WinnersDayPageProps {
   date: string;
-  themeMode: ThemeMode;
-  onSetThemeMode: (mode: ThemeMode) => void;
-  themeName: ThemeName;
-  onSetThemeName: (name: ThemeName) => void;
 }
 
-export function WinnersDayPage({ date, themeMode, onSetThemeMode, themeName, onSetThemeName }: WinnersDayPageProps) {
+export function WinnersDayPage({ date }: WinnersDayPageProps) {
   const { fetchTopThree, topThree, loading, getAdjacentRankingDates, rankingStats } = useRanking();
   const { challenge, loading: challengeLoading } = useDailyChallenge(date);
   const [adjacentDates, setAdjacentDates] = useState<{ prev: string | null; next: string | null }>({ prev: null, next: null });
@@ -45,9 +40,19 @@ export function WinnersDayPage({ date, themeMode, onSetThemeMode, themeName, onS
   const runnerUps = topThree.filter((e) => e.rank === 2);
   const thirdPlaces = topThree.filter((e) => e.rank === 3);
 
+  useSetHeader({
+    centerContent: <span className="text-lg font-semibold text-(--color-text-primary) font-display">Winners</span>,
+    rightContent: (
+      <div className="flex items-center gap-2">
+        <SubmissionNavigation adjacentDates={adjacentDates} onNavigate={(d) => navigate(`?view=winners-day&date=${d}`)} />
+        <BackButton href="/?view=gallery&tab=winners" label="Back to gallery" />
+      </div>
+    ),
+  });
+
   if (loading || challengeLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-(--color-bg-primary)">
+      <div className="flex-1 flex items-center justify-center p-4 bg-(--color-bg-primary)">
         <div className="text-(--color-text-secondary)">
           Loading rankings...
         </div>
@@ -57,7 +62,7 @@ export function WinnersDayPage({ date, themeMode, onSetThemeMode, themeName, onS
 
   if (!challenge) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-(--color-bg-primary)">
+      <div className="flex-1 flex items-center justify-center p-4 bg-(--color-bg-primary)">
         <div className="text-(--color-text-secondary)">
           Challenge not found for {formattedDate}.
         </div>
@@ -66,28 +71,7 @@ export function WinnersDayPage({ date, themeMode, onSetThemeMode, themeName, onS
   }
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-(--color-bg-primary)">
-      <TopBar
-        themeMode={themeMode}
-        onSetThemeMode={onSetThemeMode}
-        themeName={themeName}
-        onSetThemeName={onSetThemeName}
-        centerContent={
-          <span className="text-lg font-semibold text-(--color-text-primary) font-display">Winners</span>
-        }
-        rightContent={
-          <div className="flex items-center gap-2">
-            <SubmissionNavigation adjacentDates={adjacentDates} onNavigate={(d) => navigate(`?view=winners-day&date=${d}`)} />
-            <Button as="a" variant="ghost" href="/?view=gallery&tab=winners" className="gap-1">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-              <span className="hidden md:inline">Back to gallery</span>
-            </Button>
-          </div>
-        }
-      />
-      <div className="flex-1 overflow-auto p-4 md:p-8 theme-pattern">
+    <div className="flex-1 overflow-auto p-4 md:p-8 theme-pattern bg-(--color-bg-primary)">
         <div className="max-w-5xl mx-auto">
           {/* Date heading */}
           <div className="mb-6">
@@ -265,6 +249,5 @@ export function WinnersDayPage({ date, themeMode, onSetThemeMode, themeName, onS
           </div>
         </div>
       </div>
-    </div>
   );
 }

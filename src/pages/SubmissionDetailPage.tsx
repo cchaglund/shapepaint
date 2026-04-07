@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react';
 import { navigate } from '../lib/router';
-import { Button } from '../components/shared/Button';
 import { Link } from '../components/shared/Link';
 import { CardLikeButton } from '../components/shared/CardLikeButton';
 import { useAuth } from '../hooks/auth/useAuth';
@@ -24,20 +23,16 @@ import {
   SubmissionStatsCard,
   ExportActionsCard,
 } from '../components/submission';
-import { TopBar } from '../components/canvas/TopBar';
+import { useSetHeader } from '../contexts/HeaderContext';
+import { BackButton } from '../components/shared/BackButton';
 import { LoadingSpinner } from '../components/shared/LoadingSpinner';
-import type { ThemeMode, ThemeName } from '../hooks/ui/useThemeState';
 
 interface SubmissionDetailPageProps {
   date?: string;
   submissionId?: string;
-  themeMode: ThemeMode;
-  onSetThemeMode: (mode: ThemeMode) => void;
-  themeName: ThemeName;
-  onSetThemeName: (name: ThemeName) => void;
 }
 
-export function SubmissionDetailPage({ date, submissionId, themeMode, onSetThemeMode, themeName, onSetThemeName }: SubmissionDetailPageProps) {
+export function SubmissionDetailPage({ date, submissionId }: SubmissionDetailPageProps) {
   const { user } = useAuth();
   const { loadSubmission, getAdjacentSubmissionDates } = useSubmissions(user?.id);
   const { fetchSubmissionRank } = useRanking();
@@ -90,10 +85,24 @@ export function SubmissionDetailPage({ date, submissionId, themeMode, onSetTheme
       })
     : 'Loading...';
 
+  useSetHeader({
+    centerContent: <span className="text-lg font-semibold text-(--color-text-primary) font-display">Submission</span>,
+    rightContent: (
+      <div className="flex items-center gap-2">
+        {date && <SubmissionNavigation adjacentDates={adjacentDates} onNavigate={(d) => {
+          const url = new URL(window.location.href);
+          url.searchParams.set('date', d);
+          navigate(url.toString());
+        }} />}
+        <BackButton href="/?view=gallery" label="Gallery" />
+      </div>
+    ),
+  });
+
   // Only require auth when loading by date (own submission)
   if (!submissionId && !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-(--color-bg-primary)">
+      <div className="flex-1 flex items-center justify-center p-4 bg-(--color-bg-primary)">
         <p className="text-sm text-(--color-text-secondary)">
           Please sign in to view this submission.
         </p>
@@ -103,7 +112,7 @@ export function SubmissionDetailPage({ date, submissionId, themeMode, onSetTheme
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-(--color-bg-primary)">
+      <div className="flex-1 flex items-center justify-center p-4 bg-(--color-bg-primary)">
         <LoadingSpinner message="Loading submission..." />
       </div>
     );
@@ -111,7 +120,7 @@ export function SubmissionDetailPage({ date, submissionId, themeMode, onSetTheme
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-(--color-bg-primary)">
+      <div className="flex-1 flex items-center justify-center p-4 bg-(--color-bg-primary)">
         <p className="text-sm text-(--color-danger)">
           {error}
         </p>
@@ -121,7 +130,7 @@ export function SubmissionDetailPage({ date, submissionId, themeMode, onSetTheme
 
   if (!submission || !challenge) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-(--color-bg-primary)">
+      <div className="flex-1 flex items-center justify-center p-4 bg-(--color-bg-primary)">
         <p className="text-sm text-(--color-text-secondary)">
           {submissionId ? 'Submission not found.' : `No submission found for ${formattedDate}.`}
         </p>
@@ -130,32 +139,7 @@ export function SubmissionDetailPage({ date, submissionId, themeMode, onSetTheme
   }
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-(--color-bg-primary)">
-      <TopBar
-        themeMode={themeMode}
-        onSetThemeMode={onSetThemeMode}
-        themeName={themeName}
-        onSetThemeName={onSetThemeName}
-        centerContent={
-          <span className="text-lg font-semibold text-(--color-text-primary) font-display">Submission</span>
-        }
-        rightContent={
-          <div className="flex items-center gap-2">
-            {date && <SubmissionNavigation adjacentDates={adjacentDates} onNavigate={(d) => {
-              const url = new URL(window.location.href);
-              url.searchParams.set('date', d);
-              navigate(url.toString());
-            }} />}
-            <Button as="a" variant="ghost" href="/?view=gallery" className="gap-1">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-              <span className="hidden md:inline">Gallery</span>
-            </Button>
-          </div>
-        }
-      />
-      <div className="flex-1 overflow-auto p-4 md:p-8 theme-pattern">
+    <div className="flex-1 overflow-auto p-4 md:p-8 theme-pattern bg-(--color-bg-primary)">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="mb-6">
@@ -234,7 +218,6 @@ export function SubmissionDetailPage({ date, submissionId, themeMode, onSetTheme
             </div>
           </div>
         </div>
-      </div>
       {showLoginModal && (
         <LoginPromptModal
           onClose={() => setShowLoginModal(false)}
