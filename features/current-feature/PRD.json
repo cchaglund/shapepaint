@@ -185,7 +185,7 @@
       "Does NOT import unused icons (e.g. Star from lucide-react — competition_result was removed)",
       "Both NotificationsTab and ToastContainer import from this file (no duplicated icon maps)"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "phase": "1-autonomous",

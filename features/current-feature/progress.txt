@@ -6,3 +6,12 @@
 - Uses is_read (not read), no competition_result
 - tsc passes, tests pass, lint clean (pre-existing errors only)
 - Files: src/types/notifications.ts, features/current-feature/PRD.json
+
+## CONFIG-001 - Create shared notification icon config
+- Created src/config/notificationIcons.ts
+- NOTIFICATION_ICONS: Record<NotificationType, { icon, bgClass, colorClass }>
+- like → Heart (accent), follow → UserPlus (purple), friend_submitted → Store (green)
+- Uses LucideIcon type from lucide-react for proper typing
+- No unused icons imported (no Star/competition_result)
+- tsc clean, lint clean (pre-existing only), 102 tests pass
+- Files: src/config/notificationIcons.ts, features/current-feature/PRD.json
