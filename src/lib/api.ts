@@ -247,41 +247,34 @@ export async function generateChallenge(date: string) {
 // Wall of the Day
 // =============================================================================
 
-export type WallSortMode = 'newest' | 'oldest' | 'likes';
+// Server-side cached wall query via get_wall_cached RPC (see wall_cache migration).
+// The RPC returns fully enriched submissions (with nicknames + ranks) from a cache
+// table. Past dates are cached forever; today's wall has a 30s TTL. This collapses
+// N concurrent users into 1 actual DB join per cache interval.
 
-export async function fetchWallSubmissionsFromDB(date: string, limit: number, sortMode: WallSortMode = 'newest') {
-  let query = supabase
-    .from('submissions')
-    .select('id, user_id, shapes, groups, background_color_index, created_at, like_count')
-    .eq('challenge_date', date);
+export type WallCacheSortMode = 'newest' | 'oldest' | 'ranked' | 'likes';
 
-  switch (sortMode) {
-    case 'newest':
-      query = query.order('created_at', { ascending: false });
-      break;
-    case 'oldest':
-      query = query.order('created_at', { ascending: true });
-      break;
-    case 'likes':
-      query = query.order('like_count', { ascending: false }).order('created_at', { ascending: true });
-      break;
-  }
-
-  const { data, error } = await query.limit(limit);
-  if (error) throw error;
-  return data;
+export interface WallCachedSubmission {
+  id: string;
+  user_id: string;
+  nickname: string;
+  avatar_url: string | null;
+  shapes: unknown;
+  groups: unknown;
+  background_color_index: number | null;
+  created_at: string;
+  final_rank: number | null;
+  like_count: number;
 }
 
-export async function fetchWallSubmissionsRanked(date: string, limit: number) {
-  const { data, error } = await supabase
-    .from('daily_rankings')
-    .select('submission_id, final_rank, submissions!inner(id, user_id, shapes, groups, background_color_index, created_at, like_count)')
-    .eq('challenge_date', date)
-    .not('final_rank', 'is', null)
-    .order('final_rank', { ascending: true })
-    .limit(limit);
+export async function fetchWallCached(date: string, sortMode: WallCacheSortMode = 'newest', limit: number = 101): Promise<WallCachedSubmission[]> {
+  const { data, error } = await supabase.rpc('get_wall_cached', {
+    p_date: date,
+    p_sort_mode: sortMode,
+    p_limit: limit,
+  });
   if (error) throw error;
-  return data;
+  return (data as WallCachedSubmission[]) || [];
 }
 
 export type FriendsSortMode = 'newest' | 'oldest' | 'ranked';
