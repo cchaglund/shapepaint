@@ -1,0 +1,104 @@
+import { useNotificationsContext } from '../../contexts/NotificationsContext';
+import { NOTIFICATION_ICONS } from '../../config/notificationIcons';
+import type { Notification } from '../../types/notifications';
+
+function formatTimeAgo(dateStr: string): string {
+  const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+  if (seconds < 60) return 'now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d`;
+  return `${Math.floor(days / 30)}mo`;
+}
+
+function getNotificationText(notification: Notification): { actor: string; action: string } {
+  const actor = notification.data.actor_nickname || 'Someone';
+  switch (notification.type) {
+    case 'like':
+      return { actor, action: 'liked your submission' };
+    case 'follow':
+      return { actor, action: 'started following you' };
+    case 'friend_submitted':
+      return { actor, action: 'submitted new artwork' };
+  }
+}
+
+function NotificationItem({ notification }: { notification: Notification }) {
+  const { actor, action } = getNotificationText(notification);
+  const { icon: Icon, bgClass, colorClass } = NOTIFICATION_ICONS[notification.type];
+
+  return (
+    <div
+      className={`flex items-start gap-3 px-4 py-2.5 transition-colors ${
+        notification.is_read
+          ? 'bg-(--color-selected)'
+          : 'bg-(--color-selected-hover)'
+      }`}
+    >
+      <div className={`shrink-0 w-7 h-7 rounded-(--radius-pill) flex items-center justify-center ${bgClass}`}>
+        <Icon size={14} className={colorClass} />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="text-xs text-(--color-text-primary) leading-relaxed">
+          <span className="font-semibold">{actor}</span>{' '}
+          {action}
+        </div>
+        <div className="text-xs text-(--color-text-tertiary) mt-0.5">
+          {formatTimeAgo(notification.created_at)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function NotificationsTab() {
+  const { notifications, unreadCount, loading, error, markAllRead, reload } = useNotificationsContext();
+
+  const showLoading = loading && notifications.length === 0;
+  const showError = !showLoading && error && notifications.length === 0;
+  const showEmpty = !showLoading && !showError && notifications.length === 0;
+
+  return (
+    <div className="flex flex-col">
+      {unreadCount > 0 && (
+        <div className="flex items-center justify-end px-3 py-1.5 border-b border-(--color-border-light)">
+          <button
+            onClick={() => markAllRead()}
+            className="text-xs text-(--color-accent) hover:text-(--color-accent-hover) cursor-pointer transition-colors"
+          >
+            Mark all as read
+          </button>
+        </div>
+      )}
+
+      <div className="overflow-y-auto max-h-[40vh]">
+        {showLoading ? (
+          <div className="text-center py-8 text-xs text-(--color-text-secondary)">
+            Loading...
+          </div>
+        ) : showError ? (
+          <div className="text-center py-8 text-xs text-(--color-text-secondary)">
+            <div>Failed to load notifications.</div>
+            <button
+              onClick={reload}
+              className="mt-2 text-xs text-(--color-accent) hover:text-(--color-accent-hover) cursor-pointer transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        ) : showEmpty ? (
+          <div className="text-center py-8 px-4 text-xs text-(--color-text-secondary) leading-relaxed">
+            When someone likes your art or follows you, you&apos;ll see it here.
+          </div>
+        ) : (
+          notifications.map(notification => (
+            <NotificationItem key={notification.id} notification={notification} />
+          ))
+        )}
+      </div>
+    </div>
+  );
+}

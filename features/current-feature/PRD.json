@@ -271,7 +271,7 @@
       "Empty state shows helpful copy (e.g. 'When someone likes your art or follows you, you'll see it here.') — not just 'No notifications yet'",
       "'Mark all as read' button appears in header only when there are unread notifications"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "phase": "1-autonomous",

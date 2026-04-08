@@ -59,3 +59,16 @@
 - Follows FollowsContext pattern: eslint-disable for react-refresh, createContext with null default
 - tsc clean, 102 tests pass, lint clean (pre-existing only)
 - Files: src/contexts/NotificationsContext.tsx, src/App.tsx, features/current-feature/PRD.json
+
+## UI-001 - Create NotificationsTab component
+- Created src/components/notifications/NotificationsTab.tsx
+- NotificationsTab: consumes useNotificationsContext, renders scrollable list with max-h-[40vh]
+- NotificationItem: sub-component with icon (from NOTIFICATION_ICONS), bold actor name, relative timestamp
+- getNotificationText: switch on n.type for type narrowing, no casts — discriminated union works cleanly
+- Actor names fallback to 'Someone' when null/missing (GDPR scrubbing case)
+- formatTimeAgo: local utility — now/Xm/Xh/Xd/Xmo format
+- Three empty states: Loading (when loading + no data), Error (with Retry button), Empty (descriptive copy)
+- "Mark all as read" button in header only when unreadCount > 0
+- Visual states: unread=bg-(--color-selected-hover), read=bg-(--color-selected)
+- tsc clean, 102 tests pass, lint clean (pre-existing only)
+- Files: src/components/notifications/NotificationsTab.tsx, features/current-feature/PRD.json
