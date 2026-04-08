@@ -1,5 +1,6 @@
 import { useNotificationsContext } from '../../contexts/NotificationsContext';
 import { NOTIFICATION_ICONS } from '../../config/notificationIcons';
+import { navigate } from '../../lib/router';
 import type { Notification } from '../../types/notifications';
 
 function formatTimeAgo(dateStr: string): string {
@@ -26,13 +27,30 @@ function getNotificationText(notification: Notification): { actor: string; actio
   }
 }
 
-function NotificationItem({ notification }: { notification: Notification }) {
+function getNotificationUrl(notification: Notification): string {
+  switch (notification.type) {
+    case 'like':
+    case 'friend_submitted':
+      return `?view=submission&id=${notification.data.submission_id}`;
+    case 'follow':
+      return `?view=profile&user=${notification.data.actor_id}`;
+  }
+}
+
+function NotificationItem({
+  notification,
+  onClickNotification,
+}: {
+  notification: Notification;
+  onClickNotification: (notification: Notification) => void;
+}) {
   const { actor, action } = getNotificationText(notification);
   const { icon: Icon, bgClass, colorClass } = NOTIFICATION_ICONS[notification.type];
 
   return (
     <div
-      className={`flex items-start gap-3 px-4 py-2.5 transition-colors ${
+      onClick={() => onClickNotification(notification)}
+      className={`flex items-start gap-3 px-4 py-2.5 transition-colors cursor-pointer hover:bg-(--color-hover) ${
         notification.is_read
           ? 'bg-(--color-selected)'
           : 'bg-(--color-selected-hover)'
@@ -54,8 +72,14 @@ function NotificationItem({ notification }: { notification: Notification }) {
   );
 }
 
-export function NotificationsTab() {
-  const { notifications, unreadCount, loading, error, markAllRead, reload } = useNotificationsContext();
+export function NotificationsTab({ onClose }: { onClose: () => void }) {
+  const { notifications, unreadCount, loading, error, markRead, markAllRead, reload } = useNotificationsContext();
+
+  const handleClickNotification = (notification: Notification) => {
+    if (!notification.is_read) markRead(notification.id);
+    navigate(getNotificationUrl(notification));
+    onClose();
+  };
 
   const showLoading = loading && notifications.length === 0;
   const showError = !showLoading && error && notifications.length === 0;
@@ -95,7 +119,7 @@ export function NotificationsTab() {
           </div>
         ) : (
           notifications.map(notification => (
-            <NotificationItem key={notification.id} notification={notification} />
+            <NotificationItem key={notification.id} notification={notification} onClickNotification={handleClickNotification} />
           ))
         )}
       </div>

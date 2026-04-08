@@ -91,3 +91,16 @@
 - Imported useNotificationsContext + NotificationsTab
 - tsc clean, 102 tests pass, lint clean (pre-existing only)
 - Files: src/components/canvas/UserMenuDropdown.tsx, features/current-feature/PRD.json
+
+## UI-004 - NotificationItem click behavior
+- Added getNotificationUrl() — type-narrowed URL builder: like/friend_submitted → ?view=submission&id=X, follow → ?view=profile&user=X
+- NotificationsTab now accepts onClose prop, passed from UserMenuContent
+- NotificationItem onClick: marks read (if unread) via optimistic markRead, navigates via router, closes dropdown
+- Added cursor-pointer + hover:bg-(--color-hover) for clickable affordance
+- tsc clean, 102 tests pass, lint clean (pre-existing only)
+- Files: src/components/notifications/NotificationsTab.tsx, src/components/canvas/UserMenuDropdown.tsx, features/current-feature/PRD.json
+
+## UI-005 - NotificationItem visual states (already done)
+- Was implemented during UI-001: unread=bg-(--color-selected-hover), read=bg-(--color-selected)
+- Marked as passing — no code changes needed
+- Files: (no changes)

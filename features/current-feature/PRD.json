@@ -313,7 +313,7 @@
       "Click marks notification as read if it was unread",
       "Click closes the UserMenuDropdown (onClose is called)"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "phase": "1-autonomous",
@@ -325,7 +325,7 @@
       "Read notifications use --color-selected background",
       "Unread notifications use --color-selected-hover background"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "phase": "1-autonomous",

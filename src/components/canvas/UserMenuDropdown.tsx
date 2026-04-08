@@ -214,7 +214,7 @@ function UserMenuContent({
       </div>
 
       {activeTab === 'notifications' ? (
-        <NotificationsTab />
+        <NotificationsTab onClose={onClose} />
       ) : (
         <>
           {/* Friend list (scrollable) */}
