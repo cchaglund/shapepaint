@@ -286,7 +286,7 @@
       "Already-read notifications do not start the timer on hover",
       "@keyframes fillBar is defined in index.css"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "phase": "1-autonomous",

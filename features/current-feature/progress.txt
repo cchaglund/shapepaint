@@ -111,3 +111,13 @@
 - Was implemented during UI-001: unread=bg-(--color-selected-hover), read=bg-(--color-selected)
 - Marked as passing — no code changes needed
 - Files: (no changes)
+
+## UI-002 - NotificationItem hover-to-read
+- Added 700ms hover timer: onMouseEnter starts setTimeout, onMouseLeave clears it
+- isHovering state controls 3px accent progress bar on left edge (absolute positioned)
+- Progress bar uses fillBar keyframe (scaleY 0→1, origin-top) synced to 700ms
+- Already-read notifications skip entirely (early return in handleMouseEnter)
+- Passed markRead as prop to NotificationItem (avoids extra context call)
+- Added `relative` to container for absolute-positioned progress bar
+- tsc clean, 102 tests pass, lint clean (pre-existing only)
+- Files: src/components/notifications/NotificationsTab.tsx, features/current-feature/PRD.json

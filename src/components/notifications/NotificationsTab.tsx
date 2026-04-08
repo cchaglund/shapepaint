@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react';
 import { useNotificationsContext } from '../../contexts/NotificationsContext';
 import { NOTIFICATION_ICONS } from '../../config/notificationIcons';
 import { navigate } from '../../lib/router';
@@ -40,22 +41,50 @@ function getNotificationUrl(notification: Notification): string {
 function NotificationItem({
   notification,
   onClickNotification,
+  markRead,
 }: {
   notification: Notification;
   onClickNotification: (notification: Notification) => void;
+  markRead: (id: string) => void;
 }) {
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isHovering, setIsHovering] = useState(false);
   const { actor, action } = getNotificationText(notification);
   const { icon: Icon, bgClass, colorClass } = NOTIFICATION_ICONS[notification.type];
+
+  const handleMouseEnter = () => {
+    if (notification.is_read) return;
+    setIsHovering(true);
+    timerRef.current = setTimeout(() => {
+      markRead(notification.id);
+    }, 700);
+  };
+
+  const handleMouseLeave = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    setIsHovering(false);
+  };
 
   return (
     <div
       onClick={() => onClickNotification(notification)}
-      className={`flex items-start gap-3 px-4 py-2.5 transition-colors cursor-pointer hover:bg-(--color-hover) ${
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className={`relative flex items-start gap-3 px-4 py-2.5 transition-colors cursor-pointer hover:bg-(--color-hover) ${
         notification.is_read
           ? 'bg-(--color-selected)'
           : 'bg-(--color-selected-hover)'
       }`}
     >
+      {!notification.is_read && isHovering && (
+        <div
+          className="absolute left-0 top-0 w-[3px] h-full bg-(--color-accent) origin-top"
+          style={{ animation: 'fillBar 700ms linear forwards' }}
+        />
+      )}
       <div className={`shrink-0 w-7 h-7 rounded-(--radius-pill) flex items-center justify-center ${bgClass}`}>
         <Icon size={14} className={colorClass} />
       </div>
@@ -119,7 +148,7 @@ export function NotificationsTab({ onClose }: { onClose: () => void }) {
           </div>
         ) : (
           notifications.map(notification => (
-            <NotificationItem key={notification.id} notification={notification} onClickNotification={handleClickNotification} />
+            <NotificationItem key={notification.id} notification={notification} onClickNotification={handleClickNotification} markRead={markRead} />
           ))
         )}
       </div>
