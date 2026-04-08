@@ -247,41 +247,34 @@ export async function generateChallenge(date: string) {
 // Wall of the Day
 // =============================================================================
 
-export type WallSortMode = 'newest' | 'oldest' | 'likes';
+// Server-side cached wall query via get_wall_cached RPC (see wall_cache migration).
+// The RPC returns fully enriched submissions (with nicknames + ranks) from a cache
+// table. Past dates are cached forever; today's wall has a 30s TTL. This collapses
+// N concurrent users into 1 actual DB join per cache interval.
 
-export async function fetchWallSubmissionsFromDB(date: string, limit: number, sortMode: WallSortMode = 'newest') {
-  let query = supabase
-    .from('submissions')
-    .select('id, user_id, shapes, groups, background_color_index, created_at, like_count')
-    .eq('challenge_date', date);
+export type WallCacheSortMode = 'newest' | 'oldest' | 'ranked' | 'likes';
 
-  switch (sortMode) {
-    case 'newest':
-      query = query.order('created_at', { ascending: false });
-      break;
-    case 'oldest':
-      query = query.order('created_at', { ascending: true });
-      break;
-    case 'likes':
-      query = query.order('like_count', { ascending: false }).order('created_at', { ascending: true });
-      break;
-  }
-
-  const { data, error } = await query.limit(limit);
-  if (error) throw error;
-  return data;
+export interface WallCachedSubmission {
+  id: string;
+  user_id: string;
+  nickname: string;
+  avatar_url: string | null;
+  shapes: unknown;
+  groups: unknown;
+  background_color_index: number | null;
+  created_at: string;
+  final_rank: number | null;
+  like_count: number;
 }
 
-export async function fetchWallSubmissionsRanked(date: string, limit: number) {
-  const { data, error } = await supabase
-    .from('daily_rankings')
-    .select('submission_id, final_rank, submissions!inner(id, user_id, shapes, groups, background_color_index, created_at, like_count)')
-    .eq('challenge_date', date)
-    .not('final_rank', 'is', null)
-    .order('final_rank', { ascending: true })
-    .limit(limit);
+export async function fetchWallCached(date: string, sortMode: WallCacheSortMode = 'newest', limit: number = 101): Promise<WallCachedSubmission[]> {
+  const { data, error } = await supabase.rpc('get_wall_cached', {
+    p_date: date,
+    p_sort_mode: sortMode,
+    p_limit: limit,
+  });
   if (error) throw error;
-  return data;
+  return (data as WallCachedSubmission[]) || [];
 }
 
 export type FriendsSortMode = 'newest' | 'oldest' | 'ranked';
@@ -337,23 +330,42 @@ export interface ProfileSummary {
   avatar_url: string | null;
 }
 
+// Global nickname cache — nicknames rarely change, so we cache for the session.
+// Only uncached userIds hit the DB; callers don't need to know about the cache.
+const nicknameCache = new Map<string, ProfileSummary>();
+
 export async function fetchNicknames(userIds: string[]): Promise<Map<string, ProfileSummary>> {
   if (userIds.length === 0) return new Map();
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('id, nickname, avatar_url')
-    .in('id', userIds);
-  if (error) throw error;
-  const map = new Map<string, ProfileSummary>();
-  if (data) {
-    for (const p of data) {
-      map.set(p.id as string, {
-        nickname: (p.nickname as string) || 'Anonymous',
-        avatar_url: (p.avatar_url as string | null) ?? null,
-      });
+
+  const uncached = userIds.filter(id => !nicknameCache.has(id));
+
+  if (uncached.length > 0) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, nickname, avatar_url')
+      .in('id', uncached);
+    if (error) throw error;
+    if (data) {
+      for (const p of data) {
+        nicknameCache.set(p.id as string, {
+          nickname: (p.nickname as string) || 'Anonymous',
+          avatar_url: (p.avatar_url as string | null) ?? null,
+        });
+      }
     }
   }
-  return map;
+
+  const result = new Map<string, ProfileSummary>();
+  for (const id of userIds) {
+    const cached = nicknameCache.get(id);
+    if (cached) result.set(id, cached);
+  }
+  return result;
+}
+
+export function invalidateNicknameCache(userId?: string): void {
+  if (userId) nicknameCache.delete(userId);
+  else nicknameCache.clear();
 }
 
 export async function searchProfilesByNickname(query: string, excludeUserId?: string): Promise<{ id: string; nickname: string; avatar_url: string | null }[]> {
@@ -542,26 +554,46 @@ export async function fetchRankTotal(challengeDate: string): Promise<number> {
   return count ?? 0;
 }
 
+// Rankings are immutable once set — cache forever for the session.
+const rankingsCache = new Map<string, number>();
+// Track IDs we've already queried that had no rank, so we don't re-query them.
+const rankingsQueriedNoResult = new Set<string>();
+
 export async function fetchRankingsBySubmissionIds(submissionIds: string[]): Promise<Map<string, number>> {
-  const rankMap = new Map<string, number>();
-  if (submissionIds.length === 0) return rankMap;
+  if (submissionIds.length === 0) return new Map();
 
-  const { data, error } = await supabase
-    .from('daily_rankings')
-    .select('submission_id, final_rank')
-    .in('submission_id', submissionIds)
-    .not('final_rank', 'is', null);
+  const uncached = submissionIds.filter(id => !rankingsCache.has(id) && !rankingsQueriedNoResult.has(id));
 
-  if (error) {
-    console.error('Failed to fetch rankings:', error);
-    return rankMap;
-  }
-  if (data) {
-    for (const r of data) {
-      rankMap.set(r.submission_id, r.final_rank as number);
+  if (uncached.length > 0) {
+    const { data, error } = await supabase
+      .from('daily_rankings')
+      .select('submission_id, final_rank')
+      .in('submission_id', uncached)
+      .not('final_rank', 'is', null);
+
+    if (error) {
+      console.error('Failed to fetch rankings:', error);
+    } else {
+      const returnedIds = new Set<string>();
+      if (data) {
+        for (const r of data) {
+          rankingsCache.set(r.submission_id, r.final_rank as number);
+          returnedIds.add(r.submission_id);
+        }
+      }
+      // Mark IDs that had no rank so we don't re-query them
+      for (const id of uncached) {
+        if (!returnedIds.has(id)) rankingsQueriedNoResult.add(id);
+      }
     }
   }
-  return rankMap;
+
+  const result = new Map<string, number>();
+  for (const id of submissionIds) {
+    const rank = rankingsCache.get(id);
+    if (rank !== undefined) result.set(id, rank);
+  }
+  return result;
 }
 
 export async function fetchMonthlyWinners(

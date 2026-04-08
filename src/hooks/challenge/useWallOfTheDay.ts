@@ -3,7 +3,7 @@ import type { Shape, ShapeGroup } from '../../types';
 import { getTodayDateUTC } from '../../utils/dailyChallenge';
 import { getAdjacentDates, isDateWithinLastTwoDays } from '../../utils/calendarUtils';
 import { canViewCurrentDay as canViewCurrentDayUtil } from '../../utils/privacyRules';
-import { fetchWallSubmissionsFromDB, fetchWallSubmissionsRanked, fetchNicknames, fetchRankingsBySubmissionIds, type WallSortMode } from '../../lib/api';
+import { fetchWallCached, type WallCacheSortMode } from '../../lib/api';
 
 // =============================================================================
 // Types
@@ -72,59 +72,21 @@ export function clearAllWallCache(): void {
 
 const INITIAL_LIMIT = 100;
 
-async function fetchRankedSubmissions(date: string, limit: number): Promise<WallSubmission[]> {
-  const data = await fetchWallSubmissionsRanked(date, limit + 1);
-  if (!data || data.length === 0) return [];
-
-  // Extract embedded submission data from the join
-  const submissions = data.map(r => {
-    const s = r.submissions as unknown as {
-      id: string; user_id: string; shapes: unknown; groups: unknown;
-      background_color_index: number | null; created_at: string; like_count: number;
-    };
-    return {
-      id: s.id,
-      user_id: s.user_id,
-      shapes: s.shapes as Shape[],
-      groups: (s.groups as ShapeGroup[]) || [],
-      background_color_index: s.background_color_index,
-      created_at: s.created_at,
-      like_count: s.like_count ?? 0,
-      final_rank: r.final_rank as number,
-    };
-  });
-
-  const userIds = [...new Set(submissions.map(s => s.user_id))];
-  const nicknameMap = await fetchNicknames(userIds);
-
-  return submissions.map(s => ({
-    ...s,
-    nickname: nicknameMap.get(s.user_id)?.nickname || 'Anonymous',
-    avatar_url: nicknameMap.get(s.user_id)?.avatar_url ?? null,
-  }));
-}
-
-async function fetchSortedSubmissions(date: string, sortMode: WallSortMode, limit: number): Promise<WallSubmission[]> {
-  const submissions = await fetchWallSubmissionsFromDB(date, limit + 1, sortMode);
-  if (!submissions || submissions.length === 0) return [];
-
-  const userIds = [...new Set(submissions.map(s => s.user_id))];
-  const nicknameMap = await fetchNicknames(userIds);
-
-  const submissionIds = submissions.map(s => s.id);
-  const rankMap = await fetchRankingsBySubmissionIds(submissionIds);
-
-  return submissions.map(s => ({
-    id: s.id,
-    user_id: s.user_id,
-    nickname: nicknameMap.get(s.user_id)?.nickname || 'Anonymous',
-    avatar_url: nicknameMap.get(s.user_id)?.avatar_url ?? null,
-    shapes: s.shapes as Shape[],
-    groups: (s.groups as ShapeGroup[]) || [],
-    background_color_index: s.background_color_index,
-    created_at: s.created_at,
-    final_rank: rankMap.get(s.id),
-    like_count: s.like_count ?? 0,
+// Single RPC call replaces the old 3-query flow (submissions + nicknames + rankings).
+// The DB function handles the join and caches the result server-side (see wall_cache migration).
+async function fetchFromRPC(date: string, sortMode: SortMode, limit: number): Promise<WallSubmission[]> {
+  const data = await fetchWallCached(date, sortMode as WallCacheSortMode, limit + 1);
+  return data.map(row => ({
+    id: row.id,
+    user_id: row.user_id,
+    nickname: row.nickname,
+    avatar_url: row.avatar_url,
+    shapes: row.shapes as Shape[],
+    groups: (row.groups as ShapeGroup[]) || [],
+    background_color_index: row.background_color_index,
+    created_at: row.created_at,
+    final_rank: row.final_rank ?? undefined,
+    like_count: row.like_count,
   }));
 }
 
@@ -141,9 +103,7 @@ export async function fetchWallSubmissions(date: string, sortMode: SortMode = 'n
     return pendingRequests.get(cacheKey)!;
   }
 
-  const promise = sortMode === 'ranked'
-    ? fetchRankedSubmissions(date, INITIAL_LIMIT)
-    : fetchSortedSubmissions(date, sortMode, INITIAL_LIMIT);
+  const promise = fetchFromRPC(date, sortMode, INITIAL_LIMIT);
 
   pendingRequests.set(cacheKey, promise);
 
