@@ -1,0 +1,563 @@
+[
+  {
+    "phase": "0-supervised",
+    "phase_description": "Database migration + GDPR scrubbing. Requires human supervision for `supabase db push` and `supabase functions deploy`. Agent writes the files, human runs the deploy commands.",
+    "id": "DB-001",
+    "category": "Database",
+    "description": "Create notifications table with columns: id (UUID PK), user_id (UUID FK to auth.users ON DELETE CASCADE), type (TEXT), data (JSONB DEFAULT '{}'), is_read (BOOLEAN DEFAULT false), created_at (TIMESTAMPTZ DEFAULT now())",
+    "steps_to_verify": [
+      "Table 'notifications' exists in public schema",
+      "Column 'is_read' is used (NOT 'read') — confirmed via \\d notifications",
+      "user_id has ON DELETE CASCADE referencing auth.users",
+      "Inserting a row with missing 'data' defaults to '{}'",
+      "Inserting a row with missing 'is_read' defaults to false"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "0-supervised",
+    "id": "DB-002",
+    "category": "Database",
+    "description": "Create partial index idx_notifications_user_unread on (user_id, created_at DESC) WHERE NOT is_read, and secondary index idx_notifications_user_all on (user_id, created_at DESC)",
+    "steps_to_verify": [
+      "Both indexes exist (query pg_indexes)",
+      "EXPLAIN on 'SELECT * FROM notifications WHERE user_id = X AND NOT is_read ORDER BY created_at DESC' uses the partial index"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "0-supervised",
+    "id": "DB-003",
+    "category": "Database",
+    "description": "Enable RLS on notifications table with two policies: SELECT (own rows), UPDATE (own rows). No INSERT policy (triggers use SECURITY DEFINER). No DELETE policy (users cannot delete notifications — cleanup triggers bypass RLS via SECURITY DEFINER).",
+    "steps_to_verify": [
+      "RLS is enabled on notifications table",
+      "Authenticated user can SELECT only their own notifications",
+      "Authenticated user can UPDATE (mark as read) only their own notifications",
+      "Authenticated user CANNOT insert directly into notifications table",
+      "Authenticated user CANNOT delete notifications (no DELETE policy)",
+      "Authenticated user CANNOT select/update another user's notifications"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "0-supervised",
+    "id": "DB-004",
+    "category": "Database",
+    "description": "Create AFTER INSERT trigger on likes table (trg_notify_on_like) that inserts a 'like' notification for the submission owner. Stores actor_id, actor_nickname, actor_avatar, submission_id in data jsonb. Does NOT notify if user liked their own submission. Actor nickname and avatar must be fetched with a single subquery (not two separate ones). All SECURITY DEFINER trigger functions must include SET search_path = public.",
+    "steps_to_verify": [
+      "Liking another user's submission creates a notification with type='like' for the owner",
+      "Notification data contains actor_id, actor_nickname, actor_avatar, submission_id",
+      "Liking your own submission does NOT create a notification",
+      "Trigger function is SECURITY DEFINER with SET search_path = public",
+      "Actor nickname and avatar are fetched in a single subquery/SELECT INTO, not two separate subqueries"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "0-supervised",
+    "id": "DB-005",
+    "category": "Database",
+    "description": "Create AFTER INSERT trigger on follows table (trg_notify_on_follow) that inserts a 'follow' notification for the followed user. Includes 24h dedup guard: skips insert if a follow notification from the same actor exists within the last 24 hours. Function must be SECURITY DEFINER with SET search_path = public.",
+    "steps_to_verify": [
+      "Following a user creates a notification with type='follow' for the followed user",
+      "Notification data contains actor_id, actor_nickname, actor_avatar",
+      "Following, unfollowing, then re-following the same user within 24h does NOT create a second follow notification",
+      "Following the same user again after 24h DOES create a new notification",
+      "Trigger function is SECURITY DEFINER with SET search_path = public"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "0-supervised",
+    "id": "DB-006",
+    "category": "Database",
+    "description": "Create AFTER DELETE trigger on likes table (trg_cleanup_like_notification) that removes the corresponding 'like' notification when a user unlikes a submission. Must scope the DELETE by user_id (the submission owner) so the existing B-tree index is used. Function must be SECURITY DEFINER with SET search_path = public.",
+    "steps_to_verify": [
+      "Unliking a submission removes the 'like' notification matching that actor_id + submission_id",
+      "Other users' like notifications for the same submission are NOT affected",
+      "DELETE query includes user_id in the WHERE clause (look up submission owner) for index usage",
+      "Trigger function is SECURITY DEFINER with SET search_path = public"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "0-supervised",
+    "id": "DB-007",
+    "category": "Database",
+    "description": "Create AFTER DELETE trigger on follows table (trg_cleanup_follow_notification) that removes the corresponding 'follow' notification when a user unfollows. Function must be SECURITY DEFINER with SET search_path = public.",
+    "steps_to_verify": [
+      "Unfollowing a user removes the 'follow' notification matching that actor_id for the unfollowed user",
+      "Other follow notifications for the same user are NOT affected",
+      "Trigger function is SECURITY DEFINER with SET search_path = public"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "0-supervised",
+    "id": "DB-008",
+    "category": "Database",
+    "description": "Create AFTER INSERT trigger on submissions table (trg_notify_on_submission) that inserts a 'friend_submitted' notification for each follower. Wrapped in EXCEPTION block so notification failures never roll back the submission INSERT. Includes NOT EXISTS dedup guard per follower + submission. Function must be SECURITY DEFINER with SET search_path = public.",
+    "steps_to_verify": [
+      "Submitting artwork creates 'friend_submitted' notifications for all followers of the submitter",
+      "Each notification contains actor_id, actor_nickname, actor_avatar, submission_id",
+      "If notification insertion fails (e.g. simulated error), the submission INSERT still succeeds",
+      "Duplicate friend_submitted notifications for the same follower+submission are prevented",
+      "Trigger function is SECURITY DEFINER with SET search_path = public"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "0-supervised",
+    "id": "DB-009",
+    "category": "Database",
+    "description": "Add notifications table to Supabase Realtime publication (ALTER PUBLICATION supabase_realtime ADD TABLE notifications)",
+    "steps_to_verify": [
+      "notifications table is listed in supabase_realtime publication"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "0-supervised",
+    "id": "INFRA-001",
+    "category": "Infrastructure",
+    "description": "Add pg_cron job to the notifications migration that deletes notifications older than 30 days, running daily at 03:00 UTC. Uses pg_cron (available on Pro plan) — no edge function needed.",
+    "steps_to_verify": [
+      "pg_cron job 'cleanup-notifications' is scheduled in the migration SQL",
+      "Cron schedule is '0 3 * * *' (daily at 03:00 UTC)",
+      "Job runs: DELETE FROM notifications WHERE created_at < now() - interval '30 days'",
+      "No cleanup-notifications edge function exists (not needed with pg_cron)"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "0-supervised",
+    "id": "DB-010",
+    "category": "Database",
+    "description": "Migration file created at supabase/migrations/20260407000001_notifications.sql containing all of the above (table, indexes, RLS, triggers, realtime, pg_cron schedule, scrub_notification_actor function). Human runs `supabase db push` to deploy.",
+    "steps_to_verify": [
+      "File exists at supabase/migrations/20260407000001_notifications.sql",
+      "Migration includes pg_cron schedule for cleanup-notifications",
+      "Migration includes scrub_notification_actor function for GDPR scrubbing",
+      "Migration runs successfully via supabase db push with no errors"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "0-supervised",
+    "id": "GDPR-001",
+    "category": "Data Privacy",
+    "description": "Add GDPR notification scrubbing to the existing delete-account edge function (supabase/functions/delete-account/index.ts). Before deleting the auth user, call scrub_notification_actor RPC to strip actor_nickname and actor_avatar from all notification rows where data->>'actor_id' matches the user's id. Human runs `supabase functions deploy delete-account` to deploy.",
+    "steps_to_verify": [
+      "delete-account edge function calls scrub_notification_actor RPC BEFORE the auth user delete",
+      "After account deletion, other users' notifications referencing the deleted user display 'Someone' instead of the old name",
+      "No broken avatar URLs remain in notification data for deleted users",
+      "UI falls back to 'Someone' when actor_nickname is null or missing in notification data"
+    ],
+    "passes": false
+  },
+
+  {
+    "phase": "1-autonomous",
+    "phase_description": "Frontend code for poll-based notifications (Phase 1). All local repo changes — no external deploys. Agent can run tsc and eslint to verify.",
+    "id": "TYPES-001",
+    "category": "TypeScript Types",
+    "description": "Create src/types/notifications.ts with NotificationType union ('like' | 'follow' | 'friend_submitted'), NotificationDataMap interface with per-type data shapes (including actor_nickname, actor_avatar where applicable), and a Notification discriminated union type using mapped types so n.type narrows n.data automatically.",
+    "steps_to_verify": [
+      "File exists at src/types/notifications.ts",
+      "NotificationType does NOT include 'competition_result'",
+      "In a switch on n.type, n.data is correctly narrowed (e.g. case 'like' gives access to n.data.submission_id without casting)",
+      "Notification uses is_read (not read)",
+      "No 'as Record<string, unknown>' casts needed when consuming Notification in switch statements",
+      "tsc --noEmit passes with no errors"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "1-autonomous",
+    "id": "CONFIG-001",
+    "category": "Shared Config",
+    "description": "Create src/config/notificationIcons.ts exporting NOTIFICATION_ICONS — a Record<NotificationType, { icon, bgClass, colorClass }> mapping each notification type to its Lucide icon and Tailwind color classes. Used by both NotificationsTab and ToastContainer.",
+    "steps_to_verify": [
+      "File exists at src/config/notificationIcons.ts",
+      "Exports NOTIFICATION_ICONS with entries for: like (Heart), follow (UserPlus), friend_submitted (Store)",
+      "Does NOT include competition_result or milestone",
+      "Does NOT import unused icons (e.g. Star from lucide-react — competition_result was removed)",
+      "Both NotificationsTab and ToastContainer import from this file (no duplicated icon maps)"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "1-autonomous",
+    "id": "API-001",
+    "category": "API Functions",
+    "description": "Add fetchNotifications(userId) to src/lib/api.ts — fetches most recent 50 notifications, ordered by created_at DESC",
+    "steps_to_verify": [
+      "Function exists in src/lib/api.ts",
+      "Returns Notification[] typed correctly",
+      "Orders by created_at descending",
+      "Limits to 50 results"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "1-autonomous",
+    "id": "API-002",
+    "category": "API Functions",
+    "description": "Add fetchUnreadCount(userId) to src/lib/api.ts — returns count of unread notifications using head:true for efficiency",
+    "steps_to_verify": [
+      "Function exists and returns a number",
+      "Uses { count: 'exact', head: true } for efficiency (no row data transferred)",
+      "Filters on is_read = false"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "1-autonomous",
+    "id": "API-004",
+    "category": "API Functions",
+    "description": "Add markNotificationRead(notificationId) and markAllNotificationsRead(userId) to src/lib/api.ts. No deleteNotification — users cannot delete notifications.",
+    "steps_to_verify": [
+      "markNotificationRead sets is_read=true for a single notification",
+      "markAllNotificationsRead sets is_read=true for all unread notifications of a user",
+      "No deleteNotification function exists",
+      "Both functions use is_read (not read)"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "1-autonomous",
+    "id": "HOOK-001",
+    "category": "State Management",
+    "description": "Create src/hooks/notifications/useNotifications.ts — manages notification state (fetch all 50 on mount, no pagination), optimistic mark-as-read, error state, and a prependNotification method for Realtime (Phase 2). unreadCount must use fetchUnreadCount for accurate server-side count. prependNotification must deduplicate by id before prepending.",
+    "steps_to_verify": [
+      "Hook returns: notifications, unreadCount, loading, fetched, error, markRead, markAllRead, prependNotification, reload",
+      "Load fetches 50 notifications on mount (no pagination, no load-more)",
+      "markRead performs optimistic update (is_read=true immediately) and rolls back on failure",
+      "markAllRead performs optimistic update and reloads from server on failure",
+      "On fetch error: error state is set, fetched is set to true (prevents infinite retry loop), loading is false",
+      "error state is cleared on successful fetch",
+      "fetchNotifications is imported (simple fetch, no pagination)",
+      "unreadCount uses fetchUnreadCount (API-002) for accurate server-side count, not notifications.filter(n => !n.is_read).length",
+      "prependNotification checks for existing id before prepending (dedup guard for Realtime reconnection duplicates)"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "1-autonomous",
+    "id": "CTX-001",
+    "category": "State Management",
+    "description": "Create src/contexts/NotificationsContext.tsx — wraps useNotifications in a React context. Provider accepts userId prop. useNotificationsContext() hook throws if used outside provider.",
+    "steps_to_verify": [
+      "NotificationsProvider component exists and accepts userId + children",
+      "useNotificationsContext hook exists and throws descriptive error if used outside provider",
+      "Context value includes error field",
+      "Provider is mounted in a parent that wraps both UserMenuDropdown trigger and panel content"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "1-autonomous",
+    "id": "UI-001",
+    "category": "UI - Panel",
+    "description": "Create src/components/notifications/NotificationsTab.tsx — renders notification list inside UserMenuDropdown as the 'Notifications' tab content. Uses type-safe discriminated union (no Record<string, unknown> casts). Shows loading state, error state with retry button, and empty state.",
+    "steps_to_verify": [
+      "Component renders a scrollable list of notifications with viewport-relative max-height (e.g. max-h-[40vh], NOT fixed 300px — must scale with viewport)",
+      "Each notification shows: type icon (from shared NOTIFICATION_ICONS), text with actor name (bold), relative timestamp",
+      "getNotificationText uses type narrowing (switch on n.type) — no 'as Record<string, unknown>' casts anywhere in the file",
+      "Actor names fall back to 'Someone' when null/missing",
+      "Loading state shows 'Loading...' when loading with no existing notifications",
+      "Error state shows 'Failed to load notifications.' with a clickable 'Retry' button",
+      "Empty state shows helpful copy (e.g. 'When someone likes your art or follows you, you'll see it here.') — not just 'No notifications yet'",
+      "'Mark all as read' button appears in header only when there are unread notifications"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "1-autonomous",
+    "id": "UI-002",
+    "category": "UI - Panel",
+    "description": "NotificationItem hover-to-read: hovering for 700ms marks notification as read. CSS progress bar on left edge animates over 700ms in sync. Mouse leave cancels both timer and animation.",
+    "steps_to_verify": [
+      "Hovering over an unread notification for 700ms marks it as read (optimistic — instant visual feedback)",
+      "A 3px accent-colored progress bar animates top-to-bottom on the left edge during hover",
+      "Moving mouse away before 700ms cancels the timer — notification stays unread",
+      "Moving mouse away resets the progress bar animation",
+      "Already-read notifications do not start the timer on hover",
+      "@keyframes fillBar is defined in index.css"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "1-autonomous",
+    "id": "UI-003",
+    "category": "UI - Panel",
+    "description": "NotificationItem keyboard accessibility: focusing a notification via Tab triggers the same 700ms mark-as-read behavior as hover. Blur cancels it.",
+    "steps_to_verify": [
+      "Each NotificationItem has tabIndex={0}",
+      "Tabbing to an unread notification starts the 700ms read timer (onFocus)",
+      "Tabbing away cancels the timer (onBlur)",
+      "Pressing Enter/clicking a focused notification marks it as read and navigates"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "1-autonomous",
+    "id": "UI-004",
+    "category": "UI - Panel",
+    "description": "NotificationItem click behavior: clicking marks as read (if unread) and navigates to the relevant target. Like/friend_submitted → submission view. Follow → profile view. Navigation closes the dropdown.",
+    "steps_to_verify": [
+      "Clicking a 'like' notification navigates to ?view=submission&id=<submission_id>",
+      "Clicking a 'follow' notification navigates to ?view=profile&user=<actor_id>",
+      "Clicking a 'friend_submitted' notification navigates to ?view=submission&id=<submission_id>",
+      "Click marks notification as read if it was unread",
+      "Click closes the UserMenuDropdown (onClose is called)"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "1-autonomous",
+    "id": "UI-005",
+    "category": "UI - Panel",
+    "description": "NotificationItem visual states: unread items use bg-(--color-selected-hover), read items use bg-(--color-selected). Both hover to bg-(--color-selected-hover).",
+    "steps_to_verify": [
+      "Unread notifications have visibly different background from read notifications",
+      "Read notifications use --color-selected background",
+      "Unread notifications use --color-selected-hover background"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "1-autonomous",
+    "id": "UI-006",
+    "category": "UI - Dropdown",
+    "description": "Extend UserMenuDropdown with Notifications as the first tab. Tab order: Notifications | Following | Followers. Default to Notifications tab if unread items exist, otherwise Following.",
+    "steps_to_verify": [
+      "Three tabs visible in UserMenuDropdown: Notifications, Following, Followers",
+      "Notifications tab label shows unread count when > 0, e.g. 'Notifications (3)' — consistent with Following/Followers count pattern",
+      "Notifications is the first tab",
+      "When there are unread notifications, dropdown opens to Notifications tab",
+      "When there are no unread notifications, dropdown opens to Following tab",
+      "Log Out button remains visible regardless of active tab",
+      "Switching between tabs works correctly"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "1-autonomous",
+    "id": "UI-007",
+    "category": "UI - Dropdown",
+    "description": "Show unread notification dot on the avatar button in the top bar. Dot is a 10px (w-2.5 h-2.5) accent-colored circle with 2px border matching button background, positioned at top-right of avatar.",
+    "steps_to_verify": [
+      "Dot appears on avatar when unreadCount > 0",
+      "Dot disappears when all notifications are read",
+      "Dot is accent color with 2px border matching --color-bg-secondary",
+      "Dot has aria-label with unread count for screen readers",
+      "Dot is positioned at top-right corner of the avatar (-top-0.5 -right-0.5)"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "1-autonomous",
+    "id": "UI-008",
+    "category": "UI - Dropdown",
+    "description": "NotificationsProvider must be mounted in a parent above UserMenuDropdown so unread count is available to both the trigger button (for dot) and the panel content.",
+    "steps_to_verify": [
+      "NotificationsProvider wraps the component tree containing UserMenuDropdown",
+      "NotificationsProvider is NOT mounted inside UserMenuDropdown itself",
+      "userId is passed from the existing auth context"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "1-autonomous",
+    "id": "CSS-001",
+    "category": "CSS",
+    "description": "Add @keyframes fillBar (scaleY 0->1, opacity 0->0.6 over 700ms) to index.css",
+    "steps_to_verify": [
+      "@keyframes fillBar is defined in index.css with from: scaleY(0) opacity 0, to: scaleY(1) opacity 0.6"
+    ],
+    "passes": false
+  },
+
+  {
+    "phase": "2-autonomous",
+    "phase_description": "Realtime subscription + toast system (Phase 2). All local repo changes — no external deploys. DB already has Realtime enabled from Phase 0.",
+    "id": "TOAST-001",
+    "category": "UI - Toasts",
+    "description": "Create src/contexts/ToastContext.tsx — manages toast state with addToast, dismissToast, max 4 toasts (oldest evicted when exceeded)",
+    "steps_to_verify": [
+      "ToastProvider exists and provides toasts, addToast, dismissToast",
+      "Max 4 toasts displayed at once — oldest is evicted when a 5th is added",
+      "dismissToast removes a toast by id",
+      "useToast hook throws if used outside provider"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "2-autonomous",
+    "id": "TOAST-002",
+    "category": "UI - Toasts",
+    "description": "Create src/components/notifications/ToastContainer.tsx — renders toasts in bottom-right corner. Each toast shows icon (from shared NOTIFICATION_ICONS), text, action link. Uses framer-motion for slide-in/out animations.",
+    "steps_to_verify": [
+      "Toasts render in fixed position at bottom-5 right-5, z-index 200",
+      "Each toast shows the correct icon and colors from shared NOTIFICATION_ICONS",
+      "Toast text uses type narrowing (no Record<string, unknown> casts)",
+      "Toast shows actor name (falls back to 'Someone') and action text (e.g. 'View submission ->')",
+      "Slide-in animation from right (x: 32 -> 0) with spring physics",
+      "Exit animation slides back right with opacity fade",
+      "Toasts stack newest-on-top (flex-col-reverse)",
+      "AnimatePresence mode='popLayout' handles smooth reflow on dismiss"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "2-autonomous",
+    "id": "TOAST-003",
+    "category": "UI - Toasts",
+    "description": "Toast auto-dismiss: 5s timer with progress bar that drains left-to-right. Hovering pauses both timer and progress bar. Close button appears on hover. CRITICAL: the JS dismiss timer and CSS progress bar must use a single source of truth for elapsed time — track remaining time on pause and resume from that value (do NOT restart a fresh 5s timer on unpause, or the bar and timer will desync).",
+    "steps_to_verify": [
+      "Toast auto-dismisses after 5 seconds",
+      "2px accent-colored progress bar at bottom drains from 100% to 0% over 5s",
+      "Hovering pauses the 5s timer and progress bar animation",
+      "Unhovering resumes both timer and progress bar FROM WHERE THEY LEFT OFF (not from scratch)",
+      "Timer tracks remaining time on pause — e.g. pausing at 2s means 3s remaining on resume",
+      "Progress bar and JS timer stay in sync after pause/resume cycles",
+      "Close button (x) appears on hover at top-right",
+      "Clicking close button dismisses the toast (event.stopPropagation prevents navigation)",
+      "@keyframes progressDrain is defined in index.css"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "2-autonomous",
+    "id": "TOAST-004",
+    "category": "UI - Toasts",
+    "description": "Clicking a toast navigates to the relevant target (same routing as panel notifications) and dismisses the toast",
+    "steps_to_verify": [
+      "Clicking a 'like' toast navigates to ?view=submission&id=<submission_id>",
+      "Clicking a 'follow' toast navigates to ?view=profile&user=<actor_id>",
+      "Clicking a 'friend_submitted' toast navigates to ?view=submission&id=<submission_id>",
+      "Toast is dismissed after click"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "2-autonomous",
+    "id": "RT-001",
+    "category": "Realtime",
+    "description": "Create src/hooks/notifications/useNotificationsRealtime.ts — subscribes to Supabase Realtime INSERT events on notifications table filtered by user_id. On new notification: prepends to notification list and fires a toast.",
+    "steps_to_verify": [
+      "Hook subscribes to postgres_changes INSERT on notifications table",
+      "Filter is user_id=eq.${userId} (server-side filtering)",
+      "New notification is prepended to the in-memory list via prependNotification",
+      "New notification triggers a toast via addToast",
+      "Subscription cleans up on unmount (supabase.removeChannel)",
+      "Hook does nothing when userId is null"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "2-autonomous",
+    "id": "RT-002",
+    "category": "Realtime",
+    "description": "useNotificationsRealtime is mounted in the app root alongside NotificationsProvider. Toasts only fire for Realtime events, not on initial load.",
+    "steps_to_verify": [
+      "Hook is called in the same component that renders NotificationsProvider",
+      "Initial page load does NOT show toasts for existing notifications",
+      "A new like/follow/submission from another user triggers a toast in real time"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "2-autonomous",
+    "id": "RT-003",
+    "category": "Realtime",
+    "description": "On Realtime channel reconnection, call reload() to catch any notifications missed during the disconnect gap. Supabase Realtime does not replay missed events.",
+    "steps_to_verify": [
+      "When Realtime subscription reconnects after a disconnect, reload() is called to fetch missed notifications",
+      "No duplicate toasts fire for notifications that arrived during the disconnect (they were fetched by reload, not Realtime)"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "2-autonomous",
+    "id": "CSS-002",
+    "category": "CSS",
+    "description": "Add @keyframes progressDrain (width 100%->0%) to index.css",
+    "steps_to_verify": [
+      "@keyframes progressDrain is defined in index.css with from: width 100%, to: width 0%"
+    ],
+    "passes": false
+  },
+
+  {
+    "phase": "3-supervised",
+    "phase_description": "Browser testing with two accounts. Requires dev server running and human present to verify visual results.",
+    "id": "E2E-001",
+    "category": "End-to-End",
+    "description": "Full Phase 1 integration: User A likes User B's submission -> User B sees 'like' notification in panel with A's name, correct icon, relative timestamp. Clicking navigates to submission.",
+    "steps_to_verify": [
+      "Like from User A creates notification visible in User B's panel",
+      "Notification shows User A's nickname in bold",
+      "Heart icon with accent color is displayed",
+      "Relative timestamp is shown (e.g. 'just now', '5m ago')",
+      "Clicking navigates to the submission view",
+      "Unread dot appears on User B's avatar",
+      "After marking as read, dot disappears (if no other unreads)"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "3-supervised",
+    "id": "E2E-002",
+    "category": "End-to-End",
+    "description": "Full Phase 1 integration: User A follows User B -> User B sees 'follow' notification. User A unfollows -> notification is removed.",
+    "steps_to_verify": [
+      "Follow creates notification with UserPlus icon and A's name",
+      "Clicking navigates to User A's profile",
+      "Unfollowing removes the notification from User B's panel"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "3-supervised",
+    "id": "E2E-003",
+    "category": "End-to-End",
+    "description": "Full Phase 1 integration: User A (followed by User B) submits artwork -> User B sees 'friend_submitted' notification.",
+    "steps_to_verify": [
+      "Submission by User A creates notification for follower User B",
+      "Notification shows Store icon and A's name",
+      "Clicking navigates to the submission view",
+      "User A's submission was saved successfully (not rolled back by notification system)"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "3-supervised",
+    "id": "E2E-004",
+    "category": "End-to-End",
+    "description": "Full Phase 2 integration: User A likes User B's submission while User B has the app open -> toast appears in bottom-right with slide-in animation, auto-dismisses after 5s.",
+    "steps_to_verify": [
+      "Toast appears in real time without page refresh",
+      "Toast slides in from right with spring animation",
+      "Toast shows Heart icon, User A's name, 'View submission ->' action",
+      "Toast auto-dismisses after 5 seconds",
+      "Notification also appears in the panel (prepended to list)"
+    ],
+    "passes": false
+  },
+
+  {
+    "phase": "3-supervised",
+    "id": "DOC-001",
+    "category": "Documentation",
+    "description": "Move features/current-feature/plan-notifications.md to docs/plan-notifications.md (the features/ directory is ephemeral and may be deleted). Add a brief mention in the project README linking to docs/plan-notifications.md as the authoritative documentation for the notifications system.",
+    "steps_to_verify": [
+      "docs/plan-notifications.md exists with the full plan content",
+      "features/current-feature/plan-notifications.md no longer exists (moved, not copied)",
+      "README mentions the notifications system with a link to docs/plan-notifications.md"
+    ],
+    "passes": false
+  }
+]
