@@ -72,3 +72,22 @@
 - Visual states: unread=bg-(--color-selected-hover), read=bg-(--color-selected)
 - tsc clean, 102 tests pass, lint clean (pre-existing only)
 - Files: src/components/notifications/NotificationsTab.tsx, features/current-feature/PRD.json
+
+## UI-008 - Mount NotificationsProvider (already done in CTX-001)
+- Verified: NotificationsProvider wraps HeaderProvider in App.tsx (line 89)
+- userId={user?.id} passed from auth context
+- NOT inside UserMenuDropdown — wraps entire component tree
+- Was implemented during CTX-001 but not marked as passing
+- Files: (no changes needed)
+
+## UI-006 - Extend UserMenuDropdown with Notifications tab
+- Added 'notifications' to activeTab union type in UserMenuContent
+- Tab order: Notifications | Following | Followers (Notifications first)
+- Default tab: 'notifications' if unreadCount > 0, else 'following'
+- Notifications tab label shows count when > 0: "Notifications (3)"
+- Tab content switches: notifications → NotificationsTab component, following/followers → existing friend list + add-by-nickname
+- Log out + delete account buttons always visible (outside conditional)
+- Gallery/theme mobile section always visible
+- Imported useNotificationsContext + NotificationsTab
+- tsc clean, 102 tests pass, lint clean (pre-existing only)
+- Files: src/components/canvas/UserMenuDropdown.tsx, features/current-feature/PRD.json

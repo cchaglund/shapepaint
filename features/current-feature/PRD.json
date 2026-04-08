@@ -341,7 +341,7 @@
       "Log Out button remains visible regardless of active tab",
       "Switching between tabs works correctly"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "phase": "1-autonomous",
@@ -367,7 +367,7 @@
       "NotificationsProvider is NOT mounted inside UserMenuDropdown itself",
       "userId is passed from the existing auth context"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "phase": "1-autonomous",
