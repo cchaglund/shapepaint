@@ -1,0 +1,8 @@
+## TYPES-001 - Create notification types
+- Created src/types/notifications.ts
+- NotificationType union: 'like' | 'follow' | 'friend_submitted'
+- NotificationDataMap: per-type data shapes with actor_nickname/actor_avatar as string|null (GDPR scrubbing sets these to null)
+- Notification: discriminated union via mapped type — switch on n.type narrows n.data automatically
+- Uses is_read (not read), no competition_result
+- tsc passes, tests pass, lint clean (pre-existing errors only)
+- Files: src/types/notifications.ts, features/current-feature/PRD.json
