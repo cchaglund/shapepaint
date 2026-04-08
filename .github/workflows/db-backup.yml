@@ -28,7 +28,7 @@ jobs:
           FILENAME="shapepaint-backup-${TIMESTAMP}.sql.gz"
 
           # Dump and compress
-          pg_dump "$DATABASE_URL" --no-owner --no-privileges 2>pg_dump_errors.log | gzip > "$FILENAME" || true
+          /usr/lib/postgresql/17/bin/pg_dump "$DATABASE_URL" --no-owner --no-privileges 2>pg_dump_errors.log | gzip > "$FILENAME" || true
 
           # Check for pg_dump errors
           if [ -s pg_dump_errors.log ]; then
