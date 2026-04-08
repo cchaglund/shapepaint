@@ -299,7 +299,7 @@
       "Tabbing away cancels the timer (onBlur)",
       "Pressing Enter/clicking a focused notification marks it as read and navigates"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "phase": "1-autonomous",

@@ -60,7 +60,7 @@ function NotificationItem({
     }, 700);
   };
 
-  const handleMouseLeave = () => {
+  const cancelTimer = () => {
     if (timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
@@ -68,11 +68,22 @@ function NotificationItem({
     setIsHovering(false);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      onClickNotification(notification);
+    }
+  };
+
   return (
     <div
+      tabIndex={0}
+      role="button"
       onClick={() => onClickNotification(notification)}
+      onKeyDown={handleKeyDown}
       onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onMouseLeave={cancelTimer}
+      onFocus={handleMouseEnter}
+      onBlur={cancelTimer}
       className={`relative flex items-start gap-3 px-4 py-2.5 transition-colors cursor-pointer hover:bg-(--color-hover) ${
         notification.is_read
           ? 'bg-(--color-selected)'

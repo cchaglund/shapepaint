@@ -121,3 +121,12 @@
 - Added `relative` to container for absolute-positioned progress bar
 - tsc clean, 102 tests pass, lint clean (pre-existing only)
 - Files: src/components/notifications/NotificationsTab.tsx, features/current-feature/PRD.json
+
+## UI-003 - NotificationItem keyboard accessibility
+- Added tabIndex={0} + role="button" to NotificationItem div
+- onFocus reuses handleMouseEnter (starts 700ms read timer for unread items)
+- onBlur reuses cancelTimer (clears timer + resets hover state)
+- Extracted cancelTimer from handleMouseLeave (shared by onBlur + onMouseLeave)
+- onKeyDown: Enter triggers onClickNotification (marks read + navigates + closes)
+- tsc clean, 102 tests pass, lint clean (pre-existing only)
+- Files: src/components/notifications/NotificationsTab.tsx, features/current-feature/PRD.json
