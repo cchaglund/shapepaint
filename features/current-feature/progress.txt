@@ -49,3 +49,13 @@
 - Follows useLikes pattern: useRef dedup, optimistic updates, rollback on failure
 - tsc clean, 102 tests pass, lint clean (pre-existing only)
 - Files: src/hooks/notifications/useNotifications.ts, features/current-feature/PRD.json
+
+## CTX-001 - Create NotificationsContext
+- Created src/contexts/NotificationsContext.tsx
+- NotificationsProvider accepts userId + children, wraps useNotifications hook
+- useNotificationsContext() throws descriptive error if used outside provider
+- NotificationsContextValue interface mirrors useNotifications return type (reload is void, not Promise)
+- Mounted in App.tsx wrapping HeaderProvider — accessible to both TopBar (avatar dot) and dropdown panel
+- Follows FollowsContext pattern: eslint-disable for react-refresh, createContext with null default
+- tsc clean, 102 tests pass, lint clean (pre-existing only)
+- Files: src/contexts/NotificationsContext.tsx, src/App.tsx, features/current-feature/PRD.json

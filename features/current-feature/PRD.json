@@ -254,7 +254,7 @@
       "Context value includes error field",
       "Provider is mounted in a parent that wraps both UserMenuDropdown trigger and panel content"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "phase": "1-autonomous",

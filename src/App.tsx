@@ -3,6 +3,7 @@ import { MotionConfig } from 'motion/react';
 import { AuthProvider, useAuthContext } from './contexts/AuthContext';
 import { HeaderProvider } from './contexts/HeaderContext';
 import { FollowsProvider } from './contexts/FollowsContext';
+import { NotificationsProvider } from './contexts/NotificationsContext';
 import { getTodayDateUTC } from './utils/dailyChallenge';
 import { useDailyChallenge } from './hooks/challenge/useDailyChallenge';
 import { useAppRoute, isStandaloneRoute } from './hooks/useAppRoute';
@@ -47,6 +48,7 @@ function StandaloneRoute({ route }: { route: { type: string } }) {
 const STANDALONE_ADMIN_ROUTES = new Set(['explorer', 'voting-test', 'dashboard', 'color-tester']);
 
 function AppContent() {
+  const { user } = useAuthContext();
   const { mode: themeMode, setMode: setThemeMode, theme: themeName, setTheme: setThemeName } = useThemeState();
   const route = useAppRoute();
   const todayDate = useMemo(() => getTodayDateUTC(), []);
@@ -84,19 +86,21 @@ function AppContent() {
   })();
 
   return (
-    <HeaderProvider>
-      <div className="h-dvh flex flex-col overflow-hidden">
-        <TopBar
-          themeMode={themeMode}
-          onSetThemeMode={setThemeMode}
-          themeName={themeName}
-          onSetThemeName={setThemeName}
-        />
-        <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
-          {pageContent}
-        </Suspense>
-      </div>
-    </HeaderProvider>
+    <NotificationsProvider userId={user?.id}>
+      <HeaderProvider>
+        <div className="h-dvh flex flex-col overflow-hidden">
+          <TopBar
+            themeMode={themeMode}
+            onSetThemeMode={setThemeMode}
+            themeName={themeName}
+            onSetThemeName={setThemeName}
+          />
+          <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
+            {pageContent}
+          </Suspense>
+        </div>
+      </HeaderProvider>
+    </NotificationsProvider>
   );
 }
 
