@@ -130,3 +130,12 @@
 - onKeyDown: Enter triggers onClickNotification (marks read + navigates + closes)
 - tsc clean, 102 tests pass, lint clean (pre-existing only)
 - Files: src/components/notifications/NotificationsTab.tsx, features/current-feature/PRD.json
+
+## UI-007 - Unread notification dot on avatar button
+- Added useNotificationsContext() to UserMenuDropdown (before early returns for hooks rule)
+- Wrapped AvatarImage in relative div, added absolute-positioned dot span
+- Dot: w-2.5 h-2.5, rounded-full, bg-(--color-accent), border-2 border-(--color-bg-secondary)
+- Positioned -top-0.5 -right-0.5, only renders when unreadCount > 0
+- aria-label with unread count for screen readers (singular/plural)
+- tsc clean, 102 tests pass, lint clean (pre-existing only)
+- Files: src/components/canvas/UserMenuDropdown.tsx, features/current-feature/PRD.json

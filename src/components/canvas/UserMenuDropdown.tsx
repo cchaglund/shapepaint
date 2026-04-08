@@ -33,6 +33,7 @@ export function UserMenuDropdown({ profile, loading, isLoggedIn, onSignIn, onSig
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const showGalleryInHeader = useBreakpoint(900);
+  const { unreadCount } = useNotificationsContext();
 
   useClickOutside(containerRef, open, () => setOpen(false));
 
@@ -59,7 +60,15 @@ export function UserMenuDropdown({ profile, loading, isLoggedIn, onSignIn, onSig
         className="gap-2"
         onClick={() => setOpen(prev => !prev)}
       >
-        <AvatarImage avatarUrl={profile.avatar_url} initial={initial} size="sm" />
+        <div className="relative">
+          <AvatarImage avatarUrl={profile.avatar_url} initial={initial} size="sm" />
+          {unreadCount > 0 && (
+            <span
+              className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-(--color-accent) border-2 border-(--color-bg-secondary)"
+              aria-label={`${unreadCount} unread notification${unreadCount === 1 ? '' : 's'}`}
+            />
+          )}
+        </div>
         <span className="max-w-20 truncate">{displayName}</span>
         <ChevronDown
           size={12}

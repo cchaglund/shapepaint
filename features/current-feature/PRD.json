@@ -355,7 +355,7 @@
       "Dot has aria-label with unread count for screen readers",
       "Dot is positioned at top-right corner of the avatar (-top-0.5 -right-0.5)"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "phase": "1-autonomous",
