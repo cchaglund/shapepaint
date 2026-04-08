@@ -1,0 +1,60 @@
+name: Weekly DB Backup
+
+on:
+  schedule:
+    # Every Sunday at 03:00 UTC
+    - cron: '0 3 * * 0'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install PostgreSQL 17 client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl ca-certificates
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-17
+
+      - name: Create backup
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          TIMESTAMP=$(date +%Y-%m-%d_%H%M%S)
+          FILENAME="shapepaint-backup-${TIMESTAMP}.sql.gz"
+
+          # Dump and compress
+          /usr/lib/postgresql/17/bin/pg_dump "$DATABASE_URL" --no-owner --no-privileges 2>pg_dump_errors.log | gzip > "$FILENAME" || true
+
+          # Check for pg_dump errors
+          if [ -s pg_dump_errors.log ]; then
+            echo "::error::pg_dump failed:"
+            cat pg_dump_errors.log
+            exit 1
+          fi
+
+          # Verify backup is not trivially small (< 1KB likely means empty)
+          SIZE=$(stat -c%s "$FILENAME")
+          echo "Backup size: $(du -h "$FILENAME" | cut -f1) ($SIZE bytes)"
+          if [ "$SIZE" -lt 1024 ]; then
+            echo "::error::Backup file suspiciously small ($SIZE bytes). Aborting."
+            exit 1
+          fi
+
+          echo "FILENAME=$FILENAME" >> $GITHUB_ENV
+
+      - name: Upload to Cloudflare R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          R2_ENDPOINT_URL: ${{ secrets.R2_ENDPOINT_URL }}
+        run: |
+          aws s3 cp "$FILENAME" \
+            "s3://shapepaint-db-backup/$FILENAME" \
+            --endpoint-url "$R2_ENDPOINT_URL"
+          echo "Uploaded $FILENAME to R2"

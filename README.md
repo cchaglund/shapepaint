@@ -120,6 +120,10 @@ The same date always generates the same colors, shapes, and word (seed-based ran
   - Access restricted to users with admin role
 
 
+## Database Backups
+
+Weekly `pg_dump` backups to Cloudflare R2, independent of Supabase. See [docs/db-backup.md](docs/db-backup.md) for schedule, manual trigger, restore instructions, and required secrets.
+
 ## Tech Stack
 
 - **Vite** + **React** + **TypeScript**
