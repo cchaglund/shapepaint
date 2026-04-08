@@ -100,6 +100,13 @@
 - tsc clean, 102 tests pass, lint clean (pre-existing only)
 - Files: src/components/notifications/NotificationsTab.tsx, src/components/canvas/UserMenuDropdown.tsx, features/current-feature/PRD.json
 
+## CSS-001 - Add @keyframes fillBar to index.css
+- Added @keyframes fillBar: scaleY(0) opacity 0 → scaleY(1) opacity 0.6
+- Placed near existing @keyframes cardLikeWobble in index.css (line ~899)
+- Used by UI-002 NotificationItem hover-to-read progress bar (next task)
+- tsc clean, 102 tests pass, lint clean (pre-existing only)
+- Files: src/index.css, features/current-feature/PRD.json
+
 ## UI-005 - NotificationItem visual states (already done)
 - Was implemented during UI-001: unread=bg-(--color-selected-hover), read=bg-(--color-selected)
 - Marked as passing — no code changes needed

@@ -377,6 +377,6 @@
     "steps_to_verify": [
       "@keyframes fillBar is defined in index.css with from: scaleY(0) opacity 0, to: scaleY(1) opacity 0.6"
     ],
-    "passes": false
+    "passes": true
   }
 ]
