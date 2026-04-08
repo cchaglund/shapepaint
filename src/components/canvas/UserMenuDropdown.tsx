@@ -1,14 +1,16 @@
 import { useState, useRef, useCallback } from 'react';
-import { ChevronDown, LayoutGrid, Sun, Moon, Monitor, LogOut } from 'lucide-react';
+import { ChevronDown, LayoutGrid, Sun, Moon, Monitor, LogOut, Trash2 } from 'lucide-react';
 import { findProfileByNickname } from '../../lib/api';
 import { navigate } from '../../lib/router';
 import { AnimatePresence, motion } from 'motion/react';
 import { Link, AvatarImage, Button, LoadingSpinner } from '../shared';
 import { FollowButton } from '../social/FollowButton';
+import { DeleteAccountModal } from '../modals/DeleteAccountModal';
 import type { Profile } from '../../hooks/auth/useProfile';
 import type { ThemeMode, ThemeName } from '../../hooks/ui/useThemeState';
 import { FollowsProvider } from '../../contexts/FollowsContext';
 import { useFollows } from '../../hooks/social/useFollows';
+import { useAuthContext } from '../../contexts/AuthContext';
 import { useBreakpoint } from '../../hooks/ui/useBreakpoint';
 import { useClickOutside } from '../../hooks/ui/useClickOutside';
 import { THEME_NAMES, MODE_CYCLE, MODE_TITLE } from '../../constants/themes';
@@ -119,10 +121,12 @@ function UserMenuContent({
   onSetThemeName?: (name: ThemeName) => void;
 }) {
   const { following, followers, followingCount, followersCount, loading, follow, isFollowing } = useFollows();
+  const { deleteAccount } = useAuthContext();
   const [activeTab, setActiveTab] = useState<'following' | 'followers'>('following');
   const [addNickname, setAddNickname] = useState('');
   const [addStatus, setAddStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [addError, setAddError] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const friends = activeTab === 'following' ? following : followers;
 
@@ -308,16 +312,32 @@ function UserMenuContent({
         </div>
       )}
 
-      {/* Log out */}
-      <div className="px-3 py-2 border-t border-(--color-border-light)">
+      {/* Log out + Delete account */}
+      <div className="px-3 py-2 border-t border-(--color-border-light) flex items-center gap-1">
         <button
           onClick={onSignOut}
-          className="w-full flex items-center gap-2 px-2 py-1.5 text-xs font-medium text-(--color-text-secondary) hover:text-(--color-danger) hover:bg-(--color-hover) rounded-(--radius-sm) transition-colors cursor-pointer"
+          className="flex-1 flex items-center gap-2 px-2 py-1.5 text-xs font-medium text-(--color-text-secondary) hover:text-(--color-danger) hover:bg-(--color-hover) rounded-(--radius-sm) transition-colors cursor-pointer"
         >
           <LogOut size={14} />
           Log out
         </button>
+        <button
+          onClick={() => setShowDeleteModal(true)}
+          className="flex items-center gap-1.5 px-2 py-1.5 text-xs font-medium text-(--color-text-tertiary) hover:text-(--color-danger) hover:bg-(--color-hover) rounded-(--radius-sm) transition-colors cursor-pointer"
+          title="Delete account"
+        >
+          <Trash2 size={14} />
+          Delete account
+        </button>
       </div>
+
+      {showDeleteModal && (
+        <DeleteAccountModal
+          nickname={profile.nickname || ''}
+          onConfirm={deleteAccount}
+          onCancel={() => setShowDeleteModal(false)}
+        />
+      )}
     </div>
   );
 }

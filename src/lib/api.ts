@@ -919,6 +919,15 @@ export async function fetchUserPublicProfile(userId: string) {
   return data;
 }
 
+// =============================================================================
+// Account Deletion
+// =============================================================================
+
+export async function deleteAccount() {
+  const { error } = await supabase.functions.invoke('delete-account');
+  if (error) throw new Error(error.message || 'Failed to delete account');
+}
+
 export async function fetchUserPublicSubmissions(userId: string) {
   const { data, error } = await supabase
     .from('submissions')

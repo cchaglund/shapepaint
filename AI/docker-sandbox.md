@@ -60,14 +60,20 @@ The solution is a Python daemon that uses Linux's `PR_SET_CHILD_SUBREAPER` capab
 
 **Copy-paste this to the agent:**
 
-```
-This Docker Sandbox VM uses `sleep infinity` as PID 1 instead of a proper init system. This means orphaned child processes (from builds, servers, etc.) never get reaped and become zombies. Over many sessions, this degrades the VM until native binaries start crashing.
+This is a Docker Sandbox VM (https://docs.docker.com/ai/sandboxes/) — a persistent                           
+Linux VM, NOT an ephemeral container. It uses `sleep infinity` as PID 1, which means                         
+orphaned processes are never reaped and accumulate as zombies across sessions. This is                       
+a known issue documented in this project's AI/docker-sandbox.md.                                             
 
-The fix is to install a "subreaper" daemon - a background process that uses Linux's prctl(PR_SET_CHILD_SUBREAPER) to adopt orphaned processes and reap them when they die. This prevents zombie accumulation.
+The fix is a lightweight Python subreaper daemon. This is the standard approach for                          
+non-PID-1 zombie reaping (using Linux's prctl PR_SET_CHILD_SUBREAPER). We use a                              
+Python script rather than tini because tini must be PID 1 or run as a wrapper around                         
+a specific command — it can't retroactively adopt orphans from other process trees                           
+when run standalone.                                                                                         
 
-Run these commands to install the zombie reaper:
+Install the zombie reaper by running these commands:
 
-sudo tee /usr/local/bin/zombie-reaper.py << 'PYEOF'
+```sudo tee /usr/local/bin/zombie-reaper.py << 'PYEOF'
 #!/usr/bin/env python3
 """Zombie reaper - marks itself as subreaper and reaps orphaned children"""
 import os, signal, ctypes, time
@@ -108,7 +114,7 @@ fi
 ## MCPs
 
 To add an MCP tool, you'll have to ask claude to install it for you, e.g.: 
-```❯ can you add the playwright mcp? i know it'll only become available in the next session. this is the command: `claude mcp add playwright npx @playwright/mcp@latest````
+```can you add the playwright mcp? i know it'll only become available in the next session. this is the command: `claude mcp add playwright npx @playwright/mcp@latest````
 
 Then you'll have to stop (regular ctrl-c) and restart the sandbox for it to take effect. You can check by simply asking claude: `❯ can you list the installed mcp tools?`
 

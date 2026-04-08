@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import { fetchProfile as apiFetchProfile, updateProfileFields, invalidateNicknameCache } from '../lib/api';
+import { fetchProfile as apiFetchProfile, updateProfileFields, invalidateNicknameCache, deleteAccount as apiDeleteAccount } from '../lib/api';
 import type { Profile } from '../hooks/auth/useProfile';
 
 interface AuthContextValue {
@@ -12,6 +12,7 @@ interface AuthContextValue {
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<{ error: unknown }>;
   signOut: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
   updateNickname: (nickname: string) => Promise<{ success: boolean; error?: string }>;
   refetchProfile: () => Promise<void>;
 }
@@ -97,6 +98,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) console.error('Logout error:', error);
   }, []);
 
+  const deleteAccount = useCallback(async () => {
+    await apiDeleteAccount();
+    await supabase.auth.signOut({ scope: 'local' });
+  }, []);
+
   // --- Nickname update ---
   const updateNickname = useCallback(async (nickname: string): Promise<{ success: boolean; error?: string }> => {
     if (!user?.id) return { success: false, error: 'Not authenticated' };
@@ -132,6 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signInWithGoogle,
       signInWithEmail,
       signOut,
+      deleteAccount,
       updateNickname,
       refetchProfile,
     }}>
