@@ -198,7 +198,7 @@
       "Orders by created_at descending",
       "Limits to 50 results"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "phase": "1-autonomous",

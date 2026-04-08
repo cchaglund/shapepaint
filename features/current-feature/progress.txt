@@ -15,3 +15,10 @@
 - No unused icons imported (no Star/competition_result)
 - tsc clean, lint clean (pre-existing only), 102 tests pass
 - Files: src/config/notificationIcons.ts, features/current-feature/PRD.json
+
+## API-001 - Add fetchNotifications
+- Added fetchNotifications(userId) to src/lib/api.ts
+- Returns Notification[] (imported from types/notifications.ts), ordered created_at DESC, limit 50
+- Added Notifications section header in api.ts
+- tsc clean, 102 tests pass, lint clean (pre-existing only)
+- Files: src/lib/api.ts, features/current-feature/PRD.json
