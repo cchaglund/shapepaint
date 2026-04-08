@@ -241,7 +241,7 @@
       "unreadCount uses fetchUnreadCount (API-002) for accurate server-side count, not notifications.filter(n => !n.is_read).length",
       "prependNotification checks for existing id before prepending (dedup guard for Realtime reconnection duplicates)"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "phase": "1-autonomous",

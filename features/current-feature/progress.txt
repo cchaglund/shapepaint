@@ -37,3 +37,15 @@
 - Both use is_read (not read)
 - tsc clean, 102 tests pass, lint clean (pre-existing only)
 - Files: src/lib/api.ts, features/current-feature/PRD.json
+
+## HOOK-001 - Create useNotifications hook
+- Created src/hooks/notifications/useNotifications.ts
+- State: notifications, unreadCount, loading, fetched, error
+- Actions: markRead (optimistic + rollback), markAllRead (optimistic + rollback), prependNotification (dedup by id), reload
+- Fetches all 50 notifications + unreadCount via fetchUnreadCount on mount (no pagination)
+- Deduped by userId via ref — no double-fetch
+- On error: error set, fetched=true (prevents retry loop), loading=false
+- Error cleared on successful fetch
+- Follows useLikes pattern: useRef dedup, optimistic updates, rollback on failure
+- tsc clean, 102 tests pass, lint clean (pre-existing only)
+- Files: src/hooks/notifications/useNotifications.ts, features/current-feature/PRD.json
