@@ -5,89 +5,65 @@ import type { ChallengeRow } from '../../lib/api';
 import { SHAPE_NAMES } from '../../utils/shapes/utils';
 
 // =============================================================================
-// Persistent Cache for Challenge Data
+// Challenge Cache
 // =============================================================================
-// Historical challenge data never changes, so we can safely persist it.
-// Challenge generation is SERVER-SIDE ONLY - no local fallback.
+// In-memory Map caches all fetched challenges for the session (clears on refresh).
+// localStorage only persists TODAY's challenge (avoids unbounded storage growth).
 // =============================================================================
 
-const CACHE_KEY = 'challenge-cache';
-const CACHE_VERSION = 4; // Increment when data format changes (removed svg field)
+const CACHE_KEY = 'challenge-today';
 
-interface CacheData {
-  version: number;
-  challenges: Record<string, DailyChallenge>;
-}
-
-// In-memory cache (fast access)
+// In-memory cache (fast access, any date)
 const challengeCache = new Map<string, DailyChallenge>();
 
 // Track in-flight requests to avoid duplicate fetches
 const pendingRequests = new Map<string, Promise<DailyChallenge>>();
 
-// Load cache from localStorage on module init
+function getTodayStr(): string {
+  const now = new Date();
+  return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-${String(now.getUTCDate()).padStart(2, '0')}`;
+}
+
+// Load today's challenge from localStorage on module init
 function loadCacheFromStorage(): void {
   try {
     const stored = localStorage.getItem(CACHE_KEY);
     if (!stored) return;
 
-    const data: CacheData = JSON.parse(stored);
+    const challenge: DailyChallenge = JSON.parse(stored);
 
-    // Check version - invalidate cache if format changed
-    if (data.version !== CACHE_VERSION) {
+    // Only load if it's still today's challenge
+    if (challenge.date === getTodayStr()) {
+      challengeCache.set(challenge.date, challenge);
+    } else {
       localStorage.removeItem(CACHE_KEY);
-      return;
     }
-
-    // Load into memory cache
-    for (const [date, challenge] of Object.entries(data.challenges)) {
-      challengeCache.set(date, challenge);
-    }
-  } catch (e) {
-    console.error('Failed to load challenge cache from storage:', e);
+  } catch {
     localStorage.removeItem(CACHE_KEY);
   }
 }
 
-// Save cache to localStorage
-function saveCacheToStorage(): void {
+// Persist only today's challenge to localStorage
+function saveTodayToStorage(challenge: DailyChallenge): void {
+  if (challenge.date !== getTodayStr()) return;
   try {
-    const challenges: Record<string, DailyChallenge> = {};
-    challengeCache.forEach((challenge, date) => {
-      challenges[date] = challenge;
-    });
-
-    const data: CacheData = {
-      version: CACHE_VERSION,
-      challenges,
-    };
-
-    localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-  } catch (e) {
-    console.error('Failed to save challenge cache to storage:', e);
+    localStorage.setItem(CACHE_KEY, JSON.stringify(challenge));
+  } catch {
+    // Storage full or unavailable — not critical
   }
 }
 
-// Debounced save to avoid excessive writes
-let saveTimeout: ReturnType<typeof setTimeout> | null = null;
-function debouncedSave(): void {
-  if (saveTimeout) {
-    clearTimeout(saveTimeout);
-  }
-  saveTimeout = setTimeout(() => {
-    saveCacheToStorage();
-    saveTimeout = null;
-  }, 1000);
-}
-
-// Add to cache with persistence
+// Add to in-memory cache + persist if today
 function cacheChallenge(challenge: DailyChallenge): void {
   challengeCache.set(challenge.date, challenge);
-  debouncedSave();
+  saveTodayToStorage(challenge);
 }
 
 // Initialize cache from storage
 loadCacheFromStorage();
+
+// Clean up old cache key from previous version
+localStorage.removeItem('challenge-cache');
 
 // =============================================================================
 // Direct DB Access (fast, no edge function cold start)
@@ -306,13 +282,4 @@ export async function prefetchChallenge(date: string): Promise<void> {
 export function clearChallengeCache(): void {
   challengeCache.clear();
   localStorage.removeItem(CACHE_KEY);
-}
-
-// Get cache statistics (useful for debugging)
-export function getCacheStats(): { memorySize: number; storageSize: number } {
-  const stored = localStorage.getItem(CACHE_KEY);
-  return {
-    memorySize: challengeCache.size,
-    storageSize: stored ? stored.length : 0,
-  };
 }

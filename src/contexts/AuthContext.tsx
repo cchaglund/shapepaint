@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import { fetchProfile as apiFetchProfile, updateProfileFields } from '../lib/api';
+import { fetchProfile as apiFetchProfile, updateProfileFields, invalidateNicknameCache } from '../lib/api';
 import type { Profile } from '../hooks/auth/useProfile';
 
 interface AuthContextValue {
@@ -110,6 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       await updateProfileFields(user.id, { nickname, onboarding_complete: true });
+      invalidateNicknameCache(user.id);
     } catch (err) {
       const pgError = err as { code?: string; message?: string };
       if (pgError.code === '23505') {
