@@ -223,7 +223,7 @@
       "No deleteNotification function exists",
       "Both functions use is_read (not read)"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "phase": "1-autonomous",

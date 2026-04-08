@@ -29,3 +29,11 @@
 - Filters is_read = false, returns number (0 if null)
 - tsc clean, 102 tests pass, lint clean (pre-existing only)
 - Files: src/lib/api.ts, features/current-feature/PRD.json
+
+## API-004 - Add markNotificationRead + markAllNotificationsRead
+- markNotificationRead(notificationId): updates is_read=true for single notification by id
+- markAllNotificationsRead(userId): updates is_read=true for all unread notifications of user (filters is_read=false)
+- No deleteNotification — users cannot delete notifications per PRD
+- Both use is_read (not read)
+- tsc clean, 102 tests pass, lint clean (pre-existing only)
+- Files: src/lib/api.ts, features/current-feature/PRD.json
