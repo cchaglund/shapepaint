@@ -19,11 +19,29 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
+          set -euo pipefail
           TIMESTAMP=$(date +%Y-%m-%d_%H%M%S)
           FILENAME="shapepaint-backup-${TIMESTAMP}.sql.gz"
-          pg_dump "$DATABASE_URL" --no-owner --no-privileges | gzip > "$FILENAME"
+
+          # Dump and compress; fail if pg_dump errors
+          pg_dump "$DATABASE_URL" --no-owner --no-privileges 2>pg_dump_errors.log | gzip > "$FILENAME"
+
+          # Check for pg_dump errors
+          if [ -s pg_dump_errors.log ]; then
+            echo "pg_dump errors:"
+            cat pg_dump_errors.log
+            exit 1
+          fi
+
+          # Verify backup is not trivially small (< 1KB likely means empty)
+          SIZE=$(stat -c%s "$FILENAME")
+          echo "Backup size: $(du -h "$FILENAME" | cut -f1) ($SIZE bytes)"
+          if [ "$SIZE" -lt 1024 ]; then
+            echo "ERROR: Backup file suspiciously small ($SIZE bytes). Aborting."
+            exit 1
+          fi
+
           echo "FILENAME=$FILENAME" >> $GITHUB_ENV
-          echo "Backup size: $(du -h "$FILENAME" | cut -f1)"
 
       - name: Upload to Cloudflare R2
         env:
