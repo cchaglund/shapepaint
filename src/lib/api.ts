@@ -944,6 +944,16 @@ export async function fetchNotifications(userId: string): Promise<Notification[]
   return (data as Notification[]) ?? [];
 }
 
+export async function fetchUnreadCount(userId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from('notifications')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('is_read', false);
+  if (error) throw error;
+  return count ?? 0;
+}
+
 export async function fetchUserPublicSubmissions(userId: string) {
   const { data, error } = await supabase
     .from('submissions')

@@ -210,7 +210,7 @@
       "Uses { count: 'exact', head: true } for efficiency (no row data transferred)",
       "Filters on is_read = false"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "phase": "1-autonomous",

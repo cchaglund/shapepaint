@@ -22,3 +22,10 @@
 - Added Notifications section header in api.ts
 - tsc clean, 102 tests pass, lint clean (pre-existing only)
 - Files: src/lib/api.ts, features/current-feature/PRD.json
+
+## API-002 - Add fetchUnreadCount
+- Added fetchUnreadCount(userId) to src/lib/api.ts
+- Uses { count: 'exact', head: true } — no row data transferred, just count
+- Filters is_read = false, returns number (0 if null)
+- tsc clean, 102 tests pass, lint clean (pre-existing only)
+- Files: src/lib/api.ts, features/current-feature/PRD.json
