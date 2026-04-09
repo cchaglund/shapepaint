@@ -35,6 +35,7 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
     showGrid, showOffCanvas,
     selectShape: onSelectShape,
     selectShapes: onSelectShapes,
+    selectGroup: onSelectGroup,
     updateShape: onUpdateShape,
     updateShapes: onUpdateShapes,
     commitToHistory: onCommitToHistory,
@@ -51,6 +52,9 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
     moveLayer: onMoveLayer,
     toggleGrid: onToggleGrid,
     hoveredShapeIds,
+    setHoveredShapeIds,
+    activeGroupId,
+    setActiveGroupId,
   } = useCanvasEditor();
   const svgRef = useRef<SVGSVGElement>(null);
 
@@ -134,6 +138,7 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
     isSpacePressed,
     onSelectShapes,
     onSelectShape,
+    activeGroupId,
   });
 
   // Expose startMarqueeAt to parent so marquee can start from outside the SVG
@@ -197,61 +202,156 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
   // Event handlers that need to set drag state
   const handleCanvasMouseDown = (e: React.MouseEvent) => {
     if (e.target === svgRef.current) {
+      setActiveGroupId(null);
       startMarqueeAt(e.clientX, e.clientY);
     }
   };
 
+  // Helper: get all unlocked visible shapes in a group
+  const getGroupShapes = useCallback(
+    (groupId: string) => visibleShapes.filter(s => s.groupId === groupId && !isShapeLocked(s, groups)),
+    [visibleShapes, groups]
+  );
+
+  // Track last mousedown on a grouped shape to detect double-click on mousedown
+  // (the native dblclick event fires on mouseup, which is too late for drag setup)
+  const lastGroupClickRef = useRef<{ groupId: string; time: number } | null>(null);
+  const DOUBLE_CLICK_MS = 400;
+
   const handleShapeMouseDown = useCallback(
     (e: React.MouseEvent, shapeId: string) => {
-      e.stopPropagation();
       const shape = shapes.find((s) => s.id === shapeId);
       if (!shape) return;
+      // Locked shapes should be inert — let the event bubble to canvas for marquee
       if (isShapeLocked(shape, groups)) return;
+      e.stopPropagation();
 
       const isShiftKey = e.shiftKey;
       const isAlreadySelected = selectedShapeIds.has(shapeId);
 
-      // Handle selection logic
-      if (isShiftKey) {
-        onSelectShape(shapeId, { toggle: true });
-        if (isAlreadySelected) {
+      // Determine if this shape should be treated as part of a group
+      const groupId = shape.groupId;
+      const isGrouped = !!groupId;
+      const isInsideActiveGroup = isGrouped && groupId === activeGroupId;
+
+      // Detect double-click on grouped shapes via mousedown timing
+      if (isGrouped && !isInsideActiveGroup && !isShiftKey) {
+        const now = Date.now();
+        const last = lastGroupClickRef.current;
+        if (last && last.groupId === groupId && (now - last.time) < DOUBLE_CLICK_MS) {
+          // Second fast click on same group — enter the group, select individual shape
+          lastGroupClickRef.current = null;
+          setActiveGroupId(groupId);
+          onSelectShape(shapeId);
+
+          // Set up drag for just this shape
+          const point = getSVGPoint(e.clientX, e.clientY);
+          setDragState({
+            mode: 'move',
+            shapeId: shape.id,
+            startX: point.x,
+            startY: point.y,
+            startShapeX: shape.x,
+            startShapeY: shape.y,
+            startSize: shape.size,
+            startRotation: shape.rotation,
+            resizeCorner: '',
+            startPositions: new Map([[shape.id, { x: shape.x, y: shape.y }]]),
+          });
           return;
         }
-      } else if (!isAlreadySelected) {
-        onSelectShape(shapeId);
+        // Record this click for potential double-click detection
+        lastGroupClickRef.current = { groupId, time: now };
       }
 
-      // Start drag for move
-      const point = getSVGPoint(e.clientX, e.clientY);
+      // Group-aware selection logic
+      if (isGrouped && !isInsideActiveGroup) {
+        // Shape is in a group we haven't entered — select/toggle the whole group
+        const groupShapes = getGroupShapes(groupId);
+        const allGroupSelected = groupShapes.every(s => selectedShapeIds.has(s.id));
 
-      let shapesToDrag: Shape[];
-      if (isShiftKey) {
-        shapesToDrag = [...selectedShapes, shape];
-      } else if (isAlreadySelected) {
-        shapesToDrag = selectedShapes;
+        if (isShiftKey) {
+          onSelectGroup(groupId, { toggle: true });
+        } else if (!allGroupSelected) {
+          onSelectGroup(groupId);
+        }
+
+        // Determine what to drag
+        const point = getSVGPoint(e.clientX, e.clientY);
+        let shapesToDrag: Shape[];
+        if (isShiftKey) {
+          // Shift+click: add group shapes to existing selection for drag
+          const combined = new Map(selectedShapes.map(s => [s.id, s]));
+          groupShapes.forEach(s => combined.set(s.id, s));
+          shapesToDrag = Array.from(combined.values());
+        } else if (allGroupSelected) {
+          // Group was already selected — drag everything that's selected
+          shapesToDrag = selectedShapes;
+        } else {
+          // Freshly selected this group — drag just this group
+          shapesToDrag = groupShapes;
+        }
+
+        const startPositions = new Map<string, { x: number; y: number }>();
+        shapesToDrag.forEach(s => {
+          startPositions.set(s.id, { x: s.x, y: s.y });
+        });
+
+        setDragState({
+          mode: 'move',
+          shapeId: shape.id,
+          startX: point.x,
+          startY: point.y,
+          startShapeX: shape.x,
+          startShapeY: shape.y,
+          startSize: shape.size,
+          startRotation: shape.rotation,
+          resizeCorner: '',
+          startPositions,
+        });
       } else {
-        shapesToDrag = [shape];
+        // Ungrouped shape, or shape inside the active group — original behavior
+        if (isShiftKey) {
+          onSelectShape(shapeId, { toggle: true });
+          if (isAlreadySelected) {
+            return;
+          }
+        } else if (!isAlreadySelected) {
+          onSelectShape(shapeId);
+        }
+
+        // Start drag for move
+        const point = getSVGPoint(e.clientX, e.clientY);
+
+        let shapesToDrag: Shape[];
+        if (isShiftKey) {
+          shapesToDrag = [...selectedShapes, shape];
+        } else if (isAlreadySelected) {
+          shapesToDrag = selectedShapes;
+        } else {
+          shapesToDrag = [shape];
+        }
+
+        const startPositions = new Map<string, { x: number; y: number }>();
+        shapesToDrag.forEach(s => {
+          startPositions.set(s.id, { x: s.x, y: s.y });
+        });
+
+        setDragState({
+          mode: 'move',
+          shapeId: shape.id,
+          startX: point.x,
+          startY: point.y,
+          startShapeX: shape.x,
+          startShapeY: shape.y,
+          startSize: shape.size,
+          startRotation: shape.rotation,
+          resizeCorner: '',
+          startPositions,
+        });
       }
-
-      const startPositions = new Map<string, { x: number; y: number }>();
-      shapesToDrag.forEach(s => {
-        startPositions.set(s.id, { x: s.x, y: s.y });
-      });
-
-      setDragState({
-        mode: 'move',
-        shapeId: shape.id,
-        startX: point.x,
-        startY: point.y,
-        startShapeX: shape.x,
-        startShapeY: shape.y,
-        startSize: shape.size,
-        startRotation: shape.rotation,
-        resizeCorner: '',
-        startPositions,
-      });
     },
-    [shapes, groups, selectedShapeIds, selectedShapes, getSVGPoint, onSelectShape, setDragState]
+    [shapes, groups, selectedShapeIds, selectedShapes, activeGroupId, getSVGPoint, onSelectShape, onSelectGroup, getGroupShapes, setDragState, setActiveGroupId]
   );
 
   const handleResizeStart = useCallback(
@@ -495,7 +595,10 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
           animate={{ fill: backgroundColor || 'var(--color-bg-elevated)' }}
           transition={{ duration: 0.3 }}
           onMouseDown={(e) => {
-            if (!isSpacePressed) startMarqueeAt(e.clientX, e.clientY);
+            if (!isSpacePressed) {
+              setActiveGroupId(null);
+              startMarqueeAt(e.clientX, e.clientY);
+            }
           }}
         />
 
@@ -513,11 +616,30 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
 
         {/* Render shapes - optionally clipped to canvas bounds */}
         <g clipPath={showOffCanvas ? undefined : "url(#canvas-clip)"}>
-          {sortedShapes.map((shape) => (
+          {sortedShapes.map((shape) => {
+            const locked = isShapeLocked(shape, groups);
+            return (
             <g key={shape.id}>
-              <g onMouseDown={(e) => {
-                if (!isSpacePressed) handleShapeMouseDown(e, shape.id);
-              }}>
+              <g
+                style={locked ? { pointerEvents: 'none' } : undefined}
+                onMouseDown={(e) => {
+                  if (!isSpacePressed) handleShapeMouseDown(e, shape.id);
+                }}
+                onMouseEnter={() => {
+                  if (isSpacePressed || locked) return;
+                  const groupId = shape.groupId;
+                  if (groupId && groupId !== activeGroupId) {
+                    // Hover over a grouped shape: highlight the whole group
+                    const groupShapeIds = shapes.filter(s => s.groupId === groupId).map(s => s.id);
+                    setHoveredShapeIds(new Set(groupShapeIds));
+                  } else {
+                    setHoveredShapeIds(new Set([shape.id]));
+                  }
+                }}
+                onMouseLeave={() => {
+                  setHoveredShapeIds(null);
+                }}
+              >
                 <ShapeElement
                   shape={shape}
                   color={challenge.colors[shape.colorIndex]}
@@ -527,7 +649,8 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
                 />
               </g>
             </g>
-          ))}
+            );
+          })}
         </g>
 
         {/* Grid lines - rendered on top of shapes but don't export/print */}

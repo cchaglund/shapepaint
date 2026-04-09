@@ -55,6 +55,9 @@ export interface CanvasEditorContextValue {
   hoveredShapeIds: Set<string> | null;
   setHoveredShapeIds: (ids: Set<string> | null) => void;
 
+  activeGroupId: string | null;
+  setActiveGroupId: (id: string | null) => void;
+
   toast: UndoRedoToast | null;
   dismissToast: () => void;
 }
