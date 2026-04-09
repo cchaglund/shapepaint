@@ -203,10 +203,11 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
 
   const handleShapeMouseDown = useCallback(
     (e: React.MouseEvent, shapeId: string) => {
-      e.stopPropagation();
       const shape = shapes.find((s) => s.id === shapeId);
       if (!shape) return;
+      // Locked shapes should be inert — let the event bubble to canvas for marquee
       if (isShapeLocked(shape, groups)) return;
+      e.stopPropagation();
 
       const isShiftKey = e.shiftKey;
       const isAlreadySelected = selectedShapeIds.has(shapeId);
@@ -513,11 +514,16 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
 
         {/* Render shapes - optionally clipped to canvas bounds */}
         <g clipPath={showOffCanvas ? undefined : "url(#canvas-clip)"}>
-          {sortedShapes.map((shape) => (
+          {sortedShapes.map((shape) => {
+            const locked = isShapeLocked(shape, groups);
+            return (
             <g key={shape.id}>
-              <g onMouseDown={(e) => {
-                if (!isSpacePressed) handleShapeMouseDown(e, shape.id);
-              }}>
+              <g
+                style={locked ? { pointerEvents: 'none' } : undefined}
+                onMouseDown={(e) => {
+                  if (!isSpacePressed) handleShapeMouseDown(e, shape.id);
+                }}
+              >
                 <ShapeElement
                   shape={shape}
                   color={challenge.colors[shape.colorIndex]}
@@ -527,7 +533,8 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
                 />
               </g>
             </g>
-          ))}
+            );
+          })}
         </g>
 
         {/* Grid lines - rendered on top of shapes but don't export/print */}
