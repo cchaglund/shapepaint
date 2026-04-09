@@ -17,6 +17,7 @@ import { useIsDesktop, useBreakpoint } from '../hooks/ui/useBreakpoint';
 import { useSubmissions } from '../hooks/submission/useSubmissions';
 import { useSaveSubmission } from '../hooks/submission/useSaveSubmission';
 import { useSubmissionSync } from '../hooks/submission/useSubmissionSync';
+import { useSubmissionStatus } from '../contexts/SubmissionStatusContext';
 import { CanvasEditorProvider } from '../contexts/CanvasEditorContext';
 import { Canvas } from '../components/canvas/Canvas';
 import { Button } from '../components/shared/Button';
@@ -152,10 +153,9 @@ function CanvasHeaderActions({
 
 interface CanvasEditorPageProps {
   challenge: DailyChallenge;
-  todayDate: string;
 }
 
-export function CanvasEditorPage({ challenge, todayDate }: CanvasEditorPageProps) {
+export function CanvasEditorPage({ challenge }: CanvasEditorPageProps) {
   // Modal states
   const {
     showKeyboardSettings,
@@ -177,7 +177,8 @@ export function CanvasEditorPage({ challenge, todayDate }: CanvasEditorPageProps
 
   // Auth state
   const { user, profile, updateNickname } = useAuthContext();
-  const { saveSubmission, loadSubmission, saving, hasSubmittedToday } = useSubmissions(user?.id, todayDate);
+  const { saveSubmission, loadSubmission, saving } = useSubmissions(user?.id);
+  const { hasSubmittedToday, markAsSubmitted } = useSubmissionStatus();
 
   // Winner announcement for yesterday's results
   const {
@@ -263,6 +264,7 @@ export function CanvasEditorPage({ challenge, todayDate }: CanvasEditorPageProps
     user,
     saveSubmission,
     onSaveSuccess: () => {
+      markAsSubmitted();
       if (challenge) {
         invalidateWallCache(challenge.date);
       }

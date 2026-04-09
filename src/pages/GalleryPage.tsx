@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { navigate } from '../lib/router';
 import { useAuth } from '../hooks/auth/useAuth';
 import { useSubmissions, type Submission } from '../hooks/submission/useSubmissions';
+import { useSubmissionStatus } from '../contexts/SubmissionStatusContext';
 import { getTodayDateUTC, getTwoDaysAgoDateUTC } from '../utils/dailyChallenge';
 import { fetchChallengesBatch } from '../hooks/challenge/useDailyChallenge';
 import { fetchRankingsBySubmissionIds, fetchMonthlyWinners } from '../lib/api';
@@ -57,11 +58,9 @@ export interface GalleryPageProps {
 
 export function GalleryPage({ tab: initialTab, year: initialYear, month: initialMonth, date: initialDate }: GalleryPageProps) {
   const { user } = useAuth();
-  const todayStr = useMemo(() => getTodayDateUTC(), []);
-  const { loadSubmissionsForMonth, loading, hasSubmittedToday: submittedToday, hasCheckedSubmission } = useSubmissions(user?.id, todayStr);
-  // Optimistic: assume submitted while check is pending to avoid flashing locked state
-  // But for logged-out users (no check will ever run), default to false
-  const hasSubmittedToday = user ? (!hasCheckedSubmission || submittedToday) : false;
+  const todayStr = getTodayDateUTC();
+  const { loadSubmissionsForMonth, loading } = useSubmissions(user?.id);
+  const { hasSubmittedToday } = useSubmissionStatus();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [rankings, setRankings] = useState<Map<string, number>>(new Map());
   const [currentYear, setCurrentYear] = useState(() => initialYear ?? new Date().getFullYear());

@@ -84,7 +84,7 @@ export function UserMenuDropdown({ profile, loading, isLoggedIn, onSignIn, onSig
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -4 }}
             transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-            className="absolute top-full right-0 mt-2 w-70 max-w-[calc(100vw-2rem)] rounded-(--radius-md) overflow-hidden z-50"
+            className="absolute top-full right-0 mt-2 w-85 max-w-[calc(100vw-2rem)] rounded-(--radius-md) overflow-hidden z-50"
             style={{
               background: 'var(--color-card-bg)',
               border: 'var(--border-width, 2px) solid var(--color-border)',

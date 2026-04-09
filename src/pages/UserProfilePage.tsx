@@ -1,7 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useUserProfile } from '../hooks/social/useUserProfile';
-import { useAuth } from '../hooks/auth/useAuth';
-import { useSubmissions } from '../hooks/submission/useSubmissions';
+import { useSubmissionStatus } from '../contexts/SubmissionStatusContext';
 import { FollowButton } from '../components/social/FollowButton';
 import { AvatarImage } from '../components/shared/AvatarImage';
 import { BackButton } from '../components/shared/BackButton';
@@ -25,9 +24,8 @@ interface UserProfilePageProps {
 }
 
 export function UserProfilePage({ userId }: UserProfilePageProps) {
-  const { user } = useAuth();
-  const todayDate = useMemo(() => getTodayDateUTC(), []);
-  const { hasSubmittedToday } = useSubmissions(user?.id, todayDate);
+  const todayDate = getTodayDateUTC();
+  const { hasSubmittedToday } = useSubmissionStatus();
   const { profile, submissions, loading, notFound, error } = useUserProfile({ userId });
 
   const [currentYear, setCurrentYear] = useState(() => new Date().getFullYear());

@@ -28,6 +28,7 @@ export interface NotificationSubmission {
   shapes: Shape[];
   groups: ShapeGroup[] | null;
   background_color_index: number | null;
+  challenge_date: string;
 }
 
 export type Notification = {

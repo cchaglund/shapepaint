@@ -15,6 +15,8 @@ import { AvatarImage } from '../components/shared/AvatarImage';
 import { LikersTooltip } from '../components/social/LikersTooltip';
 import { LikersModal } from '../components/social/LikersModal';
 import { LoginPromptModal } from '../components/social/LoginPromptModal';
+import { useSubmissionStatus } from '../contexts/SubmissionStatusContext';
+import { getTodayDateUTC } from '../utils/dailyChallenge';
 import {
   SubmissionCanvas,
   SubmissionNavigation,
@@ -34,6 +36,8 @@ interface SubmissionDetailPageProps {
 
 export function SubmissionDetailPage({ date, submissionId }: SubmissionDetailPageProps) {
   const { user } = useAuth();
+  const { hasSubmittedToday, hasCheckedSubmission } = useSubmissionStatus();
+  const todayStr = getTodayDateUTC();
   const { loadSubmission, getAdjacentSubmissionDates } = useSubmissions(user?.id);
   const { fetchSubmissionRank } = useRanking();
   const svgRef = useRef<SVGSVGElement>(null);
@@ -136,6 +140,28 @@ export function SubmissionDetailPage({ date, submissionId }: SubmissionDetailPag
         </p>
       </div>
     );
+  }
+
+  // Privacy: don't show other users' submissions for today until viewer has submitted
+  const isTodaySubmission = submission.challenge_date === todayStr;
+  if (!isOwnSubmission && isTodaySubmission) {
+    // Still checking — show spinner instead of flashing the submission
+    if (!hasCheckedSubmission) {
+      return (
+        <div className="flex-1 flex items-center justify-center p-4 bg-(--color-bg-primary)">
+          <LoadingSpinner message="Loading submission..." />
+        </div>
+      );
+    }
+    if (!hasSubmittedToday) {
+      return (
+        <div className="flex-1 flex items-center justify-center p-4 bg-(--color-bg-primary)">
+          <p className="text-sm text-(--color-text-secondary) text-center leading-relaxed">
+            Submit your art today to view this submission.
+          </p>
+        </div>
+      );
+    }
   }
 
   return (

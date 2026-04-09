@@ -4,6 +4,7 @@ import { AuthProvider, useAuthContext } from './contexts/AuthContext';
 import { HeaderProvider } from './contexts/HeaderContext';
 import { FollowsProvider } from './contexts/FollowsContext';
 import { NotificationsProvider } from './contexts/NotificationsContext';
+import { SubmissionStatusProvider } from './contexts/SubmissionStatusContext';
 import { getTodayDateUTC } from './utils/dailyChallenge';
 import { useDailyChallenge } from './hooks/challenge/useDailyChallenge';
 import { useAppRoute, isStandaloneRoute } from './hooks/useAppRoute';
@@ -82,25 +83,27 @@ function AppContent() {
     if (challengeLoading || !challenge) {
       return <LoadingSpinner size="lg" fullScreen />;
     }
-    return <CanvasEditorPage challenge={challenge} todayDate={todayDate} />;
+    return <CanvasEditorPage challenge={challenge} />;
   })();
 
   return (
-    <NotificationsProvider userId={user?.id}>
-      <HeaderProvider>
-        <div className="h-dvh flex flex-col overflow-hidden">
-          <TopBar
-            themeMode={themeMode}
-            onSetThemeMode={setThemeMode}
-            themeName={themeName}
-            onSetThemeName={setThemeName}
-          />
-          <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
-            {pageContent}
-          </Suspense>
-        </div>
-      </HeaderProvider>
-    </NotificationsProvider>
+    <SubmissionStatusProvider userId={user?.id} todayDate={todayDate}>
+      <NotificationsProvider userId={user?.id}>
+        <HeaderProvider>
+          <div className="h-dvh flex flex-col overflow-hidden">
+            <TopBar
+              themeMode={themeMode}
+              onSetThemeMode={setThemeMode}
+              themeName={themeName}
+              onSetThemeName={setThemeName}
+            />
+            <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
+              {pageContent}
+            </Suspense>
+          </div>
+        </HeaderProvider>
+      </NotificationsProvider>
+    </SubmissionStatusProvider>
   );
 }
 

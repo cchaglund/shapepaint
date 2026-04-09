@@ -1,8 +1,11 @@
 import { useRef, useState } from 'react';
 import { useNotificationsContext } from '../../contexts/NotificationsContext';
+import { useSubmissionStatus } from '../../contexts/SubmissionStatusContext';
 import { NOTIFICATION_ICONS } from '../../config/notificationIcons';
 import { navigate } from '../../lib/router';
 import { SubmissionThumbnail } from '../shared/SubmissionThumbnail';
+import { canViewCurrentDay } from '../../utils/privacyRules';
+import { getTodayDateUTC } from '../../utils/dailyChallenge';
 import type { Notification } from '../../types/notifications';
 import type { DailyChallenge } from '../../types';
 
@@ -44,10 +47,12 @@ function NotificationItem({
   notification,
   onClickNotification,
   markRead,
+  shouldBlurThumbnail,
 }: {
   notification: Notification;
   onClickNotification: (notification: Notification) => void;
   markRead: (id: string) => void;
+  shouldBlurThumbnail: boolean;
 }) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isHovering, setIsHovering] = useState(false);
@@ -116,7 +121,10 @@ function NotificationItem({
         </div>
       </div>
       {canRenderThumbnail && (
-        <div className="shrink-0 w-9 h-9 rounded-md overflow-hidden border border-(--color-border-light)">
+        <div
+          className="shrink-0 w-9 h-9 rounded-md overflow-hidden border border-(--color-border-light)"
+          style={shouldBlurThumbnail ? { filter: 'blur(3px)' } : undefined}
+        >
           <SubmissionThumbnail
             shapes={sub.shapes}
             groups={sub.groups ?? []}
@@ -132,6 +140,8 @@ function NotificationItem({
 
 export function NotificationsTab({ onClose }: { onClose: () => void }) {
   const { notifications, unreadCount, loading, error, markRead, markAllRead, reload } = useNotificationsContext();
+  const { hasSubmittedToday } = useSubmissionStatus();
+  const todayStr = getTodayDateUTC();
 
   const handleClickNotification = (notification: Notification) => {
     if (!notification.is_read) markRead(notification.id);
@@ -176,14 +186,19 @@ export function NotificationsTab({ onClose }: { onClose: () => void }) {
             When someone likes your art or follows you, you&apos;ll see it here.
           </div>
         ) : (
-          notifications.map(notification => (
-            <NotificationItem
-              key={notification.id}
-              notification={notification}
-              onClickNotification={handleClickNotification}
-              markRead={markRead}
-            />
-          ))
+          notifications.map(notification => {
+            const sub = notification.submissions;
+            const isForToday = sub?.challenge_date != null && !canViewCurrentDay(sub.challenge_date, todayStr, hasSubmittedToday);
+            return (
+              <NotificationItem
+                key={notification.id}
+                notification={notification}
+                onClickNotification={handleClickNotification}
+                markRead={markRead}
+                shouldBlurThumbnail={isForToday}
+              />
+            );
+          })
         )}
       </div>
     </div>
