@@ -6,7 +6,7 @@ import {
   fetchVotingStatus,
   fetchNextVotingPair,
   fetchSubmissionPair,
-  processVote,
+  processVoteV2,
 } from '../../lib/api';
 import { calculateRequiredVotes } from '../../utils/votingRules';
 import type { VotingPair, Shape } from '../../types';
@@ -149,55 +149,62 @@ export function useVoting(userId: string | undefined, challengeDate: string): Us
     setLoading(false);
   }, [userId, challengeDate, noSubmissions, submissionCount]);
 
-  // Submit a vote — sequential: record vote, then fetch next pair
-  const vote = useCallback(
-    async (winnerId: string) => {
+  // Process a vote or skip via single RPC call that returns the next pair
+  const submitVote = useCallback(
+    async (winnerId: string | null) => {
       if (!userId || !currentPair) return;
 
       setSubmitting(true);
 
       try {
-        const result = await processVote(
+        const result = await processVoteV2(
           currentPair.submissionA.id,
           currentPair.submissionB.id,
           winnerId
         );
 
         setVoteCount(result.voteCount);
-        if (result.requiredVotes !== undefined) setRequiredVotes(result.requiredVotes);
-        const effectiveRequired = result.requiredVotes ?? requiredVotes;
-        setHasEnteredRanking(result.enteredRanking || result.voteCount >= effectiveRequired);
+        setRequiredVotes(result.requiredVotes);
+        setHasEnteredRanking(result.enteredRanking || result.voteCount >= result.requiredVotes);
 
-        await fetchNextPair();
+        if (result.nextPair) {
+          setCurrentPair({
+            submissionA: {
+              id: result.nextPair.submissionA.id,
+              user_id: result.nextPair.submissionA.user_id,
+              shapes: result.nextPair.submissionA.shapes as Shape[],
+              background_color_index: result.nextPair.submissionA.background_color_index,
+            },
+            submissionB: {
+              id: result.nextPair.submissionB.id,
+              user_id: result.nextPair.submissionB.user_id,
+              shapes: result.nextPair.submissionB.shapes as Shape[],
+              background_color_index: result.nextPair.submissionB.background_color_index,
+            },
+          });
+          setNoMorePairs(false);
+        } else {
+          setCurrentPair(null);
+          setNoMorePairs(true);
+        }
       } catch (error) {
         console.error('Error submitting vote:', error);
       }
 
       setSubmitting(false);
     },
-    [userId, currentPair, requiredVotes, fetchNextPair]
+    [userId, currentPair]
   );
 
-  // Skip the current pair (doesn't count toward vote requirement)
-  const skip = useCallback(async () => {
-    if (!userId || !currentPair) return;
+  const vote = useCallback(
+    (winnerId: string) => submitVote(winnerId),
+    [submitVote]
+  );
 
-    setSubmitting(true);
-
-    try {
-      await processVote(
-        currentPair.submissionA.id,
-        currentPair.submissionB.id,
-        null
-      );
-
-      await fetchNextPair();
-    } catch (error) {
-      console.error('Error skipping pair:', error);
-    }
-
-    setSubmitting(false);
-  }, [userId, currentPair, fetchNextPair]);
+  const skip = useCallback(
+    () => submitVote(null),
+    [submitVote]
+  );
 
   return {
     currentPair,
