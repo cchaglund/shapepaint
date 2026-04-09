@@ -452,6 +452,39 @@ export async function processVote(submissionAId: string, submissionBId: string, 
   return response.data;
 }
 
+export interface ProcessVoteV2Result {
+  success: boolean;
+  voteCount: number;
+  requiredVotes: number;
+  enteredRanking: boolean;
+  nextPair: {
+    submissionA: { id: string; user_id: string; shapes: Shape[]; groups: ShapeGroup[]; background_color_index: number | null };
+    submissionB: { id: string; user_id: string; shapes: Shape[]; groups: ShapeGroup[]; background_color_index: number | null };
+  } | null;
+  error?: string;
+  status?: number;
+}
+
+export async function processVoteV2(
+  submissionAId: string,
+  submissionBId: string,
+  winnerId: string | null
+): Promise<ProcessVoteV2Result> {
+  const { data, error } = await supabase.rpc('process_vote_v2', {
+    p_submission_a_id: submissionAId,
+    p_submission_b_id: submissionBId,
+    p_winner_id: winnerId,
+  });
+  if (error) throw error;
+  const result = data as ProcessVoteV2Result;
+  if (result.error) {
+    const err = new Error(result.error);
+    (err as Error & { status?: number }).status = result.status;
+    throw err;
+  }
+  return result;
+}
+
 // =============================================================================
 // Rankings
 // =============================================================================
