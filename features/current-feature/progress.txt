@@ -1,0 +1,144 @@
+## TYPES-001 - Create notification types
+- Created src/types/notifications.ts
+- NotificationType union: 'like' | 'follow' | 'friend_submitted'
+- NotificationDataMap: per-type data shapes with actor_nickname/actor_avatar as string|null (GDPR scrubbing sets these to null)
+- Notification: discriminated union via mapped type — switch on n.type narrows n.data automatically
+- Uses is_read (not read), no competition_result
+- tsc passes, tests pass, lint clean (pre-existing errors only)
+- Files: src/types/notifications.ts, features/current-feature/PRD.json
+
+## CONFIG-001 - Create shared notification icon config
+- Created src/config/notificationIcons.ts
+- NOTIFICATION_ICONS: Record<NotificationType, { icon, bgClass, colorClass }>
+- like → Heart (accent), follow → UserPlus (purple), friend_submitted → Store (green)
+- Uses LucideIcon type from lucide-react for proper typing
+- No unused icons imported (no Star/competition_result)
+- tsc clean, lint clean (pre-existing only), 102 tests pass
+- Files: src/config/notificationIcons.ts, features/current-feature/PRD.json
+
+## API-001 - Add fetchNotifications
+- Added fetchNotifications(userId) to src/lib/api.ts
+- Returns Notification[] (imported from types/notifications.ts), ordered created_at DESC, limit 50
+- Added Notifications section header in api.ts
+- tsc clean, 102 tests pass, lint clean (pre-existing only)
+- Files: src/lib/api.ts, features/current-feature/PRD.json
+
+## API-002 - Add fetchUnreadCount
+- Added fetchUnreadCount(userId) to src/lib/api.ts
+- Uses { count: 'exact', head: true } — no row data transferred, just count
+- Filters is_read = false, returns number (0 if null)
+- tsc clean, 102 tests pass, lint clean (pre-existing only)
+- Files: src/lib/api.ts, features/current-feature/PRD.json
+
+## API-004 - Add markNotificationRead + markAllNotificationsRead
+- markNotificationRead(notificationId): updates is_read=true for single notification by id
+- markAllNotificationsRead(userId): updates is_read=true for all unread notifications of user (filters is_read=false)
+- No deleteNotification — users cannot delete notifications per PRD
+- Both use is_read (not read)
+- tsc clean, 102 tests pass, lint clean (pre-existing only)
+- Files: src/lib/api.ts, features/current-feature/PRD.json
+
+## HOOK-001 - Create useNotifications hook
+- Created src/hooks/notifications/useNotifications.ts
+- State: notifications, unreadCount, loading, fetched, error
+- Actions: markRead (optimistic + rollback), markAllRead (optimistic + rollback), prependNotification (dedup by id), reload
+- Fetches all 50 notifications + unreadCount via fetchUnreadCount on mount (no pagination)
+- Deduped by userId via ref — no double-fetch
+- On error: error set, fetched=true (prevents retry loop), loading=false
+- Error cleared on successful fetch
+- Follows useLikes pattern: useRef dedup, optimistic updates, rollback on failure
+- tsc clean, 102 tests pass, lint clean (pre-existing only)
+- Files: src/hooks/notifications/useNotifications.ts, features/current-feature/PRD.json
+
+## CTX-001 - Create NotificationsContext
+- Created src/contexts/NotificationsContext.tsx
+- NotificationsProvider accepts userId + children, wraps useNotifications hook
+- useNotificationsContext() throws descriptive error if used outside provider
+- NotificationsContextValue interface mirrors useNotifications return type (reload is void, not Promise)
+- Mounted in App.tsx wrapping HeaderProvider — accessible to both TopBar (avatar dot) and dropdown panel
+- Follows FollowsContext pattern: eslint-disable for react-refresh, createContext with null default
+- tsc clean, 102 tests pass, lint clean (pre-existing only)
+- Files: src/contexts/NotificationsContext.tsx, src/App.tsx, features/current-feature/PRD.json
+
+## UI-001 - Create NotificationsTab component
+- Created src/components/notifications/NotificationsTab.tsx
+- NotificationsTab: consumes useNotificationsContext, renders scrollable list with max-h-[40vh]
+- NotificationItem: sub-component with icon (from NOTIFICATION_ICONS), bold actor name, relative timestamp
+- getNotificationText: switch on n.type for type narrowing, no casts — discriminated union works cleanly
+- Actor names fallback to 'Someone' when null/missing (GDPR scrubbing case)
+- formatTimeAgo: local utility — now/Xm/Xh/Xd/Xmo format
+- Three empty states: Loading (when loading + no data), Error (with Retry button), Empty (descriptive copy)
+- "Mark all as read" button in header only when unreadCount > 0
+- Visual states: unread=bg-(--color-accent-subtle), read=bg-(--color-card-bg)
+- Icon containers: 32px rounded squares (rounded-lg), not circles
+- Submission thumbnails: like/friend_submitted show 36px thumbnail on right via fetchSubmissionThumbnailsBatch + SubmissionThumbnail
+- tsc clean, 102 tests pass, lint clean (pre-existing only)
+- Files: src/components/notifications/NotificationsTab.tsx, src/lib/api.ts, features/current-feature/PRD.json
+
+## UI-008 - Mount NotificationsProvider (already done in CTX-001)
+- Verified: NotificationsProvider wraps HeaderProvider in App.tsx (line 89)
+- userId={user?.id} passed from auth context
+- NOT inside UserMenuDropdown — wraps entire component tree
+- Was implemented during CTX-001 but not marked as passing
+- Files: (no changes needed)
+
+## UI-006 - Extend UserMenuDropdown with Notifications tab
+- Added 'notifications' to activeTab union type in UserMenuContent
+- Tab order: Notifications | Following | Followers (Notifications first)
+- Default tab: 'notifications' if unreadCount > 0, else 'following'
+- Tab labels are plain text with no counts: 'Notifications', 'Following', 'Followers'
+- Tab content switches: notifications → NotificationsTab component, following/followers → existing friend list + add-by-nickname
+- Log out + delete account buttons always visible (outside conditional)
+- Gallery/theme mobile section always visible
+- Imported useNotificationsContext + NotificationsTab
+- tsc clean, 102 tests pass, lint clean (pre-existing only)
+- Files: src/components/canvas/UserMenuDropdown.tsx, features/current-feature/PRD.json
+
+## UI-004 - NotificationItem click behavior
+- Added getNotificationUrl() — type-narrowed URL builder: like/friend_submitted → ?view=submission&id=X, follow → ?view=profile&user=X
+- NotificationsTab now accepts onClose prop, passed from UserMenuContent
+- NotificationItem onClick: marks read (if unread) via optimistic markRead, navigates via router, closes dropdown
+- Added cursor-pointer + hover:bg-(--color-hover) for clickable affordance
+- tsc clean, 102 tests pass, lint clean (pre-existing only)
+- Files: src/components/notifications/NotificationsTab.tsx, src/components/canvas/UserMenuDropdown.tsx, features/current-feature/PRD.json
+
+## CSS-001 - Add @keyframes fillBar to index.css
+- Added @keyframes fillBar: scaleY(0) opacity 0 → scaleY(1) opacity 0.6
+- Placed near existing @keyframes cardLikeWobble in index.css (line ~899)
+- Used by UI-002 NotificationItem hover-to-read progress bar (next task)
+- tsc clean, 102 tests pass, lint clean (pre-existing only)
+- Files: src/index.css, features/current-feature/PRD.json
+
+## UI-005 - NotificationItem visual states (updated)
+- Unread: bg-(--color-accent-subtle) (pink accent tint), Read: bg-(--color-card-bg) (white/card)
+- Icon containers: 32px rounded squares (rounded-lg / 0.5rem), not circles (rounded-pill)
+- Submission thumbnails on right for like/friend_submitted notifications
+- Files: src/components/notifications/NotificationsTab.tsx
+
+## UI-002 - NotificationItem hover-to-read
+- Added 700ms hover timer: onMouseEnter starts setTimeout, onMouseLeave clears it
+- isHovering state controls 3px accent progress bar on left edge (absolute positioned)
+- Progress bar uses fillBar keyframe (scaleY 0→1, origin-top) synced to 700ms
+- Already-read notifications skip entirely (early return in handleMouseEnter)
+- Passed markRead as prop to NotificationItem (avoids extra context call)
+- Added `relative` to container for absolute-positioned progress bar
+- tsc clean, 102 tests pass, lint clean (pre-existing only)
+- Files: src/components/notifications/NotificationsTab.tsx, features/current-feature/PRD.json
+
+## UI-003 - NotificationItem keyboard accessibility
+- Added tabIndex={0} + role="button" to NotificationItem div
+- onFocus reuses handleMouseEnter (starts 700ms read timer for unread items)
+- onBlur reuses cancelTimer (clears timer + resets hover state)
+- Extracted cancelTimer from handleMouseLeave (shared by onBlur + onMouseLeave)
+- onKeyDown: Enter triggers onClickNotification (marks read + navigates + closes)
+- tsc clean, 102 tests pass, lint clean (pre-existing only)
+- Files: src/components/notifications/NotificationsTab.tsx, features/current-feature/PRD.json
+
+## UI-007 - Unread notification dot on avatar button
+- Added useNotificationsContext() to UserMenuDropdown (before early returns for hooks rule)
+- Wrapped AvatarImage in relative div, added absolute-positioned dot span
+- Dot: w-2.5 h-2.5, rounded-full, bg-(--color-accent), border-2 border-(--color-bg-secondary)
+- Positioned -top-0.5 -right-0.5, only renders when unreadCount > 0
+- aria-label with unread count for screen readers (singular/plural)
+- tsc clean, 102 tests pass, lint clean (pre-existing only)
+- Files: src/components/canvas/UserMenuDropdown.tsx, features/current-feature/PRD.json

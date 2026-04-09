@@ -54,6 +54,18 @@ serve(async (req: Request) => {
       await supabaseAdmin.storage.from('avatars').remove(filePaths);
     }
 
+    // Scrub actor info from notifications before cascade-deleting rows
+    const { error: scrubError } = await supabaseAdmin.rpc('scrub_notification_actor', {
+      p_user_id: user.id,
+    });
+    if (scrubError) {
+      console.error('Failed to scrub notifications:', scrubError);
+      return new Response(JSON.stringify({ error: 'Failed to delete account' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Delete the auth user — all database rows cascade automatically
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(user.id);
     if (deleteError) {

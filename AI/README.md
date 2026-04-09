@@ -61,9 +61,11 @@ Then with a separate plan agent, use the good-cop skill to sensibly address the 
 
 It will look for the feature-request.md, PRD.json, and CRITIQUE.md in the "features/current-feature" directory, but you can also provide them explicitly like so: `/good-cop @features/current-feature/feature-request.md @features/current-feature/PRD.json @features/current-feature/CRITIQUE.md`
 
-(Fyi, claude will commit its changes to the repo after every step in the loop. If it sees that it's on the main/master branch, it will create a new branch for the feature automatically, but it's best to create the branch yourself beforehand to give it a relevant name.)
 
 Finally, use the ralph agent to implement the plan:
+
+(Fyi, claude will commit its changes to the repo after every step in the loop. If it sees that it's on the main/master branch, it will create a new branch for the feature automatically, but it's best to create the branch yourself beforehand to give it a relevant name.)
+
 - To run it once:
   - Make sure the script can be run: `chmod +x AI/ralph-once.sh`
   - run `AI/ralph-once.sh`

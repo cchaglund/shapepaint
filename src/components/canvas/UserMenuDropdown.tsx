@@ -5,12 +5,14 @@ import { navigate } from '../../lib/router';
 import { AnimatePresence, motion } from 'motion/react';
 import { Link, AvatarImage, Button, LoadingSpinner } from '../shared';
 import { FollowButton } from '../social/FollowButton';
+import { NotificationsTab } from '../notifications/NotificationsTab';
 import { DeleteAccountModal } from '../modals/DeleteAccountModal';
 import type { Profile } from '../../hooks/auth/useProfile';
 import type { ThemeMode, ThemeName } from '../../hooks/ui/useThemeState';
 import { FollowsProvider } from '../../contexts/FollowsContext';
 import { useFollows } from '../../hooks/social/useFollows';
 import { useAuthContext } from '../../contexts/AuthContext';
+import { useNotificationsContext } from '../../contexts/NotificationsContext';
 import { useBreakpoint } from '../../hooks/ui/useBreakpoint';
 import { useClickOutside } from '../../hooks/ui/useClickOutside';
 import { THEME_NAMES, MODE_CYCLE, MODE_TITLE } from '../../constants/themes';
@@ -31,6 +33,7 @@ export function UserMenuDropdown({ profile, loading, isLoggedIn, onSignIn, onSig
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const showGalleryInHeader = useBreakpoint(900);
+  const { unreadCount } = useNotificationsContext();
 
   useClickOutside(containerRef, open, () => setOpen(false));
 
@@ -57,7 +60,15 @@ export function UserMenuDropdown({ profile, loading, isLoggedIn, onSignIn, onSig
         className="gap-2"
         onClick={() => setOpen(prev => !prev)}
       >
-        <AvatarImage avatarUrl={profile.avatar_url} initial={initial} size="sm" />
+        <div className="relative">
+          <AvatarImage avatarUrl={profile.avatar_url} initial={initial} size="sm" />
+          {unreadCount > 0 && (
+            <span
+              className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-(--color-accent) border-2 border-(--color-bg-secondary)"
+              aria-label={`${unreadCount} unread notification${unreadCount === 1 ? '' : 's'}`}
+            />
+          )}
+        </div>
         <span className="max-w-20 truncate">{displayName}</span>
         <ChevronDown
           size={12}
@@ -122,7 +133,10 @@ function UserMenuContent({
 }) {
   const { following, followers, followingCount, followersCount, loading, follow, isFollowing } = useFollows();
   const { deleteAccount } = useAuthContext();
-  const [activeTab, setActiveTab] = useState<'following' | 'followers'>('following');
+  const { unreadCount } = useNotificationsContext();
+  const [activeTab, setActiveTab] = useState<'notifications' | 'following' | 'followers'>(
+    unreadCount > 0 ? 'notifications' : 'following'
+  );
   const [addNickname, setAddNickname] = useState('');
   const [addStatus, setAddStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [addError, setAddError] = useState('');
@@ -184,88 +198,98 @@ function UserMenuContent({
         </div>
       </div>
 
-      {/* Tabs: Following | Followers */}
+      {/* Tabs: Notifications | Following | Followers */}
       <div className="flex border-b border-(--color-border-light)">
-        {(['following', 'followers'] as const).map(tab => (
+        {([
+          { key: 'notifications' as const, label: 'Notifications', count: unreadCount || undefined },
+          { key: 'following' as const, label: 'Following', count: followingCount || undefined },
+          { key: 'followers' as const, label: 'Followers', count: followersCount || undefined },
+        ]).map(tab => (
           <button
-            key={tab}
-            className={`flex-1 px-3 py-2 text-xs font-medium transition-colors cursor-pointer relative ${
-              activeTab === tab
+            key={tab.key}
+            className={`flex-1 py-2 text-xs font-medium transition-colors cursor-pointer relative ${
+              activeTab === tab.key
                 ? 'text-(--color-accent)'
                 : 'text-(--color-text-secondary) hover:text-(--color-text-primary)'
             }`}
-            onClick={() => setActiveTab(tab)}
+            onClick={() => setActiveTab(tab.key)}
           >
-            {tab === 'following' ? `Following (${followingCount})` : `Followers (${followersCount})`}
-            {activeTab === tab && (
+            {tab.label}{tab.count !== undefined && <span className="text-[10px] opacity-70"> ({tab.count})</span>}
+            {activeTab === tab.key && (
               <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-(--color-accent) rounded-(--radius-pill)" />
             )}
           </button>
         ))}
       </div>
 
-      {/* Friend list (scrollable) */}
-      <div className="flex-1 overflow-y-auto min-h-0 pb-1">
-        {loading ? (
-          <LoadingSpinner size="sm" inline />
-        ) : friends.length === 0 ? (
-          <div className="text-center py-6 text-xs text-(--color-text-secondary)">
-            {activeTab === 'following' ? 'Not following anyone yet' : 'No followers yet'}
+      {activeTab === 'notifications' ? (
+        <NotificationsTab onClose={onClose} />
+      ) : (
+        <>
+          {/* Friend list (scrollable) */}
+          <div className="flex-1 overflow-y-auto min-h-0 pb-1">
+            {loading ? (
+              <LoadingSpinner size="sm" inline />
+            ) : friends.length === 0 ? (
+              <div className="text-center py-6 text-xs text-(--color-text-secondary)">
+                {activeTab === 'following' ? 'Not following anyone yet' : 'No followers yet'}
+              </div>
+            ) : (
+              friends.map(friend => (
+                <div
+                  key={friend.id}
+                  className="group w-full flex items-center gap-2 px-4 py-2 text-sm text-(--color-text-primary) hover:bg-(--color-hover) transition-colors"
+                >
+                  <button
+                    className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer text-left"
+                    onClick={() => handleNavigateToProfile(friend.id)}
+                  >
+                    <AvatarImage avatarUrl={friend.avatar_url} initial={(friend.nickname || 'U')[0].toUpperCase()} size="md" />
+                    <span className="truncate">@{friend.nickname}</span>
+                  </button>
+                  {activeTab === 'following' && (
+                    <div className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+                      <FollowButton targetUserId={friend.id} />
+                    </div>
+                  )}
+                  {activeTab === 'followers' && !isFollowing(friend.id) && (
+                    <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <FollowButton targetUserId={friend.id} />
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
-        ) : (
-          friends.map(friend => (
-            <div
-              key={friend.id}
-              className="group w-full flex items-center gap-2 px-4 py-2 text-sm text-(--color-text-primary) hover:bg-(--color-hover) transition-colors"
-            >
-              <button
-                className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer text-left"
-                onClick={() => handleNavigateToProfile(friend.id)}
-              >
-                <AvatarImage avatarUrl={friend.avatar_url} initial={(friend.nickname || 'U')[0].toUpperCase()} size="md" />
-                <span className="truncate">@{friend.nickname}</span>
-              </button>
-              {activeTab === 'following' && (
-                <div className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
-                  <FollowButton targetUserId={friend.id} />
-                </div>
-              )}
-              {activeTab === 'followers' && !isFollowing(friend.id) && (
-                <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
-                  <FollowButton targetUserId={friend.id} />
-                </div>
-              )}
-            </div>
-          ))
-        )}
-      </div>
 
-      {/* Add by nickname */}
-      <div className="px-3 py-2 border-t border-(--color-border-light)">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={addNickname}
-            onChange={e => { setAddNickname(e.target.value); setAddStatus('idle'); }}
-            onKeyDown={e => { if (e.key === 'Enter') handleAddByNickname(); }}
-            placeholder="Add by nickname..."
-            className="flex-1 min-w-0 px-2 py-1.5 text-xs bg-(--color-bg-secondary) border border-(--color-border) rounded-(--radius-sm) text-(--color-text-primary) placeholder:text-(--color-text-secondary) focus:outline-none focus:ring-1 focus:ring-(--color-accent)"
-          />
-          <button
-            onClick={handleAddByNickname}
-            disabled={!addNickname.trim() || addStatus === 'loading'}
-            className="px-3 py-1.5 text-xs font-medium rounded-(--radius-sm) bg-(--color-accent) text-(--color-accent-text) hover:bg-(--color-accent-hover) disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
-          >
-            {addStatus === 'loading' ? '...' : 'Add'}
-          </button>
-        </div>
-        {addStatus === 'success' && (
-          <div className="text-xs text-(--color-accent) mt-1">Followed!</div>
-        )}
-        {addStatus === 'error' && (
-          <div className="text-xs text-(--color-danger) mt-1">{addError}</div>
-        )}
-      </div>
+          {/* Add by nickname */}
+          <div className="px-3 py-2 border-t border-(--color-border-light)">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={addNickname}
+                onChange={e => { setAddNickname(e.target.value); setAddStatus('idle'); }}
+                onKeyDown={e => { if (e.key === 'Enter') handleAddByNickname(); }}
+                placeholder="Add by nickname..."
+                className="flex-1 min-w-0 px-2 py-1.5 text-xs bg-(--color-bg-secondary) border border-(--color-border) rounded-(--radius-sm) text-(--color-text-primary) placeholder:text-(--color-text-secondary) focus:outline-none focus:ring-1 focus:ring-(--color-accent)"
+              />
+              <button
+                onClick={handleAddByNickname}
+                disabled={!addNickname.trim() || addStatus === 'loading'}
+                className="px-3 py-1.5 text-xs font-medium rounded-(--radius-sm) bg-(--color-accent) text-(--color-accent-text) hover:bg-(--color-accent-hover) disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              >
+                {addStatus === 'loading' ? '...' : 'Add'}
+              </button>
+            </div>
+            {addStatus === 'success' && (
+              <div className="text-xs text-(--color-accent) mt-1">Followed!</div>
+            )}
+            {addStatus === 'error' && (
+              <div className="text-xs text-(--color-danger) mt-1">{addError}</div>
+            )}
+          </div>
+        </>
+      )}
 
       {/* Gallery link (when header button hidden) + theme switcher (mobile) */}
       {!showGalleryInHeader && (
