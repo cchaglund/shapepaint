@@ -191,12 +191,13 @@
     "phase": "1-autonomous",
     "id": "API-001",
     "category": "API Functions",
-    "description": "Add fetchNotifications(userId) to src/lib/api.ts — fetches most recent 50 notifications, ordered by created_at DESC",
+    "description": "Add fetchNotifications(userId) to src/lib/api.ts — fetches most recent 50 notifications with submission data joined via FK, ordered by created_at DESC. No separate thumbnail fetch needed.",
     "steps_to_verify": [
       "Function exists in src/lib/api.ts",
-      "Returns Notification[] typed correctly",
+      "Returns Notification[] with submissions field populated via PostgREST join",
       "Orders by created_at descending",
-      "Limits to 50 results"
+      "Limits to 50 results",
+      "No fetchSubmissionThumbnailsBatch function exists (removed)"
     ],
     "passes": true
   },
@@ -319,11 +320,15 @@
     "phase": "1-autonomous",
     "id": "UI-005",
     "category": "UI - Panel",
-    "description": "NotificationItem visual states: unread items use bg-(--color-selected-hover), read items use bg-(--color-selected). Both hover to bg-(--color-selected-hover).",
+    "description": "NotificationItem visual states: unread items use bg-(--color-accent-subtle) (pink accent tint), read items use bg-(--color-card-bg) (white/card). Read items hover to bg-(--color-hover). Icon containers are 32px rounded squares (rounded-lg) with type-specific colored backgrounds. Submission thumbnails rendered from joined submission data + baked-in colors (no extra API calls).",
     "steps_to_verify": [
       "Unread notifications have visibly different background from read notifications",
-      "Read notifications use --color-selected background",
-      "Unread notifications use --color-selected-hover background"
+      "Read notifications use --color-card-bg background",
+      "Unread notifications use --color-accent-subtle background",
+      "Icon containers are rounded squares (rounded-lg / 0.5rem), not circles",
+      "Like/friend_submitted notifications show submission thumbnail (36px) on right side via FK join",
+      "Follow notifications show no thumbnail",
+      "No separate thumbnail fetch effect in NotificationsTab — data comes from fetchNotifications join"
     ],
     "passes": true
   },
@@ -334,7 +339,7 @@
     "description": "Extend UserMenuDropdown with Notifications as the first tab. Tab order: Notifications | Following | Followers. Default to Notifications tab if unread items exist, otherwise Following.",
     "steps_to_verify": [
       "Three tabs visible in UserMenuDropdown: Notifications, Following, Followers",
-      "Notifications tab label shows unread count when > 0, e.g. 'Notifications (3)' — consistent with Following/Followers count pattern",
+      "Tab labels show counts in smaller text when > 0, e.g. 'Notifications (3)', 'Following (8)'. Counts hidden when 0.",
       "Notifications is the first tab",
       "When there are unread notifications, dropdown opens to Notifications tab",
       "When there are no unread notifications, dropdown opens to Following tab",
@@ -378,5 +383,199 @@
       "@keyframes fillBar is defined in index.css with from: scaleY(0) opacity 0, to: scaleY(1) opacity 0.6"
     ],
     "passes": true
+  },
+  {
+    "phase": "0-supervised",
+    "id": "DB-011",
+    "category": "Database",
+    "description": "Migration to add submission_id FK column to notifications table, backfill from JSONB data, bake challenge colors into notification JSONB, and update notify_on_like + notify_on_submission triggers to populate both. Human runs `supabase db push` to deploy.",
+    "steps_to_verify": [
+      "submission_id column exists on notifications table as UUID REFERENCES submissions(id)",
+      "Existing notifications have submission_id backfilled from data->>'submission_id'",
+      "Existing notifications with submissions have colors array in JSONB data",
+      "New like notifications populate submission_id column and data.colors",
+      "New friend_submitted notifications populate submission_id column and data.colors",
+      "fetchNotifications joins on submissions via FK — no separate thumbnail fetch needed",
+      "Migration runs successfully via supabase db push with no errors"
+    ],
+    "passes": true
+  },
+  {
+    "phase": "2-autonomous",
+    "phase_description": "Realtime subscription + toast system (Phase 2). All local repo changes — no external deploys. DB already has Realtime enabled from Phase 0.",
+    "id": "TOAST-001",
+    "category": "UI - Toasts",
+    "description": "Create src/contexts/ToastContext.tsx — manages toast state with addToast, dismissToast, max 4 toasts (oldest evicted when exceeded)",
+    "steps_to_verify": [
+      "ToastProvider exists and provides toasts, addToast, dismissToast",
+      "Max 4 toasts displayed at once — oldest is evicted when a 5th is added",
+      "dismissToast removes a toast by id",
+      "useToast hook throws if used outside provider"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "2-autonomous",
+    "id": "TOAST-002",
+    "category": "UI - Toasts",
+    "description": "Create src/components/notifications/ToastContainer.tsx — renders toasts in bottom-right corner. Each toast shows icon (from shared NOTIFICATION_ICONS), text, action link. Uses framer-motion for slide-in/out animations.",
+    "steps_to_verify": [
+      "Toasts render in fixed position at bottom-5 right-5, z-index 200",
+      "Each toast shows the correct icon and colors from shared NOTIFICATION_ICONS",
+      "Toast text uses type narrowing (no Record<string, unknown> casts)",
+      "Toast shows actor name (falls back to 'Someone') and action text (e.g. 'View submission ->')",
+      "Slide-in animation from right (x: 32 -> 0) with spring physics",
+      "Exit animation slides back right with opacity fade",
+      "Toasts stack newest-on-top (flex-col-reverse)",
+      "AnimatePresence mode='popLayout' handles smooth reflow on dismiss"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "2-autonomous",
+    "id": "TOAST-003",
+    "category": "UI - Toasts",
+    "description": "Toast auto-dismiss: 5s timer with progress bar that drains left-to-right. Hovering pauses both timer and progress bar. Close button appears on hover. CRITICAL: the JS dismiss timer and CSS progress bar must use a single source of truth for elapsed time — track remaining time on pause and resume from that value (do NOT restart a fresh 5s timer on unpause, or the bar and timer will desync).",
+    "steps_to_verify": [
+      "Toast auto-dismisses after 5 seconds",
+      "2px accent-colored progress bar at bottom drains from 100% to 0% over 5s",
+      "Hovering pauses the 5s timer and progress bar animation",
+      "Unhovering resumes both timer and progress bar FROM WHERE THEY LEFT OFF (not from scratch)",
+      "Timer tracks remaining time on pause — e.g. pausing at 2s means 3s remaining on resume",
+      "Progress bar and JS timer stay in sync after pause/resume cycles",
+      "Close button (x) appears on hover at top-right",
+      "Clicking close button dismisses the toast (event.stopPropagation prevents navigation)",
+      "@keyframes progressDrain is defined in index.css"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "2-autonomous",
+    "id": "TOAST-004",
+    "category": "UI - Toasts",
+    "description": "Clicking a toast navigates to the relevant target (same routing as panel notifications) and dismisses the toast",
+    "steps_to_verify": [
+      "Clicking a 'like' toast navigates to ?view=submission&id=<submission_id>",
+      "Clicking a 'follow' toast navigates to ?view=profile&user=<actor_id>",
+      "Clicking a 'friend_submitted' toast navigates to ?view=submission&id=<submission_id>",
+      "Toast is dismissed after click"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "2-autonomous",
+    "id": "RT-001",
+    "category": "Realtime",
+    "description": "Create src/hooks/notifications/useNotificationsRealtime.ts — subscribes to Supabase Realtime INSERT events on notifications table filtered by user_id. On new notification: prepends to notification list and fires a toast.",
+    "steps_to_verify": [
+      "Hook subscribes to postgres_changes INSERT on notifications table",
+      "Filter is user_id=eq.${userId} (server-side filtering)",
+      "New notification is prepended to the in-memory list via prependNotification",
+      "New notification triggers a toast via addToast",
+      "Subscription cleans up on unmount (supabase.removeChannel)",
+      "Hook does nothing when userId is null"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "2-autonomous",
+    "id": "RT-002",
+    "category": "Realtime",
+    "description": "useNotificationsRealtime is mounted in the app root alongside NotificationsProvider. Toasts only fire for Realtime events, not on initial load.",
+    "steps_to_verify": [
+      "Hook is called in the same component that renders NotificationsProvider",
+      "Initial page load does NOT show toasts for existing notifications",
+      "A new like/follow/submission from another user triggers a toast in real time"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "2-autonomous",
+    "id": "RT-003",
+    "category": "Realtime",
+    "description": "On Realtime channel reconnection, call reload() to catch any notifications missed during the disconnect gap. Supabase Realtime does not replay missed events.",
+    "steps_to_verify": [
+      "When Realtime subscription reconnects after a disconnect, reload() is called to fetch missed notifications",
+      "No duplicate toasts fire for notifications that arrived during the disconnect (they were fetched by reload, not Realtime)"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "2-autonomous",
+    "id": "CSS-002",
+    "category": "CSS",
+    "description": "Add @keyframes progressDrain (width 100%->0%) to index.css",
+    "steps_to_verify": [
+      "@keyframes progressDrain is defined in index.css with from: width 100%, to: width 0%"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "3-supervised",
+    "phase_description": "Browser testing with two accounts. Requires dev server running and human present to verify visual results.",
+    "id": "E2E-001",
+    "category": "End-to-End",
+    "description": "Full Phase 1 integration: User A likes User B's submission -> User B sees 'like' notification in panel with A's name, correct icon, relative timestamp. Clicking navigates to submission.",
+    "steps_to_verify": [
+      "Like from User A creates notification visible in User B's panel",
+      "Notification shows User A's nickname in bold",
+      "Heart icon with accent color is displayed",
+      "Relative timestamp is shown (e.g. 'just now', '5m ago')",
+      "Clicking navigates to the submission view",
+      "Unread dot appears on User B's avatar",
+      "After marking as read, dot disappears (if no other unreads)"
+    ],
+    "passes": true
+  },
+  {
+    "phase": "3-supervised",
+    "id": "E2E-002",
+    "category": "End-to-End",
+    "description": "Full Phase 1 integration: User A follows User B -> User B sees 'follow' notification. User A unfollows -> notification is removed.",
+    "steps_to_verify": [
+      "Follow creates notification with UserPlus icon and A's name",
+      "Clicking navigates to User A's profile",
+      "Unfollowing removes the notification from User B's panel"
+    ],
+    "passes": true
+  },
+  {
+    "phase": "3-supervised",
+    "id": "E2E-003",
+    "category": "End-to-End",
+    "description": "Full Phase 1 integration: User A (followed by User B) submits artwork -> User B sees 'friend_submitted' notification.",
+    "steps_to_verify": [
+      "Submission by User A creates notification for follower User B",
+      "Notification shows Store icon and A's name",
+      "Clicking navigates to the submission view",
+      "User A's submission was saved successfully (not rolled back by notification system)"
+    ],
+    "passes": true
+  },
+  {
+    "phase": "3-supervised",
+    "id": "E2E-004",
+    "category": "End-to-End",
+    "description": "Full Phase 2 integration: User A likes User B's submission while User B has the app open -> toast appears in bottom-right with slide-in animation, auto-dismisses after 5s.",
+    "steps_to_verify": [
+      "Toast appears in real time without page refresh",
+      "Toast slides in from right with spring animation",
+      "Toast shows Heart icon, User A's name, 'View submission ->' action",
+      "Toast auto-dismisses after 5 seconds",
+      "Notification also appears in the panel (prepended to list)"
+    ],
+    "passes": false
+  },
+  {
+    "phase": "3-supervised",
+    "id": "DOC-001",
+    "category": "Documentation",
+    "description": "Move features/current-feature/plan-notifications.md to docs/plan-notifications.md (the features/ directory is ephemeral and may be deleted). Add a brief mention in the project README linking to docs/plan-notifications.md as the authoritative documentation for the notifications system.",
+    "steps_to_verify": [
+      "docs/plan-notifications.md exists with the full plan content",
+      "features/current-feature/plan-notifications.md no longer exists (moved, not copied)",
+      "README mentions the notifications system with a link to docs/plan-notifications.md"
+    ],
+    "passes": false
   }
 ]

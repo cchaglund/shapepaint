@@ -936,7 +936,7 @@ export async function deleteAccount() {
 export async function fetchNotifications(userId: string): Promise<Notification[]> {
   const { data, error } = await supabase
     .from('notifications')
-    .select('*')
+    .select('*, submissions(shapes, groups, background_color_index)')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(50);

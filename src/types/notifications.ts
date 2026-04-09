@@ -1,3 +1,5 @@
+import type { Shape, ShapeGroup } from './index';
+
 export type NotificationType = 'like' | 'follow' | 'friend_submitted';
 
 export interface NotificationDataMap {
@@ -6,6 +8,7 @@ export interface NotificationDataMap {
     actor_nickname: string | null;
     actor_avatar: string | null;
     submission_id: string;
+    colors?: string[];
   };
   follow: {
     actor_id: string;
@@ -17,7 +20,14 @@ export interface NotificationDataMap {
     actor_nickname: string | null;
     actor_avatar: string | null;
     submission_id: string;
+    colors?: string[];
   };
+}
+
+export interface NotificationSubmission {
+  shapes: Shape[];
+  groups: ShapeGroup[] | null;
+  background_color_index: number | null;
 }
 
 export type Notification = {
@@ -28,5 +38,6 @@ export type Notification = {
     data: NotificationDataMap[K];
     is_read: boolean;
     created_at: string;
+    submissions: NotificationSubmission | null;
   };
 }[NotificationType];

@@ -201,20 +201,20 @@ function UserMenuContent({
       {/* Tabs: Notifications | Following | Followers */}
       <div className="flex border-b border-(--color-border-light)">
         {([
-          { key: 'notifications' as const, label: unreadCount > 0 ? `Notifications (${unreadCount})` : 'Notifications' },
-          { key: 'following' as const, label: `Following (${followingCount})` },
-          { key: 'followers' as const, label: `Followers (${followersCount})` },
+          { key: 'notifications' as const, label: 'Notifications', count: unreadCount || undefined },
+          { key: 'following' as const, label: 'Following', count: followingCount || undefined },
+          { key: 'followers' as const, label: 'Followers', count: followersCount || undefined },
         ]).map(tab => (
           <button
             key={tab.key}
-            className={`flex-1 px-3 py-2 text-xs font-medium transition-colors cursor-pointer relative ${
+            className={`flex-1 py-2 text-xs font-medium transition-colors cursor-pointer relative ${
               activeTab === tab.key
                 ? 'text-(--color-accent)'
                 : 'text-(--color-text-secondary) hover:text-(--color-text-primary)'
             }`}
             onClick={() => setActiveTab(tab.key)}
           >
-            {tab.label}
+            {tab.label}{tab.count !== undefined && <span className="text-[10px] opacity-70"> ({tab.count})</span>}
             {activeTab === tab.key && (
               <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-(--color-accent) rounded-(--radius-pill)" />
             )}

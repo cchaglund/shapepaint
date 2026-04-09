@@ -82,13 +82,14 @@ export function useNotifications(userId: string | undefined) {
     }
   }, [userId, notifications, unreadCount]);
 
-  const prependNotification = useCallback((notification: Notification) => {
+  const prependNotification = useCallback((notification: Omit<Notification, 'submissions'> & { submissions?: Notification['submissions'] }) => {
+    const withSubmissions = { ...notification, submissions: notification.submissions ?? null } as Notification;
     setNotifications(ns => {
       // Dedup guard — skip if already present
-      if (ns.some(n => n.id === notification.id)) return ns;
-      return [notification, ...ns];
+      if (ns.some(n => n.id === withSubmissions.id)) return ns;
+      return [withSubmissions, ...ns];
     });
-    if (!notification.is_read) {
+    if (!withSubmissions.is_read) {
       setUnreadCount(c => c + 1);
     }
   }, []);

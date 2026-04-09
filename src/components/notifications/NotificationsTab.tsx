@@ -2,7 +2,9 @@ import { useRef, useState } from 'react';
 import { useNotificationsContext } from '../../contexts/NotificationsContext';
 import { NOTIFICATION_ICONS } from '../../config/notificationIcons';
 import { navigate } from '../../lib/router';
+import { SubmissionThumbnail } from '../shared/SubmissionThumbnail';
 import type { Notification } from '../../types/notifications';
+import type { DailyChallenge } from '../../types';
 
 function formatTimeAgo(dateStr: string): string {
   const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
@@ -74,6 +76,11 @@ function NotificationItem({
     }
   };
 
+  // Build thumbnail props from joined submission data + baked-in colors
+  const sub = notification.submissions;
+  const colors = notification.type !== 'follow' ? notification.data.colors : undefined;
+  const canRenderThumbnail = sub && colors && colors.length > 0;
+
   return (
     <div
       tabIndex={0}
@@ -84,10 +91,10 @@ function NotificationItem({
       onMouseLeave={cancelTimer}
       onFocus={handleMouseEnter}
       onBlur={cancelTimer}
-      className={`relative flex items-start gap-3 px-4 py-2.5 transition-colors cursor-pointer hover:bg-(--color-hover) ${
+      className={`relative flex items-center gap-3 px-4 py-2.5 transition-colors cursor-pointer ${
         notification.is_read
-          ? 'bg-(--color-selected)'
-          : 'bg-(--color-selected-hover)'
+          ? 'bg-(--color-card-bg) hover:bg-(--color-hover)'
+          : 'bg-(--color-accent-subtle) hover:bg-(--color-accent-subtle)'
       }`}
     >
       {!notification.is_read && isHovering && (
@@ -96,8 +103,8 @@ function NotificationItem({
           style={{ animation: 'fillBar 700ms linear forwards' }}
         />
       )}
-      <div className={`shrink-0 w-7 h-7 rounded-(--radius-pill) flex items-center justify-center ${bgClass}`}>
-        <Icon size={14} className={colorClass} />
+      <div className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${bgClass}`}>
+        <Icon size={15} className={colorClass} />
       </div>
       <div className="min-w-0 flex-1">
         <div className="text-xs text-(--color-text-primary) leading-relaxed">
@@ -108,6 +115,17 @@ function NotificationItem({
           {formatTimeAgo(notification.created_at)}
         </div>
       </div>
+      {canRenderThumbnail && (
+        <div className="shrink-0 w-9 h-9 rounded-md overflow-hidden border border-(--color-border-light)">
+          <SubmissionThumbnail
+            shapes={sub.shapes}
+            groups={sub.groups ?? []}
+            challenge={{ colors } as unknown as DailyChallenge}
+            backgroundColorIndex={sub.background_color_index}
+            fill
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -159,7 +177,12 @@ export function NotificationsTab({ onClose }: { onClose: () => void }) {
           </div>
         ) : (
           notifications.map(notification => (
-            <NotificationItem key={notification.id} notification={notification} onClickNotification={handleClickNotification} markRead={markRead} />
+            <NotificationItem
+              key={notification.id}
+              notification={notification}
+              onClickNotification={handleClickNotification}
+              markRead={markRead}
+            />
           ))
         )}
       </div>

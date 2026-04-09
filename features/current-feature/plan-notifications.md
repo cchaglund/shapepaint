@@ -49,11 +49,12 @@ The following fixes address valid concerns raised during review:
 | Indicator placement | Dot on avatar (Option 3) — no bell icon |
 | Panel location | Third tab in UserMenuDropdown: **Notifications \| Following \| Followers** |
 | Log Out visibility | Always visible regardless of active tab |
-| Panel background | `--color-bg-secondary` (panel), `--color-selected` (read items), `--color-selected-hover` (unread items) |
+| Panel background | `--color-bg-secondary` (panel), `--color-card-bg` (read items), `--color-accent-subtle` (unread items) |
 | Read/unread behavior | Hover 700ms → marks as read with left-edge progress bar. Click also marks as read. "Mark all as read" button. Opening panel does NOT auto-mark. |
 | Layout | Compact (A) with SVG icons (B) |
 | Toast position | Bottom-right, solid style (`--color-bg-elevated`) |
 | Toast behavior | 5s auto-dismiss, hover pauses, close button on hover, max 4 stacked, slide-in from right |
+| Submission thumbnails | Rendered via FK join (submission_id column) + baked-in colors in JSONB — single query, no extra API calls |
 | Scope | Desktop only |
 
 ---

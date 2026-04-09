@@ -11,7 +11,7 @@ export interface NotificationsContextValue {
   error: string | null;
   markRead: (notificationId: string) => Promise<void>;
   markAllRead: () => Promise<void>;
-  prependNotification: (notification: Notification) => void;
+  prependNotification: (notification: Omit<Notification, 'submissions'> & { submissions?: Notification['submissions'] }) => void;
   reload: () => void;
 }
 

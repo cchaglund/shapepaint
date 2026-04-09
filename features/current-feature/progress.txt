@@ -69,9 +69,11 @@
 - formatTimeAgo: local utility — now/Xm/Xh/Xd/Xmo format
 - Three empty states: Loading (when loading + no data), Error (with Retry button), Empty (descriptive copy)
 - "Mark all as read" button in header only when unreadCount > 0
-- Visual states: unread=bg-(--color-selected-hover), read=bg-(--color-selected)
+- Visual states: unread=bg-(--color-accent-subtle), read=bg-(--color-card-bg)
+- Icon containers: 32px rounded squares (rounded-lg), not circles
+- Submission thumbnails: like/friend_submitted show 36px thumbnail on right via fetchSubmissionThumbnailsBatch + SubmissionThumbnail
 - tsc clean, 102 tests pass, lint clean (pre-existing only)
-- Files: src/components/notifications/NotificationsTab.tsx, features/current-feature/PRD.json
+- Files: src/components/notifications/NotificationsTab.tsx, src/lib/api.ts, features/current-feature/PRD.json
 
 ## UI-008 - Mount NotificationsProvider (already done in CTX-001)
 - Verified: NotificationsProvider wraps HeaderProvider in App.tsx (line 89)
@@ -84,7 +86,7 @@
 - Added 'notifications' to activeTab union type in UserMenuContent
 - Tab order: Notifications | Following | Followers (Notifications first)
 - Default tab: 'notifications' if unreadCount > 0, else 'following'
-- Notifications tab label shows count when > 0: "Notifications (3)"
+- Tab labels are plain text with no counts: 'Notifications', 'Following', 'Followers'
 - Tab content switches: notifications → NotificationsTab component, following/followers → existing friend list + add-by-nickname
 - Log out + delete account buttons always visible (outside conditional)
 - Gallery/theme mobile section always visible
@@ -107,10 +109,11 @@
 - tsc clean, 102 tests pass, lint clean (pre-existing only)
 - Files: src/index.css, features/current-feature/PRD.json
 
-## UI-005 - NotificationItem visual states (already done)
-- Was implemented during UI-001: unread=bg-(--color-selected-hover), read=bg-(--color-selected)
-- Marked as passing — no code changes needed
-- Files: (no changes)
+## UI-005 - NotificationItem visual states (updated)
+- Unread: bg-(--color-accent-subtle) (pink accent tint), Read: bg-(--color-card-bg) (white/card)
+- Icon containers: 32px rounded squares (rounded-lg / 0.5rem), not circles (rounded-pill)
+- Submission thumbnails on right for like/friend_submitted notifications
+- Files: src/components/notifications/NotificationsTab.tsx
 
 ## UI-002 - NotificationItem hover-to-read
 - Added 700ms hover timer: onMouseEnter starts setTimeout, onMouseLeave clears it
