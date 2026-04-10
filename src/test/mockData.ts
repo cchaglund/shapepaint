@@ -153,6 +153,7 @@ function createMockShapes(seed: number): Shape[] {
       size: 80 + ((seed * 17 + i * 31) % 120),
       rotation: (seed * 41 + i * 67) % 360,
       colorIndex: (seed + i) % 2 === 0 ? 0 : 1,
+      color: (seed + i) % 2 === 0 ? MOCK_CHALLENGE.colors[0] : MOCK_CHALLENGE.colors[1],
       zIndex: i,
       flipX: (seed + i) % 5 === 0,
       flipY: (seed + i) % 7 === 0,
@@ -164,11 +165,13 @@ function createMockShapes(seed: number): Shape[] {
 
 // Mock submission for voting pair
 export function createMockSubmission(id: string, userId: string, seed: number) {
+  const bgIndex = seed % 3 === 0 ? 0 : seed % 3 === 1 ? 1 : null;
   return {
     id,
     user_id: userId,
     shapes: createMockShapes(seed),
-    background_color_index: seed % 3 === 0 ? 0 : seed % 3 === 1 ? 1 : null,
+    background_color_index: bgIndex,
+    background_color: bgIndex !== null ? MOCK_CHALLENGE.colors[bgIndex] : null,
   };
 }
 
@@ -207,7 +210,7 @@ export const MOCK_TOP_THREE: RankingEntry[] = [
     elo_score: 1150,
     vote_count: 12,
     shapes: createMockShapes(100),
-    background_color_index: 0,
+    background_color: MOCK_CHALLENGE.colors[0],
   },
   {
     rank: 2,
@@ -218,7 +221,7 @@ export const MOCK_TOP_THREE: RankingEntry[] = [
     elo_score: 1080,
     vote_count: 10,
     shapes: createMockShapes(200),
-    background_color_index: 1,
+    background_color: MOCK_CHALLENGE.colors[1],
   },
   {
     rank: 3,
@@ -229,7 +232,7 @@ export const MOCK_TOP_THREE: RankingEntry[] = [
     elo_score: 1020,
     vote_count: 8,
     shapes: createMockShapes(300),
-    background_color_index: null,
+    background_color: null,
   },
 ];
 
@@ -244,7 +247,7 @@ export const MOCK_TIED_TOP_THREE: RankingEntry[] = [
     elo_score: 1100,
     vote_count: 10,
     shapes: createMockShapes(400),
-    background_color_index: 0,
+    background_color: MOCK_CHALLENGE.colors[0],
   },
   {
     rank: 1,
@@ -255,7 +258,7 @@ export const MOCK_TIED_TOP_THREE: RankingEntry[] = [
     elo_score: 1100,
     vote_count: 10,
     shapes: createMockShapes(500),
-    background_color_index: 1,
+    background_color: MOCK_CHALLENGE.colors[1],
   },
   {
     rank: 3,
@@ -266,7 +269,7 @@ export const MOCK_TIED_TOP_THREE: RankingEntry[] = [
     elo_score: 1050,
     vote_count: 9,
     shapes: createMockShapes(600),
-    background_color_index: null,
+    background_color: null,
   },
 ];
 
@@ -281,7 +284,7 @@ export const MOCK_THREE_WAY_TIE: RankingEntry[] = [
     elo_score: 1100,
     vote_count: 10,
     shapes: createMockShapes(700),
-    background_color_index: 0,
+    background_color: MOCK_CHALLENGE.colors[0],
   },
   {
     rank: 1,
@@ -292,7 +295,7 @@ export const MOCK_THREE_WAY_TIE: RankingEntry[] = [
     elo_score: 1100,
     vote_count: 10,
     shapes: createMockShapes(800),
-    background_color_index: 1,
+    background_color: MOCK_CHALLENGE.colors[1],
   },
   {
     rank: 1,
@@ -303,7 +306,7 @@ export const MOCK_THREE_WAY_TIE: RankingEntry[] = [
     elo_score: 1100,
     vote_count: 10,
     shapes: createMockShapes(900),
-    background_color_index: null,
+    background_color: null,
   },
 ];
 

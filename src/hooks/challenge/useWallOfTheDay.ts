@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { Shape, ShapeGroup } from '../../types';
+import type { Shape, ShapeGroup, SubmissionRenderData } from '../../types';
 import { getTodayDateUTC } from '../../utils/dailyChallenge';
 import { getAdjacentDates, isDateWithinLastTwoDays } from '../../utils/calendarUtils';
 import { canViewCurrentDay as canViewCurrentDayUtil } from '../../utils/privacyRules';
@@ -11,14 +11,12 @@ import { fetchWallCached, type WallCacheSortMode } from '../../lib/api';
 
 export type SortMode = 'newest' | 'oldest' | 'ranked' | 'likes';
 
-export interface WallSubmission {
+export interface WallSubmission extends SubmissionRenderData {
   id: string;
   user_id: string;
   nickname: string;
   avatar_url: string | null;
-  shapes: Shape[];
   groups: ShapeGroup[];
-  background_color_index: number | null;
   created_at: string;
   final_rank?: number;
   like_count: number;
@@ -83,7 +81,7 @@ async function fetchFromRPC(date: string, sortMode: SortMode, limit: number): Pr
     avatar_url: row.avatar_url,
     shapes: row.shapes as Shape[],
     groups: (row.groups as ShapeGroup[]) || [],
-    background_color_index: row.background_color_index,
+    background_color: row.background_color ?? undefined,
     created_at: row.created_at,
     final_rank: row.final_rank ?? undefined,
     like_count: row.like_count,

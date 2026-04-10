@@ -1,5 +1,5 @@
 import type { RefObject } from 'react';
-import type { DailyChallenge, Shape, ShapeGroup } from '../../types';
+import type { Shape, ShapeGroup } from '../../types';
 import { CANVAS_SIZE } from '../../types/canvas';
 import { SVGShape } from '../shared/SVGShape';
 import { getVisibleShapes } from '../../utils/visibility';
@@ -7,23 +7,17 @@ import { getVisibleShapes } from '../../utils/visibility';
 interface SubmissionCanvasProps {
   shapes: Shape[];
   groups?: ShapeGroup[];
-  challenge: DailyChallenge;
-  backgroundColorIndex: number | null;
+  backgroundColor?: string | null;
   svgRef: RefObject<SVGSVGElement | null>;
 }
 
 export function SubmissionCanvas({
   shapes,
   groups = [],
-  challenge,
-  backgroundColorIndex,
+  backgroundColor,
   svgRef,
 }: SubmissionCanvasProps) {
   const sortedShapes = [...getVisibleShapes(shapes, groups)].sort((a, b) => a.zIndex - b.zIndex);
-  const backgroundColor =
-    backgroundColorIndex !== null
-      ? challenge.colors[backgroundColorIndex]
-      : '#ffffff';
 
   return (
     <svg
@@ -38,7 +32,7 @@ export function SubmissionCanvas({
         y={0}
         width={CANVAS_SIZE}
         height={CANVAS_SIZE}
-        fill={backgroundColor}
+        fill={backgroundColor ?? '#ffffff'}
       />
       {sortedShapes.map((shape) => (
         <SVGShape
@@ -50,7 +44,7 @@ export function SubmissionCanvas({
           rotation={shape.rotation}
           flipX={shape.flipX}
           flipY={shape.flipY}
-          color={challenge.colors[shape.colorIndex]}
+          color={shape.color ?? '#000000'}
         />
       ))}
     </svg>

@@ -1,4 +1,4 @@
-import type { Shape, ShapeGroup, DailyChallenge } from '../../types';
+import type { Shape, ShapeGroup } from '../../types';
 import { CANVAS_SIZE } from '../../types/canvas';
 import { SVGShape } from './SVGShape';
 import { getVisibleShapes } from '../../utils/visibility';
@@ -6,8 +6,7 @@ import { getVisibleShapes } from '../../utils/visibility';
 interface SubmissionThumbnailProps {
   shapes: Shape[];
   groups?: ShapeGroup[];
-  challenge: DailyChallenge;
-  backgroundColorIndex: number | null;
+  backgroundColor?: string | null;
   size?: number;
   fill?: boolean;
 }
@@ -15,16 +14,11 @@ interface SubmissionThumbnailProps {
 export function SubmissionThumbnail({
   shapes,
   groups = [],
-  challenge,
-  backgroundColorIndex,
+  backgroundColor,
   size = 100,
   fill = false,
 }: SubmissionThumbnailProps) {
   const sortedShapes = [...getVisibleShapes(shapes, groups)].sort((a, b) => a.zIndex - b.zIndex);
-  const backgroundColor =
-    backgroundColorIndex !== null
-      ? challenge.colors[backgroundColorIndex]
-      : '#ffffff';
 
   return (
     <svg
@@ -35,7 +29,7 @@ export function SubmissionThumbnail({
       className={fill ? '' : 'rounded-(--radius-sm)'}
       style={fill ? { display: 'block', width: '100%', height: 'auto' } : undefined}
     >
-      <rect x={0} y={0} width={CANVAS_SIZE} height={CANVAS_SIZE} fill={backgroundColor} />
+      <rect x={0} y={0} width={CANVAS_SIZE} height={CANVAS_SIZE} fill={backgroundColor ?? '#ffffff'} />
       {sortedShapes.map((shape) => (
         <SVGShape
           key={shape.id}
@@ -46,7 +40,7 @@ export function SubmissionThumbnail({
           rotation={shape.rotation}
           flipX={shape.flipX}
           flipY={shape.flipY}
-          color={challenge.colors[shape.colorIndex]}
+          color={shape.color ?? '#000000'}
         />
       ))}
     </svg>

@@ -13,6 +13,7 @@ interface UseSaveSubmissionOptions {
     shapes: Shape[];
     groups: ShapeGroup[];
     backgroundColorIndex: number | null;
+    colors?: string[];
   }) => Promise<{ success: boolean; error?: string }>;
   onSaveSuccess?: () => void;
 }
@@ -44,6 +45,7 @@ export function useSaveSubmission({
       shapes,
       groups,
       backgroundColorIndex,
+      colors: challenge.colors,
     });
     if (result.success) {
       setSaveStatus('saved');

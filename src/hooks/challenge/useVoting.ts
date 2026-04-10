@@ -15,7 +15,7 @@ interface SubmissionRow {
   id: string;
   user_id: string;
   shapes: Shape[];
-  background_color_index: number | null;
+  background_color: string | null;
 }
 
 interface UseVotingReturn {
@@ -132,13 +132,13 @@ export function useVoting(userId: string | undefined, challengeDate: string): Us
           id: subA.id,
           user_id: subA.user_id,
           shapes: subA.shapes as Shape[],
-          background_color_index: subA.background_color_index,
+          background_color: subA.background_color,
         },
         submissionB: {
           id: subB.id,
           user_id: subB.user_id,
           shapes: subB.shapes as Shape[],
-          background_color_index: subB.background_color_index,
+          background_color: subB.background_color,
         },
       });
       setNoMorePairs(false);
@@ -173,13 +173,13 @@ export function useVoting(userId: string | undefined, challengeDate: string): Us
               id: result.nextPair.submissionA.id,
               user_id: result.nextPair.submissionA.user_id,
               shapes: result.nextPair.submissionA.shapes as Shape[],
-              background_color_index: result.nextPair.submissionA.background_color_index,
+              background_color: result.nextPair.submissionA.background_color,
             },
             submissionB: {
               id: result.nextPair.submissionB.id,
               user_id: result.nextPair.submissionB.user_id,
               shapes: result.nextPair.submissionB.shapes as Shape[],
-              background_color_index: result.nextPair.submissionB.background_color_index,
+              background_color: result.nextPair.submissionB.background_color,
             },
           });
           setNoMorePairs(false);

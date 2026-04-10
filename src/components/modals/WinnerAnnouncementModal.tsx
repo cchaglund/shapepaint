@@ -87,7 +87,6 @@ export function WinnerAnnouncementModal({
             <WinnerCard
               key={winner.submission_id}
               entry={winner}
-              challenge={challenge}
               size={winners.length > 2 ? 'sm' : 'lg'}
               fitViewport
             />
@@ -103,7 +102,6 @@ export function WinnerAnnouncementModal({
             <WinnerCard
               key={runnerUp.submission_id}
               entry={runnerUp}
-              challenge={challenge}
               size="sm"
               fitViewport
             />
@@ -113,7 +111,6 @@ export function WinnerAnnouncementModal({
             <WinnerCard
               key={thirdPlace.submission_id}
               entry={thirdPlace}
-              challenge={challenge}
               size="sm"
               fitViewport
             />

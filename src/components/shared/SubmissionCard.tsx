@@ -4,13 +4,12 @@ import { AvatarImage } from './AvatarImage';
 import { SubmissionThumbnail } from './SubmissionThumbnail';
 import { CardLikeButton } from './CardLikeButton';
 import { PlacementBanner } from './PlacementBanner';
-import type { Shape, ShapeGroup, DailyChallenge } from '../../types';
+import type { Shape, ShapeGroup } from '../../types';
 
 interface SubmissionCardProps {
   shapes: Shape[];
   groups?: ShapeGroup[];
-  challenge: DailyChallenge;
-  backgroundColorIndex: number | null;
+  backgroundColor?: string | null;
   showNickname?: boolean;
   nickname?: string;
   avatarUrl?: string | null;
@@ -27,8 +26,7 @@ interface SubmissionCardProps {
 export function SubmissionCard({
   shapes,
   groups,
-  challenge,
-  backgroundColorIndex,
+  backgroundColor,
   showNickname = false,
   nickname,
   avatarUrl,
@@ -60,8 +58,7 @@ export function SubmissionCard({
         <SubmissionThumbnail
           shapes={shapes}
           groups={groups}
-          challenge={challenge}
-          backgroundColorIndex={backgroundColorIndex}
+          backgroundColor={backgroundColor}
           fill
         />
         {rank && <PlacementBanner rank={rank} />}

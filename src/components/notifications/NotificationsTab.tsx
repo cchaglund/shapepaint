@@ -7,7 +7,6 @@ import { SubmissionThumbnail } from '../shared/SubmissionThumbnail';
 import { canViewCurrentDay } from '../../utils/privacyRules';
 import { getTodayDateUTC } from '../../utils/dailyChallenge';
 import type { Notification } from '../../types/notifications';
-import type { DailyChallenge } from '../../types';
 
 function formatTimeAgo(dateStr: string): string {
   const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
@@ -81,10 +80,9 @@ function NotificationItem({
     }
   };
 
-  // Build thumbnail props from joined submission data + baked-in colors
+  // Build thumbnail from joined submission data (shapes carry baked-in color)
   const sub = notification.submissions;
-  const colors = notification.type !== 'follow' ? notification.data.colors : undefined;
-  const canRenderThumbnail = sub && colors && colors.length > 0;
+  const canRenderThumbnail = sub && sub.shapes.length > 0;
 
   return (
     <div
@@ -128,8 +126,7 @@ function NotificationItem({
           <SubmissionThumbnail
             shapes={sub.shapes}
             groups={sub.groups ?? []}
-            challenge={{ colors } as unknown as DailyChallenge}
-            backgroundColorIndex={sub.background_color_index}
+            backgroundColor={sub.background_color}
             fill
           />
         </div>
