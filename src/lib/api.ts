@@ -444,14 +444,6 @@ export async function fetchNextVotingPair(userId: string, challengeDate: string)
   return data;
 }
 
-export async function processVote(submissionAId: string, submissionBId: string, winnerId: string | null) {
-  const response = await supabase.functions.invoke('process-vote', {
-    body: { submissionAId, submissionBId, winnerId },
-  });
-  if (response.error) throw response.error;
-  return response.data;
-}
-
 export interface ProcessVoteV2Result {
   success: boolean;
   voteCount: number;
