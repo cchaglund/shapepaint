@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import type { Shape, ShapeGroup } from '../../types';
+import type { Shape, ShapeGroup, SubmissionRenderData } from '../../types';
 import { getTodayDateUTC } from '../../utils/dailyChallenge';
 import { getAdjacentDates, isDateWithinLastTwoDays } from '../../utils/calendarUtils';
 import { canViewCurrentDay as canViewCurrentDayUtil } from '../../utils/privacyRules';
@@ -13,14 +13,12 @@ import { fetchFriendsSubmissionsFromDB, fetchNicknames, fetchRankingsBySubmissio
 
 export type SortMode = 'newest' | 'oldest' | 'ranked';
 
-export interface FriendsSubmission {
+export interface FriendsSubmission extends SubmissionRenderData {
   id: string;
   user_id: string;
   nickname: string;
   avatar_url: string | null;
-  shapes: Shape[];
   groups: ShapeGroup[];
-  background_color_index: number | null;
   created_at: string;
   final_rank?: number;
   like_count: number;
@@ -118,7 +116,7 @@ async function fetchFriendsSubmissions(
       avatar_url: nicknameMap.get(s.user_id)?.avatar_url ?? null,
       shapes: s.shapes as Shape[],
       groups: (s.groups as ShapeGroup[]) || [],
-      background_color_index: s.background_color_index,
+      background_color: s.background_color ?? undefined,
       created_at: s.created_at,
       final_rank: rankMap.get(s.id),
       like_count: s.like_count ?? 0,

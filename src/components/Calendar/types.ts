@@ -15,7 +15,7 @@ export interface WinnerEntry {
   final_rank: number;
   shapes: Shape[];
   groups?: ShapeGroup[];
-  background_color_index: number | null;
+  background_color?: string | null;
 }
 
 export interface CalendarProps {

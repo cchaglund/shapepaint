@@ -107,8 +107,6 @@ export function WinnersDayPage({ date }: WinnersDayPageProps) {
                           <WinnerCard
                             key={winner.submission_id}
                             entry={winner}
-                            challenge={challenge}
-
                             size={winners.length > 2 ? 'sm' : winners.length > 1 ? 'md' : 'lg'}
                           />
                         ))}
@@ -123,8 +121,6 @@ export function WinnersDayPage({ date }: WinnersDayPageProps) {
                         <WinnerCard
                           key={entry.submission_id}
                           entry={entry}
-                          challenge={challenge}
-
                           size="sm"
                         />
                       ))}
@@ -132,8 +128,6 @@ export function WinnersDayPage({ date }: WinnersDayPageProps) {
                         <WinnerCard
                           key={entry.submission_id}
                           entry={entry}
-                          challenge={challenge}
-
                           size="sm"
                         />
                       ))}

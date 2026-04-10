@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Check } from 'lucide-react';
-import { useDailyChallenge } from '../../hooks/challenge/useDailyChallenge';
 import { fetchWallSubmissions, type WallSubmission } from '../../hooks/challenge/useWallOfTheDay';
 import { Button } from '../shared/Button';
 import { SubmissionThumbnail } from '../shared/SubmissionThumbnail';
@@ -20,7 +19,6 @@ export function VotingConfirmation({
   children,
 }: VotingConfirmationProps) {
   const wallUrl = `?view=gallery&tab=wall&date=${wallDate}`;
-  const { challenge } = useDailyChallenge(wallDate);
   const [previewSubmissions, setPreviewSubmissions] = useState<WallSubmission[]>([]);
 
   useEffect(() => {
@@ -60,7 +58,7 @@ export function VotingConfirmation({
       {children && <div className="mt-5">{children}</div>}
 
       {/* Wall preview */}
-      {challenge && previewSubmissions.length > 0 && (
+      {previewSubmissions.length > 0 && (
         <div className="mt-5 text-center">
           <Button as="a" variant="link" href={wallUrl}>
             See what others submitted:
@@ -71,8 +69,7 @@ export function VotingConfirmation({
                 <SubmissionThumbnail
                   shapes={s.shapes}
                   groups={s.groups}
-                  challenge={challenge}
-                  backgroundColorIndex={s.background_color_index}
+                  backgroundColor={s.background_color}
                   fill
                 />
               </div>

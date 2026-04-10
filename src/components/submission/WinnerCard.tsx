@@ -3,11 +3,10 @@ import { SubmissionThumbnail } from '../shared/SubmissionThumbnail';
 import { PlacementBanner } from '../shared/PlacementBanner';
 import { AvatarImage } from '../shared/AvatarImage';
 import { Link } from '../shared/Link';
-import type { RankingEntry, DailyChallenge } from '../../types';
+import type { RankingEntry } from '../../types';
 
 interface WinnerCardProps {
   entry: RankingEntry;
-  challenge: DailyChallenge;
   size?: 'sm' | 'md' | 'lg';
   /** When true, cap thumbnail size based on viewport height so the modal doesn't scroll */
   fitViewport?: boolean;
@@ -18,7 +17,6 @@ const dvhCaps = { lg: '30dvh', md: '24dvh', sm: '18dvh' } as const;
 
 export function WinnerCard({
   entry,
-  challenge,
   size = 'md',
   fitViewport = false,
 }: WinnerCardProps) {
@@ -52,8 +50,7 @@ export function WinnerCard({
         <SubmissionThumbnail
           shapes={entry.shapes}
           groups={entry.groups}
-          challenge={challenge}
-          backgroundColorIndex={entry.background_color_index}
+          backgroundColor={entry.background_color}
           fill
         />
         <PlacementBanner rank={entry.rank as 1 | 2 | 3} />

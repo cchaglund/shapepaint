@@ -5,7 +5,6 @@ import { SubmissionThumbnail } from '../shared/SubmissionThumbnail';
 import { useIsDesktop } from '../../hooks/ui/useBreakpoint';
 import type { VotingPairViewProps, VotingPairComparisonProps } from './types';
 import type { VotingPair } from '../../types';
-import type { DailyChallenge } from '../../types';
 
 /** Expand icon shown on thumbnail hover */
 function ExpandIcon() {
@@ -19,11 +18,9 @@ function ExpandIcon() {
 /** Full-size lightbox overlay for previewing a submission */
 function SubmissionLightbox({
   submission,
-  challenge,
   onClose,
 }: {
   submission: VotingPair['submissionA'];
-  challenge: DailyChallenge;
   onClose: () => void;
 }) {
   useEffect(() => {
@@ -46,8 +43,7 @@ function SubmissionLightbox({
         <SubmissionThumbnail
           shapes={submission.shapes}
           groups={submission.groups}
-          challenge={challenge}
-          backgroundColorIndex={submission.background_color_index}
+          backgroundColor={submission.background_color}
           fill
         />
       </div>
@@ -58,7 +54,6 @@ function SubmissionLightbox({
 /** Just the two thumbnails + vote buttons + lightbox. Reused in VotingPairView and continue-voting. */
 export function VotingPairComparison({
   currentPair,
-  challenge,
   submitting,
   onVote,
   compact,
@@ -85,8 +80,7 @@ export function VotingPairComparison({
               <SubmissionThumbnail
                 shapes={currentPair.submissionA.shapes}
                 groups={currentPair.submissionA.groups}
-                challenge={challenge}
-                backgroundColorIndex={currentPair.submissionA.background_color_index}
+                backgroundColor={currentPair.submissionA.background_color}
                 size={thumbnailSize}
               />
               <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-white opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
@@ -117,8 +111,7 @@ export function VotingPairComparison({
               <SubmissionThumbnail
                 shapes={currentPair.submissionB.shapes}
                 groups={currentPair.submissionB.groups}
-                challenge={challenge}
-                backgroundColorIndex={currentPair.submissionB.background_color_index}
+                backgroundColor={currentPair.submissionB.background_color}
                 size={thumbnailSize}
               />
               <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-white opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
@@ -153,7 +146,6 @@ export function VotingPairComparison({
       {previewSubmission && (
         <SubmissionLightbox
           submission={previewSubmission === 'A' ? currentPair.submissionA : currentPair.submissionB}
-          challenge={challenge}
           onClose={closeLightbox}
         />
       )}
@@ -188,7 +180,6 @@ export function VotingPairView({
 
         <VotingPairComparison
           currentPair={currentPair}
-          challenge={challenge}
           submitting={submitting}
           onVote={onVote}
         />

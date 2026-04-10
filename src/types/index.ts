@@ -10,12 +10,20 @@ export interface Shape {
   size: number;
   rotation: number;
   colorIndex: number; // Index into the daily colors array
+  color?: string; // Resolved hex color — baked in at save time, used for rendering
   zIndex: number;
   flipX?: boolean; // Flip horizontally (mirror left/right)
   flipY?: boolean; // Flip vertically (mirror up/down)
   groupId?: string; // Optional group membership
   visible?: boolean; // Layer visibility (undefined = visible)
   locked?: boolean; // Layer lock (undefined = unlocked)
+}
+
+/** Self-contained data needed to render a submission (no challenge lookup required) */
+export interface SubmissionRenderData {
+  shapes: Shape[];
+  groups?: ShapeGroup[];
+  background_color?: string | null;
 }
 
 export interface ShapeGroup {
@@ -68,7 +76,7 @@ export interface DailyRanking {
   vote_count: number;
 }
 
-export interface RankingEntry {
+export interface RankingEntry extends SubmissionRenderData {
   rank: number;
   submission_id: string;
   user_id: string;
@@ -76,9 +84,6 @@ export interface RankingEntry {
   avatar_url: string | null;
   elo_score: number;
   vote_count: number;
-  shapes: Shape[];
-  groups?: ShapeGroup[];
-  background_color_index: number | null;
 }
 
 export interface VotingStatus {
@@ -87,19 +92,12 @@ export interface VotingStatus {
   seen_winner_announcement: boolean;
 }
 
+export interface VotingPairSubmission extends SubmissionRenderData {
+  id: string;
+  user_id: string;
+}
+
 export interface VotingPair {
-  submissionA: {
-    id: string;
-    user_id: string;
-    shapes: Shape[];
-    groups?: ShapeGroup[];
-    background_color_index: number | null;
-  };
-  submissionB: {
-    id: string;
-    user_id: string;
-    shapes: Shape[];
-    groups?: ShapeGroup[];
-    background_color_index: number | null;
-  };
+  submissionA: VotingPairSubmission;
+  submissionB: VotingPairSubmission;
 }

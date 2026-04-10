@@ -316,8 +316,7 @@ export function FriendsFeedContent({
                     <SubmissionCard
                       shapes={submission.shapes}
                       groups={submission.groups}
-                      challenge={challenge}
-                      backgroundColorIndex={submission.background_color_index}
+                      backgroundColor={submission.background_color}
                       showNickname={true}
                       nickname={submission.nickname}
                       avatarUrl={submission.avatar_url}

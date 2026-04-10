@@ -17,7 +17,6 @@ export interface VotingPairViewProps {
 
 export interface VotingPairComparisonProps {
   currentPair: VotingPair;
-  challenge: DailyChallenge;
   submitting: boolean;
   onVote: (winnerId: string) => void;
   /** Smaller thumbnails for inline/secondary contexts (e.g. continue voting) */

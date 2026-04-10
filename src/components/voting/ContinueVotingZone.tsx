@@ -56,7 +56,6 @@ export function ContinueVotingZone({
               {currentPair ? (
                 <VotingPairComparison
                   currentPair={currentPair}
-                  challenge={challenge}
                   submitting={submitting}
                   onVote={onVote}
                   compact

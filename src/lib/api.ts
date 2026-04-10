@@ -13,6 +13,7 @@ export interface SubmissionRow {
   shapes: Shape[];
   groups: ShapeGroup[];
   background_color_index: number | null;
+  background_color: string | null;
   created_at: string;
   updated_at: string;
   like_count: number;
@@ -60,14 +61,25 @@ export async function upsertSubmission(params: {
   shapes: Shape[];
   groups: ShapeGroup[];
   backgroundColorIndex: number | null;
+  colors?: string[];
 }): Promise<void> {
+  // Bake resolved color into each shape when challenge colors are available
+  const shapesWithColors = params.colors
+    ? params.shapes.map(s => ({ ...s, color: params.colors![s.colorIndex] }))
+    : params.shapes;
+
+  const backgroundColor = params.colors && params.backgroundColorIndex !== null
+    ? params.colors[params.backgroundColorIndex]
+    : null;
+
   const { error } = await supabase.from('submissions').upsert(
     {
       user_id: params.userId,
       challenge_date: params.challengeDate,
-      shapes: params.shapes,
+      shapes: shapesWithColors,
       groups: params.groups,
       background_color_index: params.backgroundColorIndex,
+      background_color: backgroundColor,
       updated_at: new Date().toISOString(),
     },
     { onConflict: 'user_id,challenge_date' }
@@ -188,7 +200,7 @@ export async function fetchSubmissionCountsByDateRange(
 export async function fetchSubmissionPair(submissionAId: string, submissionBId: string) {
   const { data, error } = await supabase
     .from('submissions')
-    .select('id, user_id, shapes, groups, background_color_index')
+    .select('id, user_id, shapes, groups, background_color')
     .in('id', [submissionAId, submissionBId]);
   if (error) throw error;
   return data;
@@ -262,7 +274,7 @@ export interface WallCachedSubmission {
   avatar_url: string | null;
   shapes: unknown;
   groups: unknown;
-  background_color_index: number | null;
+  background_color: string | null;
   created_at: string;
   final_rank: number | null;
   like_count: number;
@@ -283,7 +295,7 @@ export type FriendsSortMode = 'newest' | 'oldest' | 'ranked';
 export async function fetchFriendsSubmissionsFromDB(date: string, followingIds: string[], limit: number, sortMode: FriendsSortMode = 'newest') {
   let query = supabase
     .from('submissions')
-    .select('id, user_id, shapes, groups, background_color_index, created_at, like_count')
+    .select('id, user_id, shapes, groups, background_color, created_at, like_count')
     .eq('challenge_date', date)
     .eq('included_in_ranking', true)
     .in('user_id', followingIds);
@@ -450,8 +462,8 @@ export interface ProcessVoteV2Result {
   requiredVotes: number;
   enteredRanking: boolean;
   nextPair: {
-    submissionA: { id: string; user_id: string; shapes: Shape[]; groups: ShapeGroup[]; background_color_index: number | null };
-    submissionB: { id: string; user_id: string; shapes: Shape[]; groups: ShapeGroup[]; background_color_index: number | null };
+    submissionA: { id: string; user_id: string; shapes: Shape[]; groups: ShapeGroup[]; background_color: string | null };
+    submissionB: { id: string; user_id: string; shapes: Shape[]; groups: ShapeGroup[]; background_color: string | null };
   } | null;
   error?: string;
   status?: number;
@@ -497,7 +509,7 @@ interface RankingRowWithSubmission {
   submissions: {
     shapes: Shape[];
     groups?: ShapeGroup[] | null;
-    background_color_index: number | null;
+    background_color: string | null;
   };
 }
 
@@ -509,7 +521,7 @@ export async function fetchRankingsWithSubmissions(
     .from('daily_rankings')
     .select(`
       final_rank, submission_id, user_id, elo_score, vote_count,
-      submissions!inner (shapes, groups, background_color_index)
+      submissions!inner (shapes, groups, background_color)
     `)
     .eq('challenge_date', challengeDate)
     .not('final_rank', 'is', null)
@@ -532,7 +544,7 @@ export async function fetchRankingsWithSubmissions(
     vote_count: row.vote_count,
     shapes: row.submissions?.shapes || [],
     groups: row.submissions?.groups || [],
-    background_color_index: row.submissions?.background_color_index ?? null,
+    background_color: row.submissions?.background_color ?? null,
   }));
 }
 
@@ -634,7 +646,7 @@ export async function fetchMonthlyWinners(
   final_rank: number;
   shapes: Shape[];
   groups: ShapeGroup[];
-  background_color_index: number | null;
+  background_color: string | null;
 }>> {
   const { data: rankingsData, error } = await supabase
     .from('daily_rankings')
@@ -646,7 +658,7 @@ export async function fetchMonthlyWinners(
       submissions!inner (
         shapes,
         groups,
-        background_color_index
+        background_color
       )
     `)
     .eq('final_rank', 1)
@@ -666,7 +678,7 @@ export async function fetchMonthlyWinners(
     submission_id: string;
     user_id: string;
     final_rank: number;
-    submissions: { shapes: Shape[]; groups: ShapeGroup[] | null; background_color_index: number | null };
+    submissions: { shapes: Shape[]; groups: ShapeGroup[] | null; background_color: string | null };
   }
 
   const userIds = [...new Set(rankingsData.map((r: { user_id: string }) => r.user_id))];
@@ -681,7 +693,7 @@ export async function fetchMonthlyWinners(
     final_rank: row.final_rank,
     shapes: row.submissions?.shapes || [],
     groups: row.submissions?.groups || [],
-    background_color_index: row.submissions?.background_color_index ?? null,
+    background_color: row.submissions?.background_color ?? null,
   }));
 }
 
@@ -961,7 +973,7 @@ export async function deleteAccount() {
 export async function fetchNotifications(userId: string): Promise<Notification[]> {
   const { data, error } = await supabase
     .from('notifications')
-    .select('*, submissions(shapes, groups, background_color_index, challenge_date)')
+    .select('*, submissions(shapes, groups, background_color, challenge_date)')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(50);
@@ -1000,7 +1012,7 @@ export async function fetchUserPublicSubmissions(userId: string) {
   const { data, error } = await supabase
     .from('submissions')
     .select(`
-      id, challenge_date, shapes, groups, background_color_index, created_at,
+      id, challenge_date, shapes, groups, background_color, created_at,
       daily_rankings!daily_rankings_submission_id_fkey(final_rank)
     `)
     .eq('user_id', userId)

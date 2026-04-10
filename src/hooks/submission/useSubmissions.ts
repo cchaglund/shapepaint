@@ -18,6 +18,7 @@ interface SaveSubmissionParams {
   shapes: Shape[];
   groups: ShapeGroup[];
   backgroundColorIndex: number | null;
+  colors?: string[];
 }
 
 export function useSubmissions(userId: string | undefined, todayDate?: string) {
@@ -68,6 +69,7 @@ export function useSubmissions(userId: string | undefined, todayDate?: string) {
           shapes: params.shapes,
           groups: params.groups,
           backgroundColorIndex: params.backgroundColorIndex,
+          colors: params.colors,
         });
         setSaving(false);
         setHasSubmittedToday(true);

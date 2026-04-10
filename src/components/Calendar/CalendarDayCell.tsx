@@ -9,7 +9,7 @@ import { CalendarCell } from './CalendarCell';
 /** Minimal submission shape needed by CalendarDayCell */
 interface CalendarSubmission {
   shapes: Shape[];
-  background_color_index: number | null;
+  background_color?: string | null;
 }
 
 interface CalendarDayCellProps {
@@ -87,8 +87,7 @@ export function CalendarDayCell({
         {hasArt ? (
           <SubmissionThumbnail
             shapes={submission.shapes}
-            challenge={challenge}
-            backgroundColorIndex={submission.background_color_index}
+            backgroundColor={submission.background_color}
             fill
           />
         ) : isToday && !submission ? (
@@ -124,8 +123,7 @@ export function CalendarDayCell({
           <SubmissionThumbnail
             shapes={dayWinners[0].shapes}
             groups={dayWinners[0].groups}
-            challenge={challenge}
-            backgroundColorIndex={dayWinners[0].background_color_index}
+            backgroundColor={dayWinners[0].background_color}
             fill
           />
           {dayWinners.length > 1 && (

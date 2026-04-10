@@ -8,7 +8,6 @@ export interface NotificationDataMap {
     actor_nickname: string | null;
     actor_avatar: string | null;
     submission_id: string;
-    colors?: string[];
   };
   follow: {
     actor_id: string;
@@ -20,14 +19,13 @@ export interface NotificationDataMap {
     actor_nickname: string | null;
     actor_avatar: string | null;
     submission_id: string;
-    colors?: string[];
   };
 }
 
 export interface NotificationSubmission {
   shapes: Shape[];
   groups: ShapeGroup[] | null;
-  background_color_index: number | null;
+  background_color?: string | null;
   challenge_date: string;
 }
 

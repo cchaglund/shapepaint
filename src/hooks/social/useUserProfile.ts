@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { Shape, ShapeGroup } from '../../types';
+import type { Shape, ShapeGroup, SubmissionRenderData } from '../../types';
 import { fetchUserPublicProfile, fetchUserPublicSubmissions, fetchFollowCounts } from '../../lib/api';
 
 // =============================================================================
@@ -14,12 +14,10 @@ export interface UserProfile {
   followersCount: number;
 }
 
-export interface UserSubmission {
+export interface UserSubmission extends SubmissionRenderData {
   id: string;
   challenge_date: string;
-  shapes: Shape[];
   groups: ShapeGroup[];
-  background_color_index: number | null;
   created_at: string;
   final_rank?: number;
 }
@@ -109,7 +107,7 @@ async function fetchUserProfile(userId: string): Promise<CachedUserData | null> 
       challenge_date: s.challenge_date,
       shapes: s.shapes as Shape[],
       groups: (s.groups as ShapeGroup[]) || [],
-      background_color_index: s.background_color_index,
+      background_color: (s as { background_color?: string | null }).background_color ?? undefined,
       created_at: s.created_at,
       final_rank: (s.daily_rankings as { final_rank: number | null }[] | null)?.[0]?.final_rank ?? undefined,
     }));

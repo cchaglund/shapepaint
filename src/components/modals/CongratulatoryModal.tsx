@@ -110,7 +110,6 @@ export function CongratulatoryModal({
       <div className="flex justify-center mb-5">
         <WinnerCard
           entry={userEntry}
-          challenge={challenge}
           size="lg"
         />
       </div>
