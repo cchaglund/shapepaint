@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { X } from 'lucide-react';
 import { useToast, type Toast } from '../../contexts/ToastContext';
+import { useNotificationsContext } from '../../contexts/NotificationsContext';
 import { useSubmissionStatus } from '../../contexts/SubmissionStatusContext';
 import { NOTIFICATION_ICONS } from '../../config/notificationIcons';
 import { navigate } from '../../lib/router';
@@ -44,7 +45,7 @@ function getToastUrl(n: Notification): string {
   }
 }
 
-function ToastItem({ toast, onDismiss, shouldBlurThumbnail }: { toast: Toast; onDismiss: (id: string) => void; shouldBlurThumbnail: boolean }) {
+function ToastItem({ toast, onDismiss, markRead, shouldBlurThumbnail }: { toast: Toast; onDismiss: (id: string) => void; markRead: (id: string) => void; shouldBlurThumbnail: boolean }) {
   const [paused, setPaused] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const remainingRef = useRef(TOAST_DURATION_MS);
@@ -73,6 +74,7 @@ function ToastItem({ toast, onDismiss, shouldBlurThumbnail }: { toast: Toast; on
   }, [paused, toast.id, onDismiss]);
 
   const handleClick = () => {
+    if (!n.is_read) markRead(n.id);
     navigate(getToastUrl(n));
     onDismiss(toast.id);
   };
@@ -149,6 +151,7 @@ function ToastItem({ toast, onDismiss, shouldBlurThumbnail }: { toast: Toast; on
 
 export function ToastContainer() {
   const { toasts, dismissToast } = useToast();
+  const { markRead } = useNotificationsContext();
   const { hasSubmittedToday } = useSubmissionStatus();
   const todayStr = getTodayDateUTC();
 
@@ -160,7 +163,7 @@ export function ToastContainer() {
           const shouldBlur = sub?.challenge_date != null && !canViewCurrentDay(sub.challenge_date, todayStr, hasSubmittedToday);
           return (
             <div key={t.id} className="pointer-events-auto">
-              <ToastItem toast={t} onDismiss={dismissToast} shouldBlurThumbnail={shouldBlur} />
+              <ToastItem toast={t} onDismiss={dismissToast} markRead={markRead} shouldBlurThumbnail={shouldBlur} />
             </div>
           );
         })}
