@@ -412,7 +412,7 @@
       "dismissToast removes a toast by id",
       "useToast hook throws if used outside provider"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "phase": "2-autonomous",
@@ -429,7 +429,7 @@
       "Toasts stack newest-on-top (flex-col-reverse)",
       "AnimatePresence mode='popLayout' handles smooth reflow on dismiss"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "phase": "2-autonomous",
@@ -447,7 +447,7 @@
       "Clicking close button dismisses the toast (event.stopPropagation prevents navigation)",
       "@keyframes progressDrain is defined in index.css"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "phase": "2-autonomous",
@@ -460,7 +460,7 @@
       "Clicking a 'friend_submitted' toast navigates to ?view=submission&id=<submission_id>",
       "Toast is dismissed after click"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "phase": "2-autonomous",
@@ -475,7 +475,7 @@
       "Subscription cleans up on unmount (supabase.removeChannel)",
       "Hook does nothing when userId is null"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "phase": "2-autonomous",
@@ -487,7 +487,7 @@
       "Initial page load does NOT show toasts for existing notifications",
       "A new like/follow/submission from another user triggers a toast in real time"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "phase": "2-autonomous",
@@ -498,7 +498,7 @@
       "When Realtime subscription reconnects after a disconnect, reload() is called to fetch missed notifications",
       "No duplicate toasts fire for notifications that arrived during the disconnect (they were fetched by reload, not Realtime)"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "phase": "2-autonomous",
@@ -508,7 +508,7 @@
     "steps_to_verify": [
       "@keyframes progressDrain is defined in index.css with from: width 100%, to: width 0%"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "phase": "3-supervised",
@@ -564,7 +564,7 @@
       "Toast auto-dismisses after 5 seconds",
       "Notification also appears in the panel (prepended to list)"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "phase": "3-supervised",
@@ -576,6 +576,6 @@
       "features/current-feature/plan-notifications.md no longer exists (moved, not copied)",
       "README mentions the notifications system with a link to docs/plan-notifications.md"
     ],
-    "passes": false
+    "passes": true
   }
 ]

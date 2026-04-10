@@ -4,7 +4,9 @@ import { AuthProvider, useAuthContext } from './contexts/AuthContext';
 import { HeaderProvider } from './contexts/HeaderContext';
 import { FollowsProvider } from './contexts/FollowsContext';
 import { NotificationsProvider } from './contexts/NotificationsContext';
+import { ToastProvider } from './contexts/ToastContext';
 import { SubmissionStatusProvider } from './contexts/SubmissionStatusContext';
+import { useNotificationsRealtime } from './hooks/notifications/useNotificationsRealtime';
 import { getTodayDateUTC } from './utils/dailyChallenge';
 import { useDailyChallenge } from './hooks/challenge/useDailyChallenge';
 import { useAppRoute, isStandaloneRoute } from './hooks/useAppRoute';
@@ -12,6 +14,7 @@ import { useThemeState } from './hooks/ui/useThemeState';
 import { useAdmin } from './hooks/auth/useAdmin';
 import { useDateChangeReload } from './hooks/ui/useDateChangeReload';
 import { TopBar } from './components/canvas/TopBar';
+import { ToastContainer } from './components/notifications/ToastContainer';
 import { LoadingSpinner } from './components/shared/LoadingSpinner';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
 
@@ -47,6 +50,12 @@ function StandaloneRoute({ route }: { route: { type: string } }) {
 }
 
 const STANDALONE_ADMIN_ROUTES = new Set(['explorer', 'voting-test', 'dashboard', 'color-tester']);
+
+/** Mounts Realtime subscription + toast overlay. Must live inside both NotificationsProvider and ToastProvider. */
+function RealtimeAndToasts({ userId }: { userId: string | undefined }) {
+  useNotificationsRealtime(userId);
+  return <ToastContainer />;
+}
 
 function AppContent() {
   const { user } = useAuthContext();
@@ -88,21 +97,24 @@ function AppContent() {
 
   return (
     <SubmissionStatusProvider userId={user?.id} todayDate={todayDate}>
-      <NotificationsProvider userId={user?.id}>
-        <HeaderProvider>
-          <div className="h-dvh flex flex-col overflow-hidden">
-            <TopBar
-              themeMode={themeMode}
-              onSetThemeMode={setThemeMode}
-              themeName={themeName}
-              onSetThemeName={setThemeName}
-            />
-            <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
-              {pageContent}
-            </Suspense>
-          </div>
-        </HeaderProvider>
-      </NotificationsProvider>
+      <ToastProvider>
+        <NotificationsProvider userId={user?.id}>
+          <RealtimeAndToasts userId={user?.id} />
+          <HeaderProvider>
+            <div className="h-dvh flex flex-col overflow-hidden">
+              <TopBar
+                themeMode={themeMode}
+                onSetThemeMode={setThemeMode}
+                themeName={themeName}
+                onSetThemeName={setThemeName}
+              />
+              <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
+                {pageContent}
+              </Suspense>
+            </div>
+          </HeaderProvider>
+        </NotificationsProvider>
+      </ToastProvider>
     </SubmissionStatusProvider>
   );
 }

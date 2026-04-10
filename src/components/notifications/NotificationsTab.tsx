@@ -63,7 +63,7 @@ function NotificationItem({
     setIsHovering(true);
     timerRef.current = setTimeout(() => {
       markRead(notification.id);
-    }, 700);
+    }, 1000);
   };
 
   const cancelTimer = () => {
@@ -102,8 +102,8 @@ function NotificationItem({
     >
       {!notification.is_read && isHovering && (
         <div
-          className="absolute left-0 top-0 w-[3px] h-full bg-(--color-accent) origin-top"
-          style={{ animation: 'fillBar 700ms linear forwards' }}
+          className="absolute left-0 top-0 w-1.25 h-full bg-(--color-accent) origin-top"
+          style={{ animation: 'fillBar 1000ms linear forwards' }}
         />
       )}
       <div className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${bgClass}`}>
@@ -152,16 +152,15 @@ export function NotificationsTab({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="flex flex-col">
-      {unreadCount > 0 && (
-        <div className="flex items-center justify-end px-3 py-1.5 border-b border-(--color-border-light)">
-          <button
-            onClick={() => markAllRead()}
-            className="text-xs text-(--color-accent) hover:text-(--color-accent-hover) cursor-pointer transition-colors"
-          >
-            Mark all as read
-          </button>
-        </div>
-      )}
+      <div className="flex items-center justify-end px-3 py-1.5 border-b border-(--color-border-light)">
+        <button
+          onClick={() => markAllRead()}
+          disabled={unreadCount === 0}
+          className="text-xs text-(--color-accent) hover:text-(--color-accent-hover) cursor-pointer transition-colors disabled:opacity-30 disabled:cursor-default disabled:hover:text-(--color-accent)"
+        >
+          Mark all as read
+        </button>
+      </div>
 
       <div className="overflow-y-auto max-h-[40vh]">
         {showLoading ? (
