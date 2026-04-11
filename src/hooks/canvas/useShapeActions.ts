@@ -74,7 +74,7 @@ export function useShapeActions({
       if (selectedShapes.length === 0) return;
       const updates = new Map<string, { size: number; x: number; y: number }>();
       selectedShapes.forEach((shape) => {
-        const newSize = Math.max(10, shape.size + delta); // Minimum size of 10
+        const newSize = Math.max(5, shape.size + delta); // Minimum size of 5
         const sizeDiff = newSize - shape.size;
         // Adjust position to keep center fixed (shape position is top-left corner)
         updates.set(shape.id, {

@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import type { ViewportState } from '../../types';
 
 const MIN_ZOOM = 0.25; // 25%
-const MAX_ZOOM = 4; // 400%
+const MAX_ZOOM = 5; // 500%
 const ZOOM_STEP = 0.05; // 5% per scroll notch (reduced from 10% for finer control)
 
 const initialViewportState: ViewportState = {

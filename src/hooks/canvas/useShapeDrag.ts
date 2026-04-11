@@ -123,14 +123,14 @@ export function useShapeDrag({
             const relY = startData.y - anchorY;
             const newX = anchorX + relX * scale;
             const newY = anchorY + relY * scale;
-            const newSize = Math.max(20, startData.size * scale);
+            const newSize = Math.max(10, startData.size * scale);
 
             updates.set(id, { x: newX, y: newY, size: newSize });
           });
           onUpdateShapesRef.current(updates, false);
         } else {
           // Single shape resize
-          const newSize = Math.max(20, ds.startSize + sizeDelta);
+          const newSize = Math.max(10, ds.startSize + sizeDelta);
 
           // Keep anchor fixed, scale the center position relative to anchor
           const ratio = newSize / ds.startSize;
@@ -307,12 +307,12 @@ export function useShapeDrag({
             const relY = startData.y - anchorY;
             const newX = anchorX + relX * scale;
             const newY = anchorY + relY * scale;
-            const newSize = Math.max(20, startData.size * scale);
+            const newSize = Math.max(10, startData.size * scale);
             updates.set(id, { x: newX, y: newY, size: newSize });
           });
           onUpdateShapesRef.current(updates, false);
         } else {
-          const newSize = Math.max(20, ds.startSize + sizeDelta);
+          const newSize = Math.max(10, ds.startSize + sizeDelta);
           const ratio = newSize / ds.startSize;
           const newCenterX = anchorX + (centerX - anchorX) * ratio;
           const newCenterY = anchorY + (centerY - anchorY) * ratio;
