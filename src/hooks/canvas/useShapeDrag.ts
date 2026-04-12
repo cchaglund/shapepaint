@@ -76,11 +76,16 @@ export function useShapeDrag({
         // Pure screen-space resize logic
         // We completely ignore rotation/flip - just use where the mouse actually is
 
-        // Shape center in screen space (use actual rendered dimensions)
+        // For multi-select, use the bounds center; for single, use shape center
+        const isMulti = !!(ds.startShapeData && ds.startBounds);
         const startW = ds.startWidth ?? ds.startSize;
         const startH = ds.startHeight ?? ds.startSize;
-        const centerX = ds.startShapeX + startW / 2;
-        const centerY = ds.startShapeY + startH / 2;
+        const centerX = isMulti
+          ? ds.startBounds!.x + ds.startBounds!.width / 2
+          : ds.startShapeX + startW / 2;
+        const centerY = isMulti
+          ? ds.startBounds!.y + ds.startBounds!.height / 2
+          : ds.startShapeY + startH / 2;
 
         // Where the drag started (the grabbed corner's screen position)
         const grabX = ds.startX;
@@ -286,10 +291,15 @@ export function useShapeDrag({
           }, false);
         }
       } else if (ds.mode === 'resize') {
+        const isMulti = !!(ds.startShapeData && ds.startBounds);
         const tStartW = ds.startWidth ?? ds.startSize;
         const tStartH = ds.startHeight ?? ds.startSize;
-        const centerX = ds.startShapeX + tStartW / 2;
-        const centerY = ds.startShapeY + tStartH / 2;
+        const centerX = isMulti
+          ? ds.startBounds!.x + ds.startBounds!.width / 2
+          : ds.startShapeX + tStartW / 2;
+        const centerY = isMulti
+          ? ds.startBounds!.y + ds.startBounds!.height / 2
+          : ds.startShapeY + tStartH / 2;
         const grabX = ds.startX;
         const grabY = ds.startY;
         const outDirX = grabX - centerX;
