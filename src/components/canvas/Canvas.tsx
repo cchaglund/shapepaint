@@ -12,7 +12,7 @@ import {
   MultiSelectInteractionLayer,
   HoverHighlightLayer,
 } from './TransformHandles';
-import { getEffectiveCursor, makeRotationCursor } from '../../utils/cursors';
+import { makeRotationCursor } from '../../utils/cursors';
 import { TouchContextMenu } from './TouchContextMenu';
 import { CanvasGridLines } from './CanvasGridLines';
 
@@ -218,28 +218,29 @@ export function Canvas({ marqueeStartRef, onSetColorIndex }: CanvasProps) {
   // transform handles would cause the cursor to flicker to their cursors
   // (e.g. showing a move cursor while mid-resize). When dragCursor is set,
   // interaction layers are unmounted so nothing competes with this cursor.
+  //
+  // The cursor is captured from the element at mousedown time (via
+  // capturedCursorRef) rather than recomputed, so it always matches what
+  // the user saw before clicking.
+  const [capturedCursor, setCapturedCursor] = useState<{ cursor: string; isRotation: boolean } | null>(null);
   const dragCursor = useMemo(() => {
-    if (!dragState) return undefined;
-    if (dragState.mode === 'move') return 'move';
-    if (dragState.mode === 'resize') {
-      return getEffectiveCursor(
-        dragState.resizeCorner,
-        dragState.flipX ?? false,
-        dragState.flipY ?? false,
-        dragState.startRotation,
-      );
-    }
-    if (dragState.mode === 'rotate') {
-      // Compute initial cursor angle from mouse start position relative to shape center
-      const startW = dragState.startWidth ?? dragState.startSize;
-      const startH = dragState.startHeight ?? dragState.startSize;
-      const cx = dragState.startShapeX + startW / 2;
-      const cy = dragState.startShapeY + startH / 2;
-      const baseAngle = Math.atan2(dragState.startY - cy, dragState.startX - cx) * (180 / Math.PI) + 45;
+    if (!dragState || !capturedCursor) return undefined;
+    if (capturedCursor.isRotation) {
+      // Extract the base angle from the captured rotation cursor SVG and add the live delta
+      const match = decodeURIComponent(capturedCursor.cursor).match(/rotate\((\d+)/);
+      const baseAngle = match ? parseInt(match[1]) : 0;
       return makeRotationCursor(baseAngle + rotationDelta);
     }
-    return undefined;
-  }, [dragState, rotationDelta]);
+    return capturedCursor.cursor;
+  }, [dragState, capturedCursor, rotationDelta]);
+
+  // Capture the CSS cursor from the element under the mouse at drag start.
+  const captureCursor = (e: React.MouseEvent | React.TouchEvent) => {
+    const target = ('target' in e ? e.target : null) as Element | null;
+    const cursor = target ? window.getComputedStyle(target).cursor : 'default';
+    const isRotation = cursor.startsWith('url(') && cursor.includes('crosshair');
+    setCapturedCursor({ cursor, isRotation });
+  };
 
   // Event handlers that need to set drag state
   const handleCanvasMouseDown = (e: React.MouseEvent) => {
@@ -270,6 +271,7 @@ export function Canvas({ marqueeStartRef, onSetColorIndex }: CanvasProps) {
       }
 
       // Start drag for move
+      captureCursor(e);
       const point = getSVGPoint(e.clientX, e.clientY);
 
       let shapesToDrag: Shape[];
@@ -306,6 +308,7 @@ export function Canvas({ marqueeStartRef, onSetColorIndex }: CanvasProps) {
     (e: React.MouseEvent | React.TouchEvent, corner: string) => {
       e.stopPropagation();
       if (!singleSelectedShape) return;
+      captureCursor(e);
 
       const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
       const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
@@ -334,6 +337,7 @@ export function Canvas({ marqueeStartRef, onSetColorIndex }: CanvasProps) {
     (e: React.MouseEvent | React.TouchEvent) => {
       e.stopPropagation();
       if (!singleSelectedShape) return;
+      captureCursor(e);
 
       const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
       const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
@@ -362,6 +366,7 @@ export function Canvas({ marqueeStartRef, onSetColorIndex }: CanvasProps) {
     (e: React.MouseEvent | React.TouchEvent) => {
       e.stopPropagation();
       if (!hasSelection) return;
+      captureCursor(e);
 
       const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
       const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
@@ -394,6 +399,7 @@ export function Canvas({ marqueeStartRef, onSetColorIndex }: CanvasProps) {
     (e: React.MouseEvent | React.TouchEvent, corner: string) => {
       e.stopPropagation();
       if (selectedShapes.length < 2 || !selectionBounds) return;
+      captureCursor(e);
 
       const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
       const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
@@ -428,6 +434,7 @@ export function Canvas({ marqueeStartRef, onSetColorIndex }: CanvasProps) {
     (e: React.MouseEvent | React.TouchEvent) => {
       e.stopPropagation();
       if (selectedShapes.length < 2 || !selectionBounds) return;
+      captureCursor(e);
 
       const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
       const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
