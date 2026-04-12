@@ -126,6 +126,7 @@ export function useCanvasEditorState({ challenge, userId, keyMappings }: UseCanv
     commitToHistory, duplicateShapes, lastDuplicatedIdsRef, pendingAnimationIdsRef, deleteShape, deleteSelectedShapes,
     setBackgroundColor, undo, redo, canUndo, canRedo,
     mirrorHorizontal, mirrorVertical, moveLayer,
+    handleResizeShapes, handleBringForward, handleSendBackward,
     moveGroup, reorderLayers, reorderGroup,
     createGroup, deleteGroup, ungroupShapes, renameGroup,
     toggleGroupCollapsed, toggleShapeVisibility, toggleGroupVisibility, toggleShapeLock, toggleGroupLock,
@@ -160,6 +161,7 @@ export function useCanvasEditorState({ challenge, userId, keyMappings }: UseCanv
     handleSendBackward,
 
     addShape,
+    selectShapes,
     setBackgroundColor,
     updateShapes,
     deleteSelectedShapes,

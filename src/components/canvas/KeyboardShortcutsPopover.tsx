@@ -28,18 +28,28 @@ export function KeyboardShortcutsPopover({ keyMappings, onOpenSettings, onReplay
     };
   }, [keyMappings]);
 
+  const altKey = IS_MAC ? '⌥' : 'Alt';
   const shortcuts = useMemo(() => [
-    { key: fmt('undo'), action: 'Undo' },
-    { key: fmt('redo'), action: 'Redo' },
+    { key: `${fmt('undo')} / ${fmt('redo')}`, action: 'Undo / Redo' },
+    { key: `${fmt('selectAll')} / ${fmt('deselectAll')}`, action: 'Select / Deselect all' },
     { key: fmt('duplicate'), action: 'Duplicate' },
     { key: fmt('delete'), action: 'Delete' },
-    { key: [fmt('moveUp'), fmt('moveDown'), fmt('moveLeft'), fmt('moveRight')].join(' '), action: 'Move (Shift = 10px)' },
-    { key: `${fmt('rotateCounterClockwise')} / ${fmt('rotateClockwise')}`, action: 'Rotate CCW / CW' },
+    { key: [fmt('moveUp'), fmt('moveDown'), fmt('moveLeft'), fmt('moveRight')].join(' '), action: `Move (⇧ 10x · ${altKey} 0.2x)` },
+    { key: `${fmt('rotateCounterClockwise')} / ${fmt('rotateClockwise')}`, action: `Rotate (⇧ 15x · ${altKey} 0.2x)` },
+    { key: `${fmt('sizeIncrease')} / ${fmt('sizeDecrease')}`, action: `Size (⇧ 10x · ${altKey} 0.2x)` },
     { key: fmt('mirrorHorizontal'), action: 'Mirror horizontal' },
     { key: fmt('mirrorVertical'), action: 'Mirror vertical' },
+    { key: `${fmt('bringForward')} / ${fmt('sendBackward')}`, action: 'Layer forward / back' },
+    { key: `${fmt('setColor1')} ${fmt('setColor2')} ${fmt('setColor3')}`, action: 'Set color 1 / 2 / 3' },
     { key: fmt('toggleGrid'), action: 'Grid toggle' },
+  ], [fmt, altKey]);
+
+  const mouseControls = useMemo(() => [
     { key: 'Shift+Click', action: 'Multi-select' },
+    { key: '⇧+Drag corner', action: 'Resize from center' },
+    { key: '⇧+Drag rotate', action: 'Snap to 15°' },
     { key: `${fmt('pan')}+Drag`, action: 'Pan canvas' },
+    { key: 'Middle mouse+Drag', action: 'Pan canvas' },
     { key: IS_MAC ? '⌘+Scroll' : 'Ctrl+Scroll', action: 'Zoom' },
   ], [fmt]);
 
@@ -49,7 +59,7 @@ export function KeyboardShortcutsPopover({ keyMappings, onOpenSettings, onReplay
       <button
         data-hint="keyboard-shortcuts"
         onClick={() => setOpen(prev => !prev)}
-        className="w-7.5 h-7.5 flex items-center justify-center cursor-pointer transition-colors rounded-(--radius-md) bg-(--color-card-bg) text-(--color-text-secondary) hover:bg-(--color-hover) hover:text-(--color-text-primary) text-base font-bold"
+        className="w-7.5 h-7.5 flex items-center justify-center cursor-pointer transition-colors rounded-(--radius-md) bg-(--color-card-bg) text-(--color-text-secondary) hover:bg-(--color-selected) hover:text-(--color-text-primary) text-base font-bold"
         style={{ border: 'var(--border-width, 2px) solid var(--color-border)', boxShadow: 'var(--shadow-btn)' }}
         title="Keyboard shortcuts"
         aria-label="Keyboard shortcuts"
@@ -81,6 +91,18 @@ export function KeyboardShortcutsPopover({ keyMappings, onOpenSettings, onReplay
             {/* Shortcuts list */}
             <div className="px-4 pb-3 max-h-80 overflow-y-auto">
               {shortcuts.map(({ key, action }) => (
+                <div key={action} className="flex justify-between items-center py-0.75">
+                  <span
+                    className="text-xs font-semibold whitespace-nowrap px-1.5 py-px rounded-(--radius-sm) bg-(--color-selected) text-(--color-text-primary)"
+                  >{key}</span>
+                  <span className="text-xs font-medium text-(--color-text-tertiary)">{action}</span>
+                </div>
+              ))}
+
+              <div className="mt-2.5 mb-1">
+                <span className="text-[10px] font-bold uppercase tracking-wide text-(--color-text-tertiary)">Mouse</span>
+              </div>
+              {mouseControls.map(({ key, action }) => (
                 <div key={action} className="flex justify-between items-center py-0.75">
                   <span
                     className="text-xs font-semibold whitespace-nowrap px-1.5 py-px rounded-(--radius-sm) bg-(--color-selected) text-(--color-text-primary)"

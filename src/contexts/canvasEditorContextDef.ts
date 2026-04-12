@@ -32,6 +32,9 @@ export interface CanvasEditorContextValue {
   mirrorHorizontal: (ids: string[]) => void;
   mirrorVertical: (ids: string[]) => void;
   moveLayer: (id: string, direction: 'up' | 'down' | 'top' | 'bottom') => void;
+  handleResizeShapes: (delta: number) => void;
+  handleBringForward: () => void;
+  handleSendBackward: () => void;
 
   moveGroup: (groupId: string, direction: 'up' | 'down' | 'top' | 'bottom') => void;
   reorderLayers: (draggedId: string, targetIndex: number, targetGroupId: string | null) => void;

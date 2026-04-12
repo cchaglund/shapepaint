@@ -22,20 +22,25 @@ export function useShapeDrag({
   onCommitToHistory,
 }: UseShapeDragOptions) {
   const [dragState, setDragState] = useState<DragState | null>(null);
+  // Tracks the visual rotation delta (in degrees) during an active rotate drag.
+  // Used by Canvas to dynamically update the rotation cursor icon.
+  const [rotationDelta, setRotationDelta] = useState(0);
 
   // Keep latest values in refs to avoid effect re-registration on every render frame
   const shapesRef = useRef(shapes);
-  shapesRef.current = shapes;
   const getSVGPointRef = useRef(getSVGPoint);
-  getSVGPointRef.current = getSVGPoint;
   const onUpdateShapeRef = useRef(onUpdateShape);
-  onUpdateShapeRef.current = onUpdateShape;
   const onUpdateShapesRef = useRef(onUpdateShapes);
-  onUpdateShapesRef.current = onUpdateShapes;
   const onCommitToHistoryRef = useRef(onCommitToHistory);
-  onCommitToHistoryRef.current = onCommitToHistory;
   const dragStateRef = useRef(dragState);
-  dragStateRef.current = dragState;
+  useEffect(() => {
+    shapesRef.current = shapes;
+    getSVGPointRef.current = getSVGPoint;
+    onUpdateShapeRef.current = onUpdateShape;
+    onUpdateShapesRef.current = onUpdateShapes;
+    onCommitToHistoryRef.current = onCommitToHistory;
+    dragStateRef.current = dragState;
+  });
 
   useEffect(() => {
     if (!dragState || dragState.mode === 'none') return;
@@ -104,9 +109,11 @@ export function useShapeDrag({
         // Negative = moving toward center = shrink
         const projection = dx * unitOutX + dy * unitOutY;
 
-        // The anchor is the point opposite the grabbed corner (through center)
-        const anchorX = centerX - outDirX;
-        const anchorY = centerY - outDirY;
+        // Shift = resize from center (like toolbar/keyboard resize),
+        // otherwise resize from the opposite corner (default drag behavior)
+        const resizeFromCenter = e.shiftKey;
+        const anchorX = resizeFromCenter ? centerX : centerX - outDirX;
+        const anchorY = resizeFromCenter ? centerY : centerY - outDirY;
 
         // Size change: scale by sqrt(2) because corners are on the diagonal
         const sizeDelta = projection * Math.SQRT2;
@@ -204,6 +211,7 @@ export function useShapeDrag({
             });
           });
           onUpdateShapesRef.current(updates, false);
+          setRotationDelta(angleDelta);
         } else {
           // Single shape rotate
           const draggedShape = shapesRef.current.find((s) => s.id === ds.shapeId);
@@ -223,7 +231,8 @@ export function useShapeDrag({
           const flipInvertsRotation = (ds.flipX ? 1 : 0) ^ (ds.flipY ? 1 : 0);
           const rotationMult = flipInvertsRotation ? -1 : 1;
 
-          const angleDelta = ((currentAngle - startAngle) * 180) / Math.PI * rotationMult;
+          const rawAngleDelta = ((currentAngle - startAngle) * 180) / Math.PI;
+          const angleDelta = rawAngleDelta * rotationMult;
           let newRotation = ds.startRotation + angleDelta;
 
           if (e.shiftKey) {
@@ -231,6 +240,7 @@ export function useShapeDrag({
           }
 
           onUpdateShapeRef.current(ds.shapeId, { rotation: newRotation }, false);
+          setRotationDelta(rawAngleDelta);
         }
       }
     };
@@ -245,6 +255,7 @@ export function useShapeDrag({
         onCommitToHistoryRef.current(label);
       }
       setDragState(null);
+      setRotationDelta(0);
     };
 
     const handleTouchMove = (e: TouchEvent) => {
@@ -396,6 +407,7 @@ export function useShapeDrag({
         onCommitToHistoryRef.current(label);
       }
       setDragState(null);
+      setRotationDelta(0);
     };
 
     window.addEventListener('mousemove', handleMouseMove);
@@ -411,9 +423,7 @@ export function useShapeDrag({
       window.removeEventListener('touchend', handleTouchEnd);
       window.removeEventListener('touchcancel', handleTouchEnd);
     };
-    // Only re-register listeners when a drag starts/stops, not on every render
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dragState]);
 
-  return { dragState, setDragState };
+  return { dragState, setDragState, rotationDelta };
 }
