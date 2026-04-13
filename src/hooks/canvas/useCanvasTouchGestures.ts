@@ -346,7 +346,7 @@ export function useCanvasTouchGestures({
             if (!shape) return;
 
             // Calculate new size
-            const newSize = Math.max(20, startData.size * scale);
+            const newSize = Math.max(10, startData.size * scale);
 
             // Calculate new position (scale around pinch center)
             // Use actual shape dimensions for correct center calculation

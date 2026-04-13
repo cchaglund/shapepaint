@@ -22,20 +22,25 @@ export function useShapeDrag({
   onCommitToHistory,
 }: UseShapeDragOptions) {
   const [dragState, setDragState] = useState<DragState | null>(null);
+  // Tracks the visual rotation delta (in degrees) during an active rotate drag.
+  // Used by Canvas to dynamically update the rotation cursor icon.
+  const [rotationDelta, setRotationDelta] = useState(0);
 
   // Keep latest values in refs to avoid effect re-registration on every render frame
   const shapesRef = useRef(shapes);
-  shapesRef.current = shapes;
   const getSVGPointRef = useRef(getSVGPoint);
-  getSVGPointRef.current = getSVGPoint;
   const onUpdateShapeRef = useRef(onUpdateShape);
-  onUpdateShapeRef.current = onUpdateShape;
   const onUpdateShapesRef = useRef(onUpdateShapes);
-  onUpdateShapesRef.current = onUpdateShapes;
   const onCommitToHistoryRef = useRef(onCommitToHistory);
-  onCommitToHistoryRef.current = onCommitToHistory;
   const dragStateRef = useRef(dragState);
-  dragStateRef.current = dragState;
+  useEffect(() => {
+    shapesRef.current = shapes;
+    getSVGPointRef.current = getSVGPoint;
+    onUpdateShapeRef.current = onUpdateShape;
+    onUpdateShapesRef.current = onUpdateShapes;
+    onCommitToHistoryRef.current = onCommitToHistory;
+    dragStateRef.current = dragState;
+  });
 
   useEffect(() => {
     if (!dragState || dragState.mode === 'none') return;
@@ -71,11 +76,16 @@ export function useShapeDrag({
         // Pure screen-space resize logic
         // We completely ignore rotation/flip - just use where the mouse actually is
 
-        // Shape center in screen space (use actual rendered dimensions)
+        // For multi-select, use the bounds center; for single, use shape center
+        const isMulti = !!(ds.startShapeData && ds.startBounds);
         const startW = ds.startWidth ?? ds.startSize;
         const startH = ds.startHeight ?? ds.startSize;
-        const centerX = ds.startShapeX + startW / 2;
-        const centerY = ds.startShapeY + startH / 2;
+        const centerX = isMulti
+          ? ds.startBounds!.x + ds.startBounds!.width / 2
+          : ds.startShapeX + startW / 2;
+        const centerY = isMulti
+          ? ds.startBounds!.y + ds.startBounds!.height / 2
+          : ds.startShapeY + startH / 2;
 
         // Where the drag started (the grabbed corner's screen position)
         const grabX = ds.startX;
@@ -104,9 +114,11 @@ export function useShapeDrag({
         // Negative = moving toward center = shrink
         const projection = dx * unitOutX + dy * unitOutY;
 
-        // The anchor is the point opposite the grabbed corner (through center)
-        const anchorX = centerX - outDirX;
-        const anchorY = centerY - outDirY;
+        // Shift = resize from center (like toolbar/keyboard resize),
+        // otherwise resize from the opposite corner (default drag behavior)
+        const resizeFromCenter = e.shiftKey;
+        const anchorX = resizeFromCenter ? centerX : centerX - outDirX;
+        const anchorY = resizeFromCenter ? centerY : centerY - outDirY;
 
         // Size change: scale by sqrt(2) because corners are on the diagonal
         const sizeDelta = projection * Math.SQRT2;
@@ -123,14 +135,14 @@ export function useShapeDrag({
             const relY = startData.y - anchorY;
             const newX = anchorX + relX * scale;
             const newY = anchorY + relY * scale;
-            const newSize = Math.max(20, startData.size * scale);
+            const newSize = Math.max(10, startData.size * scale);
 
             updates.set(id, { x: newX, y: newY, size: newSize });
           });
           onUpdateShapesRef.current(updates, false);
         } else {
           // Single shape resize
-          const newSize = Math.max(20, ds.startSize + sizeDelta);
+          const newSize = Math.max(10, ds.startSize + sizeDelta);
 
           // Keep anchor fixed, scale the center position relative to anchor
           const ratio = newSize / ds.startSize;
@@ -204,6 +216,7 @@ export function useShapeDrag({
             });
           });
           onUpdateShapesRef.current(updates, false);
+          setRotationDelta(angleDelta);
         } else {
           // Single shape rotate
           const draggedShape = shapesRef.current.find((s) => s.id === ds.shapeId);
@@ -223,7 +236,8 @@ export function useShapeDrag({
           const flipInvertsRotation = (ds.flipX ? 1 : 0) ^ (ds.flipY ? 1 : 0);
           const rotationMult = flipInvertsRotation ? -1 : 1;
 
-          const angleDelta = ((currentAngle - startAngle) * 180) / Math.PI * rotationMult;
+          const rawAngleDelta = ((currentAngle - startAngle) * 180) / Math.PI;
+          const angleDelta = rawAngleDelta * rotationMult;
           let newRotation = ds.startRotation + angleDelta;
 
           if (e.shiftKey) {
@@ -231,6 +245,7 @@ export function useShapeDrag({
           }
 
           onUpdateShapeRef.current(ds.shapeId, { rotation: newRotation }, false);
+          setRotationDelta(rawAngleDelta);
         }
       }
     };
@@ -245,6 +260,7 @@ export function useShapeDrag({
         onCommitToHistoryRef.current(label);
       }
       setDragState(null);
+      setRotationDelta(0);
     };
 
     const handleTouchMove = (e: TouchEvent) => {
@@ -275,10 +291,15 @@ export function useShapeDrag({
           }, false);
         }
       } else if (ds.mode === 'resize') {
+        const isMulti = !!(ds.startShapeData && ds.startBounds);
         const tStartW = ds.startWidth ?? ds.startSize;
         const tStartH = ds.startHeight ?? ds.startSize;
-        const centerX = ds.startShapeX + tStartW / 2;
-        const centerY = ds.startShapeY + tStartH / 2;
+        const centerX = isMulti
+          ? ds.startBounds!.x + ds.startBounds!.width / 2
+          : ds.startShapeX + tStartW / 2;
+        const centerY = isMulti
+          ? ds.startBounds!.y + ds.startBounds!.height / 2
+          : ds.startShapeY + tStartH / 2;
         const grabX = ds.startX;
         const grabY = ds.startY;
         const outDirX = grabX - centerX;
@@ -307,12 +328,12 @@ export function useShapeDrag({
             const relY = startData.y - anchorY;
             const newX = anchorX + relX * scale;
             const newY = anchorY + relY * scale;
-            const newSize = Math.max(20, startData.size * scale);
+            const newSize = Math.max(10, startData.size * scale);
             updates.set(id, { x: newX, y: newY, size: newSize });
           });
           onUpdateShapesRef.current(updates, false);
         } else {
-          const newSize = Math.max(20, ds.startSize + sizeDelta);
+          const newSize = Math.max(10, ds.startSize + sizeDelta);
           const ratio = newSize / ds.startSize;
           const newCenterX = anchorX + (centerX - anchorX) * ratio;
           const newCenterY = anchorY + (centerY - anchorY) * ratio;
@@ -396,6 +417,7 @@ export function useShapeDrag({
         onCommitToHistoryRef.current(label);
       }
       setDragState(null);
+      setRotationDelta(0);
     };
 
     window.addEventListener('mousemove', handleMouseMove);
@@ -411,9 +433,7 @@ export function useShapeDrag({
       window.removeEventListener('touchend', handleTouchEnd);
       window.removeEventListener('touchcancel', handleTouchEnd);
     };
-    // Only re-register listeners when a drag starts/stops, not on every render
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dragState]);
 
-  return { dragState, setDragState };
+  return { dragState, setDragState, rotationDelta };
 }

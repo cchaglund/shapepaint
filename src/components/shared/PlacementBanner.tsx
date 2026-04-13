@@ -38,7 +38,7 @@ export function PlacementBanner({ rank, compact = false }: PlacementBannerProps)
       }}
     >
       <div
-        className="absolute text-center font-display text-(--color-text-primary)"
+        className="absolute text-center font-display text-black"
         style={{
           left: compact ? -4 : -2,
           top: compact ? 8 : 16,

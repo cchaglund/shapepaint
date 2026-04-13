@@ -1,5 +1,5 @@
 import { useCallback, useRef } from 'react';
-import type { Shape, CanvasState, DailyChallenge, ShapeType } from '../../types';
+import type { Shape, CanvasState, DailyChallenge, ShapeType, ShapeGroup } from '../../types';
 import { generateId, SHAPE_NAMES } from '../../utils/shapes';
 import { isShapeLocked } from '../../utils/visibility';
 
@@ -17,6 +17,54 @@ function generateShapeName(type: ShapeType, existingShapes: Shape[]): string {
   const typeCount = existingShapes.filter(s => s.type === type).length + 1;
   return `${SHAPE_NAMES[type]} ${typeCount}`;
 }
+
+function generateGroupName(existingGroups: ShapeGroup[]): string {
+  const existingNumbers = existingGroups
+    .map((g) => {
+      const match = g.name.match(/^Group (\d+)$/);
+      return match ? parseInt(match[1], 10) : 0;
+    })
+    .filter((n) => n > 0);
+  const nextNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
+  return `Group ${nextNumber}`;
+}
+
+/** Mutable collectors passed through duplication to accumulate new shapes and track naming. */
+interface DuplicationAccumulator {
+  shapes: Shape[];
+  selectedIds: string[];
+  allShapesForNaming: Shape[];
+  nextZ: number;
+}
+
+/** Creates a duplicate of `original`, assigns it `zIndex` and `groupId`, and pushes it into `acc`. */
+function emitDuplicate(
+  acc: DuplicationAccumulator,
+  original: Shape,
+  groupId: string | undefined,
+): void {
+  const newShape: Shape = {
+    ...original,
+    id: generateId(),
+    name: generateShapeName(original.type, acc.allShapesForNaming),
+    zIndex: acc.nextZ++,
+    groupId,
+    visible: undefined,
+    locked: undefined,
+  };
+  acc.shapes.push(newShape);
+  acc.selectedIds.push(newShape.id);
+  acc.allShapesForNaming.push(newShape);
+}
+
+/**
+ * A "duplication unit" represents either an entire group (all shapes selected)
+ * or a single shape (from a partial group selection or ungrouped).
+ * Units are sorted by z-position to preserve relative stacking order among duplicates.
+ */
+type DuplicationUnit =
+  | { type: 'fullGroup'; groupId: string; shapes: Shape[]; maxZ: number }
+  | { type: 'individual'; shape: Shape; maxZ: number };
 
 export function useShapeCRUD(
   challenge: DailyChallenge | null,
@@ -82,7 +130,7 @@ export function useShapeCRUD(
           zIndex: shape.zIndex + 1,
         };
 
-        lastDuplicatedIdsRef.current = [id];
+        lastDuplicatedIdsRef.current = [newShape.id];
         pendingAnimationIdsRef.current = [...pendingAnimationIdsRef.current, newShape.id];
 
         return {
@@ -95,6 +143,14 @@ export function useShapeCRUD(
     [setCanvasState]
   );
 
+  // Duplicates multiple shapes using Figma-style placement rules:
+  //
+  // 1. Categorize each group as "full" (all shapes selected) or "partial" (some selected).
+  // 2. If every selected shape belongs to ONE group and it's partial → "single-group" mode:
+  //    duplicates stay in the group, inserted above the topmost selected shape.
+  // 3. Otherwise → "multi-source" mode: full groups duplicate as new groups, partial/ungrouped
+  //    shapes duplicate as ungrouped. All duplicates go above the topmost involved group,
+  //    preserving their relative stacking order.
   const duplicateShapes = useCallback(
     (ids: string[]) => {
       if (ids.length === 0) return;
@@ -105,51 +161,139 @@ export function useShapeCRUD(
       }
 
       setCanvasState((prev) => {
-        const shapesToDuplicate = prev.shapes
-          .filter((s) => ids.includes(s.id))
-          .sort((a, b) => a.zIndex - b.zIndex);
-        if (shapesToDuplicate.length === 0) return prev;
+        const idSet = new Set(ids);
+        const selectedShapes = prev.shapes.filter((s) => idSet.has(s.id));
+        if (selectedShapes.length === 0) return prev;
 
-        let currentShapes = prev.shapes;
-        const newShapes: Shape[] = [];
-        const newSelectedIds: string[] = [];
-        let cumulativeShift = 0;
+        // --- Categorize by group membership ---
+        const selectedByGroup = new Map<string, Shape[]>();
+        const ungroupedSelected: Shape[] = [];
 
-        for (const shape of shapesToDuplicate) {
-          const effectiveOrigZ = shape.zIndex + cumulativeShift;
-
-          currentShapes = shiftZIndicesAbove(currentShapes, effectiveOrigZ, 1);
-          for (let i = 0; i < newShapes.length; i++) {
-            if (newShapes[i].zIndex > effectiveOrigZ) {
-              newShapes[i] = { ...newShapes[i], zIndex: newShapes[i].zIndex + 1 };
-            }
+        for (const shape of selectedShapes) {
+          if (shape.groupId) {
+            const arr = selectedByGroup.get(shape.groupId) || [];
+            arr.push(shape);
+            selectedByGroup.set(shape.groupId, arr);
+          } else {
+            ungroupedSelected.push(shape);
           }
-
-          const allShapes = [...currentShapes, ...newShapes];
-
-          const newShape: Shape = {
-            ...shape,
-            id: generateId(),
-            name: generateShapeName(shape.type, allShapes),
-            zIndex: effectiveOrigZ + 1,
-          };
-
-          newShapes.push(newShape);
-          newSelectedIds.push(newShape.id);
-          cumulativeShift++;
         }
 
-        lastDuplicatedIdsRef.current = ids;
-        pendingAnimationIdsRef.current = [...pendingAnimationIdsRef.current, ...newSelectedIds];
+        const fullGroupIds = new Set<string>();
+        const partialGroupIds = new Set<string>();
+
+        for (const [groupId, selectedInGroup] of selectedByGroup) {
+          const totalInGroup = prev.shapes.filter((s) => s.groupId === groupId).length;
+          if (selectedInGroup.length === totalInGroup) {
+            fullGroupIds.add(groupId);
+          } else {
+            partialGroupIds.add(groupId);
+          }
+        }
+
+        // --- Determine mode ---
+        const isSingleGroupPartial =
+          partialGroupIds.size === 1 &&
+          fullGroupIds.size === 0 &&
+          ungroupedSelected.length === 0;
+
+        if (isSingleGroupPartial) {
+          // Single-group mode: duplicates stay in the group, above topmost selected.
+          const groupId = selectedShapes[0].groupId!;
+          const sortedSelected = [...selectedShapes].sort((a, b) => a.zIndex - b.zIndex);
+          const topZ = Math.max(...sortedSelected.map((s) => s.zIndex));
+
+          const shiftedShapes = shiftZIndicesAbove(prev.shapes, topZ, sortedSelected.length);
+          const acc: DuplicationAccumulator = {
+            shapes: [], selectedIds: [], allShapesForNaming: [...shiftedShapes], nextZ: topZ + 1,
+          };
+
+          for (const original of sortedSelected) {
+            emitDuplicate(acc, original, groupId);
+          }
+
+          lastDuplicatedIdsRef.current = acc.selectedIds;
+          pendingAnimationIdsRef.current = [...pendingAnimationIdsRef.current, ...acc.selectedIds];
+
+          return {
+            ...prev,
+            shapes: [...shiftedShapes, ...acc.shapes],
+            selectedShapeIds: new Set(acc.selectedIds),
+          };
+        }
+
+        // --- Multi-source mode ---
+        const units: DuplicationUnit[] = [];
+
+        for (const groupId of fullGroupIds) {
+          const groupShapes = selectedByGroup.get(groupId)!;
+          const maxZ = Math.max(...groupShapes.map((s) => s.zIndex));
+          units.push({ type: 'fullGroup', groupId, shapes: groupShapes, maxZ });
+        }
+
+        for (const groupId of partialGroupIds) {
+          for (const shape of selectedByGroup.get(groupId)!) {
+            units.push({ type: 'individual', shape, maxZ: shape.zIndex });
+          }
+        }
+
+        for (const shape of ungroupedSelected) {
+          units.push({ type: 'individual', shape, maxZ: shape.zIndex });
+        }
+
+        units.sort((a, b) => a.maxZ - b.maxZ);
+
+        // Insertion point must be above ALL involved groups (not just selected shapes).
+        let topSourceZ = Math.max(...units.map((u) => u.maxZ));
+        for (const groupId of partialGroupIds) {
+          const allGroupShapes = prev.shapes.filter((s) => s.groupId === groupId);
+          topSourceZ = Math.max(topSourceZ, ...allGroupShapes.map((s) => s.zIndex));
+        }
+        const totalNewShapes = units.reduce(
+          (sum, u) => sum + (u.type === 'fullGroup' ? u.shapes.length : 1),
+          0,
+        );
+
+        const shiftedShapes = shiftZIndicesAbove(prev.shapes, topSourceZ, totalNewShapes);
+        let newGroups = [...prev.groups];
+        const acc: DuplicationAccumulator = {
+          shapes: [], selectedIds: [], allShapesForNaming: [...shiftedShapes], nextZ: topSourceZ + 1,
+        };
+
+        for (const unit of units) {
+          if (unit.type === 'fullGroup') {
+            const newGroupId = generateId();
+            const maxGroupZIndex = newGroups.length > 0
+              ? Math.max(...newGroups.map((g) => g.zIndex))
+              : 0;
+            newGroups = [...newGroups, {
+              id: newGroupId,
+              name: generateGroupName(newGroups),
+              isCollapsed: false,
+              zIndex: maxGroupZIndex + 1,
+            }];
+
+            const sortedGroupShapes = [...unit.shapes].sort((a, b) => a.zIndex - b.zIndex);
+            for (const shape of sortedGroupShapes) {
+              emitDuplicate(acc, shape, newGroupId);
+            }
+          } else {
+            emitDuplicate(acc, unit.shape, undefined);
+          }
+        }
+
+        lastDuplicatedIdsRef.current = acc.selectedIds;
+        pendingAnimationIdsRef.current = [...pendingAnimationIdsRef.current, ...acc.selectedIds];
 
         return {
           ...prev,
-          shapes: [...currentShapes, ...newShapes],
-          selectedShapeIds: new Set(newSelectedIds),
+          shapes: [...shiftedShapes, ...acc.shapes],
+          groups: newGroups,
+          selectedShapeIds: new Set(acc.selectedIds),
         };
       }, true, 'Duplicate');
     },
-    [duplicateShape, setCanvasState]
+    [duplicateShape, setCanvasState],
   );
 
   const updateShape = useCallback(

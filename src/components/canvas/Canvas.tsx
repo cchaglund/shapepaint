@@ -12,6 +12,7 @@ import {
   MultiSelectInteractionLayer,
   HoverHighlightLayer,
 } from './TransformHandles';
+import { makeRotationCursor } from '../../utils/cursors';
 import { TouchContextMenu } from './TouchContextMenu';
 import { CanvasGridLines } from './CanvasGridLines';
 
@@ -26,9 +27,10 @@ import { useMarqueeSelection } from '../../hooks/canvas/useMarqueeSelection';
 
 interface CanvasProps {
   marqueeStartRef?: React.MutableRefObject<((clientX: number, clientY: number) => void) | null>;
+  onSetColorIndex?: (colorIndex: number) => void;
 }
 
-export function Canvas({ marqueeStartRef }: CanvasProps) {
+export function Canvas({ marqueeStartRef, onSetColorIndex }: CanvasProps) {
   const {
     canvasState: { shapes, groups, selectedShapeIds },
     backgroundColor, challenge, viewport, keyMappings,
@@ -45,6 +47,9 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
     undo: onUndo, redo: onRedo,
     mirrorHorizontal: onMirrorHorizontal,
     mirrorVertical: onMirrorVertical,
+    handleResizeShapes: onResizeShapes,
+    handleBringForward: onBringForward,
+    handleSendBackward: onSendBackward,
     zoomAtPoint: onZoomAtPoint,
     setZoomAtPoint: onSetZoomAtPoint,
     setPan: onPan,
@@ -145,6 +150,14 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
 
   useWheelZoom(svgRef, onZoomAtPoint, onPan, viewport);
 
+  const onSelectAll = useCallback(() => {
+    onSelectShapes(visibleShapes.map(s => s.id));
+  }, [visibleShapes, onSelectShapes]);
+
+  const onDeselectAll = useCallback(() => {
+    onSelectShapes([]);
+  }, [onSelectShapes]);
+
   useCanvasKeyboardShortcuts({
     shapes,
     selectedShapes,
@@ -158,10 +171,16 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
     onDeleteSelectedShapes,
     onMirrorHorizontal,
     onMirrorVertical,
+    onResizeShapes,
+    onBringForward,
+    onSendBackward,
+    onSelectAll,
+    onDeselectAll,
+    onSetColorIndex,
     onToggleGrid,
   });
 
-  const { setDragState } = useShapeDrag({
+  const { dragState, setDragState, rotationDelta } = useShapeDrag({
     shapes,
     getSVGPoint,
     onUpdateShape,
@@ -194,6 +213,35 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
   // Track which transform handle is hovered for visual feedback (1.3x scale)
   const [hoveredHandleId, setHoveredHandleId] = useState<string | null>(null);
 
+  // Lock the cursor to the active drag action (move/resize/rotate) for the
+  // duration of the drag. Without this, dragging across other shapes or
+  // transform handles would cause the cursor to flicker to their cursors
+  // (e.g. showing a move cursor while mid-resize). When dragCursor is set,
+  // interaction layers are unmounted so nothing competes with this cursor.
+  //
+  // The cursor is captured from the element at mousedown time (via
+  // capturedCursorRef) rather than recomputed, so it always matches what
+  // the user saw before clicking.
+  const [capturedCursor, setCapturedCursor] = useState<{ cursor: string; isRotation: boolean } | null>(null);
+  const dragCursor = useMemo(() => {
+    if (!dragState || !capturedCursor) return undefined;
+    if (capturedCursor.isRotation) {
+      // Extract the base angle from the captured rotation cursor SVG and add the live delta
+      const match = decodeURIComponent(capturedCursor.cursor).match(/rotate\((\d+)/);
+      const baseAngle = match ? parseInt(match[1]) : 0;
+      return makeRotationCursor(baseAngle + rotationDelta);
+    }
+    return capturedCursor.cursor;
+  }, [dragState, capturedCursor, rotationDelta]);
+
+  // Capture the CSS cursor from the element under the mouse at drag start.
+  const captureCursor = (e: React.MouseEvent | React.TouchEvent) => {
+    const target = ('target' in e ? e.target : null) as Element | null;
+    const cursor = target ? window.getComputedStyle(target).cursor : 'default';
+    const isRotation = cursor.startsWith('url(') && cursor.includes('crosshair');
+    setCapturedCursor({ cursor, isRotation });
+  };
+
   // Event handlers that need to set drag state
   const handleCanvasMouseDown = (e: React.MouseEvent) => {
     if (e.target === svgRef.current) {
@@ -223,6 +271,7 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
       }
 
       // Start drag for move
+      captureCursor(e);
       const point = getSVGPoint(e.clientX, e.clientY);
 
       let shapesToDrag: Shape[];
@@ -259,6 +308,7 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
     (e: React.MouseEvent | React.TouchEvent, corner: string) => {
       e.stopPropagation();
       if (!singleSelectedShape) return;
+      captureCursor(e);
 
       const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
       const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
@@ -287,6 +337,7 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
     (e: React.MouseEvent | React.TouchEvent) => {
       e.stopPropagation();
       if (!singleSelectedShape) return;
+      captureCursor(e);
 
       const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
       const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
@@ -315,6 +366,7 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
     (e: React.MouseEvent | React.TouchEvent) => {
       e.stopPropagation();
       if (!hasSelection) return;
+      captureCursor(e);
 
       const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
       const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
@@ -347,6 +399,7 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
     (e: React.MouseEvent | React.TouchEvent, corner: string) => {
       e.stopPropagation();
       if (selectedShapes.length < 2 || !selectionBounds) return;
+      captureCursor(e);
 
       const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
       const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
@@ -381,6 +434,7 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
     (e: React.MouseEvent | React.TouchEvent) => {
       e.stopPropagation();
       if (selectedShapes.length < 2 || !selectionBounds) return;
+      captureCursor(e);
 
       const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
       const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
@@ -472,7 +526,7 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
         height={CANVAS_SIZE}
         viewBox={`${viewBoxX} ${viewBoxY} ${viewBoxSize} ${viewBoxSize}`}
         className="touch-none overflow-visible max-h-[calc(100dvh-16rem)] max-w-[calc(100vw-8rem)] w-auto h-auto"
-        style={{ cursor: marqueeState ? 'crosshair' : cursorStyle, aspectRatio: '1 / 1' }}
+        style={{ cursor: dragCursor ?? (marqueeState ? 'crosshair' : cursorStyle), aspectRatio: '1 / 1' }}
         onMouseDown={handleCanvasMouseDown}
         onTouchStart={handleCanvasTouchStart}
         onTouchMove={handleCanvasTouchMove}
@@ -519,7 +573,7 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
             return (
             <g key={shape.id}>
               <g
-                style={locked ? { pointerEvents: 'none' } : undefined}
+                style={locked || dragCursor ? { pointerEvents: 'none' } : undefined}
                 onMouseDown={(e) => {
                   if (!isSpacePressed) handleShapeMouseDown(e, shape.id);
                 }}
@@ -545,8 +599,9 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
           <HoverHighlightLayer shapes={hoveredShapes} zoom={viewport.zoom} />
         )}
 
-        {/* Interaction layers - outside clip path for better hit detection */}
-        {!isSpacePressed && sortedShapes.map((shape) => (
+        {/* Interaction layers - outside clip path for better hit detection.
+            During drag, disable pointer-events so the SVG's drag cursor wins. */}
+        {!isSpacePressed && !dragCursor && sortedShapes.map((shape) => (
           <g key={`interaction-${shape.id}`}>
             {/* Render invisible interaction layer for single-selected shape */}
             {hasSingleSelection && selectedShapeIds.has(shape.id) && (
@@ -576,7 +631,7 @@ export function Canvas({ marqueeStartRef }: CanvasProps) {
         {/* Multi-select: interaction layer + visual layer */}
         {selectedShapes.length > 1 && selectionBounds && (
           <>
-            {!isSpacePressed && (
+            {!isSpacePressed && !dragCursor && (
               <MultiSelectInteractionLayer
                 bounds={selectionBounds}
                 zoom={viewport.zoom}

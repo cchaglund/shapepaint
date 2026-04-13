@@ -15,6 +15,12 @@ interface UseCanvasKeyboardShortcutsOptions {
   onDeleteSelectedShapes: () => void;
   onMirrorHorizontal: (ids: string[]) => void;
   onMirrorVertical: (ids: string[]) => void;
+  onResizeShapes: (delta: number) => void;
+  onBringForward: () => void;
+  onSendBackward: () => void;
+  onSelectAll: () => void;
+  onDeselectAll: () => void;
+  onSetColorIndex?: (colorIndex: number) => void;
   onToggleGrid?: () => void;
 }
 
@@ -34,6 +40,12 @@ export function useCanvasKeyboardShortcuts({
   onDeleteSelectedShapes,
   onMirrorHorizontal,
   onMirrorVertical,
+  onResizeShapes,
+  onBringForward,
+  onSendBackward,
+  onSelectAll,
+  onDeselectAll,
+  onSetColorIndex,
   onToggleGrid,
 }: UseCanvasKeyboardShortcutsOptions) {
   useEffect(() => {
@@ -118,30 +130,93 @@ export function useCanvasKeyboardShortcuts({
         return;
       }
 
-      // Movement and rotation shortcuts require selected shapes
+      // Check for select all binding
+      const selectAllBinding = keyMappings.selectAll;
+      if (selectAllBinding && matchesBinding(e, selectAllBinding)) {
+        e.preventDefault();
+        onSelectAll();
+        return;
+      }
+
+      // Check for deselect all binding
+      const deselectAllBinding = keyMappings.deselectAll;
+      if (deselectAllBinding && matchesBinding(e, deselectAllBinding)) {
+        e.preventDefault();
+        onDeselectAll();
+        return;
+      }
+
+      // Check for bring forward binding
+      const bringForwardBinding = keyMappings.bringForward;
+      if (bringForwardBinding && matchesBinding(e, bringForwardBinding)) {
+        if (selectedShapes.length > 0) {
+          e.preventDefault();
+          onBringForward();
+          return;
+        }
+      }
+
+      // Check for send backward binding
+      const sendBackwardBinding = keyMappings.sendBackward;
+      if (sendBackwardBinding && matchesBinding(e, sendBackwardBinding)) {
+        if (selectedShapes.length > 0) {
+          e.preventDefault();
+          onSendBackward();
+          return;
+        }
+      }
+
+      // Color shortcuts
+      if (onSetColorIndex) {
+        const color1Binding = keyMappings.setColor1;
+        const color2Binding = keyMappings.setColor2;
+        const color3Binding = keyMappings.setColor3;
+        if (color1Binding && matchesBinding(e, color1Binding)) {
+          e.preventDefault(); onSetColorIndex(0); return;
+        }
+        if (color2Binding && matchesBinding(e, color2Binding)) {
+          e.preventDefault(); onSetColorIndex(1); return;
+        }
+        if (color3Binding && matchesBinding(e, color3Binding)) {
+          e.preventDefault(); onSetColorIndex(2); return;
+        }
+      }
+
+      // Movement, rotation, and resize shortcuts require selected shapes
       if (!hasSelection) return;
 
+      // Step sizes: Shift = 10x (large), Alt/Opt = 0.2x (fine), default = 1x
+      const FINE_MOVE = 0.2;
       const SMALL_MOVE = 1;
       const LARGE_MOVE = 10;
+      const FINE_ROTATE = 0.2;
       const SMALL_ROTATE = 1;
       const LARGE_ROTATE = 15;
+      const FINE_RESIZE = 1;
+      const SMALL_RESIZE = 5;
+      const LARGE_RESIZE = 50;
 
-      const moveStep = e.shiftKey ? LARGE_MOVE : SMALL_MOVE;
-      const rotateStep = e.shiftKey ? LARGE_ROTATE : SMALL_ROTATE;
+      const stepMultiplier = e.shiftKey ? 'large' : e.altKey ? 'fine' : 'normal';
+      const moveStep = stepMultiplier === 'large' ? LARGE_MOVE : stepMultiplier === 'fine' ? FINE_MOVE : SMALL_MOVE;
+      const rotateStep = stepMultiplier === 'large' ? LARGE_ROTATE : stepMultiplier === 'fine' ? FINE_ROTATE : SMALL_ROTATE;
+      const resizeStep = stepMultiplier === 'large' ? LARGE_RESIZE : stepMultiplier === 'fine' ? FINE_RESIZE : SMALL_RESIZE;
 
       let dx = 0;
       let dy = 0;
       let dRotation = 0;
+      let dSize = 0;
 
-      // Check movement bindings (ignore shift modifier for movement keys)
+      // Check movement/rotation/size bindings (ignore shift/alt modifier for key matching — they control step size)
       const moveUpBinding = keyMappings.moveUp;
       const moveDownBinding = keyMappings.moveDown;
       const moveLeftBinding = keyMappings.moveLeft;
       const moveRightBinding = keyMappings.moveRight;
       const rotateClockwiseBinding = keyMappings.rotateClockwise;
       const rotateCounterClockwiseBinding = keyMappings.rotateCounterClockwise;
+      const sizeIncreaseBinding = keyMappings.sizeIncrease;
+      const sizeDecreaseBinding = keyMappings.sizeDecrease;
 
-      // For movement, we only check the key code (shift is used for step size)
+      // For these actions, we only check the key code (shift/alt control step size)
       if (moveUpBinding && e.code === moveUpBinding.key) {
         dy = -moveStep;
       } else if (moveDownBinding && e.code === moveDownBinding.key) {
@@ -154,6 +229,10 @@ export function useCanvasKeyboardShortcuts({
         dRotation = rotateStep;
       } else if (rotateCounterClockwiseBinding && e.code === rotateCounterClockwiseBinding.key) {
         dRotation = -rotateStep;
+      } else if (sizeIncreaseBinding && e.code === sizeIncreaseBinding.key) {
+        dSize = resizeStep;
+      } else if (sizeDecreaseBinding && e.code === sizeDecreaseBinding.key) {
+        dSize = -resizeStep;
       } else {
         return;
       }
@@ -161,7 +240,6 @@ export function useCanvasKeyboardShortcuts({
       e.preventDefault();
 
       if (dx !== 0 || dy !== 0) {
-        // Move all selected shapes
         const updates = new Map<string, Partial<Shape>>();
         selectedShapes.forEach(shape => {
           updates.set(shape.id, {
@@ -173,7 +251,6 @@ export function useCanvasKeyboardShortcuts({
       }
 
       if (dRotation !== 0) {
-        // Rotate all selected shapes
         const updates = new Map<string, Partial<Shape>>();
         selectedShapes.forEach(shape => {
           updates.set(shape.id, {
@@ -181,6 +258,10 @@ export function useCanvasKeyboardShortcuts({
           });
         });
         onUpdateShapes(updates, true, 'Rotate');
+      }
+
+      if (dSize !== 0) {
+        onResizeShapes(dSize);
       }
     };
 
@@ -199,6 +280,12 @@ export function useCanvasKeyboardShortcuts({
     onDeleteSelectedShapes,
     onMirrorHorizontal,
     onMirrorVertical,
+    onResizeShapes,
+    onBringForward,
+    onSendBackward,
+    onSelectAll,
+    onDeselectAll,
+    onSetColorIndex,
     onToggleGrid,
   ]);
 }

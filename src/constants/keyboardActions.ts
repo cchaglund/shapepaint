@@ -11,8 +11,17 @@ export type KeyboardActionId =
   | 'moveRight'
   | 'rotateClockwise'
   | 'rotateCounterClockwise'
+  | 'sizeIncrease'
+  | 'sizeDecrease'
   | 'mirrorHorizontal'
   | 'mirrorVertical'
+  | 'bringForward'
+  | 'sendBackward'
+  | 'selectAll'
+  | 'deselectAll'
+  | 'setColor1'
+  | 'setColor2'
+  | 'setColor3'
   | 'pan'
   | 'toggleGrid';
 
@@ -117,6 +126,22 @@ export const KEYBOARD_ACTIONS: KeyboardAction[] = [
     allowRemap: true,
   },
   {
+    id: 'sizeIncrease',
+    label: 'Increase Size',
+    description: 'Increase size of selected shapes (Shift for larger, Alt for smaller steps)',
+    category: 'movement',
+    defaultBinding: { key: 'KeyW' },
+    allowRemap: true,
+  },
+  {
+    id: 'sizeDecrease',
+    label: 'Decrease Size',
+    description: 'Decrease size of selected shapes (Shift for larger, Alt for smaller steps)',
+    category: 'movement',
+    defaultBinding: { key: 'KeyS' },
+    allowRemap: true,
+  },
+  {
     id: 'mirrorHorizontal',
     label: 'Mirror Horizontal',
     description: 'Flip selected shapes horizontally (left/right)',
@@ -130,6 +155,62 @@ export const KEYBOARD_ACTIONS: KeyboardAction[] = [
     description: 'Flip selected shapes vertically (up/down)',
     category: 'movement',
     defaultBinding: { key: 'KeyV' },
+    allowRemap: true,
+  },
+  {
+    id: 'bringForward',
+    label: 'Bring Forward',
+    description: 'Move selected shapes forward in layer order',
+    category: 'editing',
+    defaultBinding: { key: 'KeyF' },
+    allowRemap: true,
+  },
+  {
+    id: 'sendBackward',
+    label: 'Send Backward',
+    description: 'Move selected shapes backward in layer order',
+    category: 'editing',
+    defaultBinding: { key: 'KeyF', shift: true },
+    allowRemap: true,
+  },
+  {
+    id: 'selectAll',
+    label: 'Select All',
+    description: 'Select all shapes',
+    category: 'editing',
+    defaultBinding: { key: 'KeyA' },
+    allowRemap: true,
+  },
+  {
+    id: 'deselectAll',
+    label: 'Deselect All',
+    description: 'Deselect all shapes',
+    category: 'editing',
+    defaultBinding: { key: 'KeyA', shift: true },
+    allowRemap: true,
+  },
+  {
+    id: 'setColor1',
+    label: 'Set Color 1',
+    description: 'Set selected shapes to color 1',
+    category: 'editing',
+    defaultBinding: { key: 'Digit1' },
+    allowRemap: true,
+  },
+  {
+    id: 'setColor2',
+    label: 'Set Color 2',
+    description: 'Set selected shapes to color 2',
+    category: 'editing',
+    defaultBinding: { key: 'Digit2' },
+    allowRemap: true,
+  },
+  {
+    id: 'setColor3',
+    label: 'Set Color 3',
+    description: 'Set selected shapes to color 3',
+    category: 'editing',
+    defaultBinding: { key: 'Digit3' },
     allowRemap: true,
   },
   {

@@ -68,19 +68,52 @@ export function useShapeActions({
     mirrorVertical(selectedShapes.map(s => s.id));
   }, [selectedShapes, mirrorVertical]);
 
-  // Resize from center - adjust position to keep center fixed
+  // Resize from group center - preserves relative positions for multi-select
   const handleResizeShapes = useCallback(
     (delta: number) => {
       if (selectedShapes.length === 0) return;
-      const updates = new Map<string, { size: number; x: number; y: number }>();
-      selectedShapes.forEach((shape) => {
-        const newSize = Math.max(10, shape.size + delta); // Minimum size of 10
+
+      if (selectedShapes.length === 1) {
+        // Single shape: resize from its own center
+        const shape = selectedShapes[0];
+        const newSize = Math.max(5, shape.size + delta);
         const sizeDiff = newSize - shape.size;
-        // Adjust position to keep center fixed (shape position is top-left corner)
+        const updates = new Map<string, Partial<Shape>>();
         updates.set(shape.id, {
           size: newSize,
           x: shape.x - sizeDiff / 2,
           y: shape.y - sizeDiff / 2,
+        });
+        updateShapes(updates, true, 'Resize');
+        return;
+      }
+
+      // Multi-select: compute group bounding box center, then scale uniformly
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      selectedShapes.forEach((s) => {
+        minX = Math.min(minX, s.x);
+        minY = Math.min(minY, s.y);
+        maxX = Math.max(maxX, s.x + s.size);
+        maxY = Math.max(maxY, s.y + s.size);
+      });
+      const groupCenterX = (minX + maxX) / 2;
+      const groupCenterY = (minY + maxY) / 2;
+      const maxDimension = Math.max(maxX - minX, maxY - minY);
+      if (maxDimension < 1) return;
+
+      const scale = Math.max(0.1, (maxDimension + delta) / maxDimension);
+
+      const updates = new Map<string, Partial<Shape>>();
+      selectedShapes.forEach((shape) => {
+        const shapeCenterX = shape.x + shape.size / 2;
+        const shapeCenterY = shape.y + shape.size / 2;
+        const newSize = Math.max(5, shape.size * scale);
+        const newCenterX = groupCenterX + (shapeCenterX - groupCenterX) * scale;
+        const newCenterY = groupCenterY + (shapeCenterY - groupCenterY) * scale;
+        updates.set(shape.id, {
+          size: newSize,
+          x: newCenterX - newSize / 2,
+          y: newCenterY - newSize / 2,
         });
       });
       updateShapes(updates, true, 'Resize');

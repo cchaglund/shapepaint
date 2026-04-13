@@ -151,7 +151,7 @@ export function NotificationsTab({ onClose }: { onClose: () => void }) {
   const showEmpty = !showLoading && !showError && notifications.length === 0;
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col flex-1 min-h-0">
       <div className="flex items-center justify-end px-3 py-1.5 border-b border-(--color-border-light)">
         <button
           onClick={() => markAllRead()}
@@ -162,7 +162,7 @@ export function NotificationsTab({ onClose }: { onClose: () => void }) {
         </button>
       </div>
 
-      <div className="overflow-y-auto max-h-[40vh]">
+      <div className="overflow-y-auto flex-1 min-h-0">
         {showLoading ? (
           <div className="text-center py-8 text-xs text-(--color-text-secondary)">
             Loading...

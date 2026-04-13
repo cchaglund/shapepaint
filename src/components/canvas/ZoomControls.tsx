@@ -10,7 +10,7 @@ interface ZoomControlsProps {
 }
 
 const btnBase =
-  'h-7.5 flex items-center justify-center font-semibold text-xs transition-colors cursor-pointer disabled:opacity-35 disabled:cursor-default';
+  'h-7.5 flex items-center justify-center font-semibold text-xs transition-colors cursor-pointer bg-(--color-card-bg) hover:enabled:bg-(--color-selected) disabled:opacity-35 disabled:cursor-default';
 
 export function ZoomControls({
   zoom,
@@ -26,7 +26,6 @@ export function ZoomControls({
   const isDefaultZoom = Math.abs(zoom - 1) < 0.001;
 
   const btnStyle = {
-    background: 'var(--color-card-bg)',
     border: 'var(--border-width, 2px) solid var(--color-border)',
     borderRadius: 'var(--radius-md)',
     boxShadow: 'var(--shadow-btn)',

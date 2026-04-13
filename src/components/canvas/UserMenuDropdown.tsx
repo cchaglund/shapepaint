@@ -134,9 +134,7 @@ function UserMenuContent({
   const { following, followers, followingCount, followersCount, loading, follow, isFollowing } = useFollows();
   const { deleteAccount } = useAuthContext();
   const { unreadCount } = useNotificationsContext();
-  const [activeTab, setActiveTab] = useState<'notifications' | 'following' | 'followers'>(
-    unreadCount > 0 ? 'notifications' : 'following'
-  );
+  const [activeTab, setActiveTab] = useState<'notifications' | 'following' | 'followers'>('notifications');
   const [addNickname, setAddNickname] = useState('');
   const [addStatus, setAddStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [addError, setAddError] = useState('');

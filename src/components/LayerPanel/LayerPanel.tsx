@@ -8,6 +8,7 @@ import { LayerItem as LayerItemComponent } from './LayerItem';
 import { GroupHeader } from './GroupHeader';
 import { useCanvasEditor } from '../../contexts/useCanvasEditor';
 import { MAX_SHAPES, getShapeLimitSeverity, getShapeLimitColor } from '../../utils/shapeLimit';
+import { getShapeContextPool } from '../../hooks/canvas/useShapeLayering';
 
 export function LayerPanel({ onToggle }: LayerPanelProps) {
   const {
@@ -145,10 +146,14 @@ export function LayerPanel({ onToggle }: LayerPanelProps) {
     return `Click to select, ${modifierKeyHint}+click to toggle, Shift+click to select range`;
   };
 
-  const isTopLayer = (shape: Shape) =>
-    shape.zIndex === Math.max(...shapes.map((s) => s.zIndex));
-  const isBottomLayer = (shape: Shape) =>
-    shape.zIndex === Math.min(...shapes.map((s) => s.zIndex));
+  const isTopLayer = (shape: Shape) => {
+    const pool = getShapeContextPool(shape, shapes);
+    return shape.zIndex === Math.max(...pool.map((s) => s.zIndex));
+  };
+  const isBottomLayer = (shape: Shape) => {
+    const pool = getShapeContextPool(shape, shapes);
+    return shape.zIndex === Math.min(...pool.map((s) => s.zIndex));
+  };
 
   // Handle layer click with modifier key support
   const handleLayerClick = (e: React.MouseEvent, shapeId: string) => {

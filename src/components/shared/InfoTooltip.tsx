@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Info } from 'lucide-react';
 import cn from "classnames";
 import type { Placement } from '@floating-ui/react';
@@ -38,6 +38,13 @@ export function Tooltip({ content, text, children, capitalize, placement: placem
   const hover = useHover(context, { delay: delay ? { open: delay } : undefined });
   const { getReferenceProps, getFloatingProps } = useInteractions([hover]);
 
+  // Ensure tooltip closes when `disabled` flips to true (e.g. a button becomes
+  // disabled after a click) — a disabled button won't fire mouseleave, so the
+  // internal hover state can remain stuck open otherwise.
+  useEffect(() => {
+    if (disabled && isOpen) setIsOpen(false);
+  }, [disabled, isOpen]);
+
   // These are callback refs from floating-ui, safe to use during render
   const setReference = refs.setReference;
   const setFloating = refs.setFloating;
@@ -52,7 +59,7 @@ export function Tooltip({ content, text, children, capitalize, placement: placem
       >
         {children}
       </div>
-      {isOpen && (
+      {isOpen && !disabled && (
         <FloatingPortal>
           <div
             // eslint-disable-next-line react-hooks/refs -- callback ref from floating-ui

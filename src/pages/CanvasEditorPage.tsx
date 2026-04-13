@@ -8,6 +8,7 @@ import { setIncludedInRanking } from '../lib/api';
 import { useAuthContext } from '../contexts/AuthContext';
 import { useSetHeader } from '../contexts/HeaderContext';
 import { useCanvasEditorState } from '../hooks/canvas/useCanvasEditorState';
+import { canReorderSelection } from '../hooks/canvas/useShapeLayering';
 import { useSidebarState } from '../hooks/ui/useSidebarState';
 import { useAppModals } from '../hooks/ui/useAppModals';
 import { useKeyboardSettings } from '../hooks/ui/useKeyboardSettings';
@@ -227,6 +228,7 @@ export function CanvasEditorPage({ challenge }: CanvasEditorPageProps) {
     handleBringForward,
     handleSendBackward,
     addShape,
+    selectShapes,
     setBackgroundColor,
     updateShapes,
     deleteSelectedShapes,
@@ -321,6 +323,15 @@ export function CanvasEditorPage({ challenge }: CanvasEditorPageProps) {
     return allSameColor ? firstColor : baseColorIndex;
   }, [canvasState.selectedShapeIds, canvasState.shapes, baseColorIndex]);
 
+  const canBringForward = useMemo(
+    () => canReorderSelection(canvasState, canvasState.selectedShapeIds, 'up'),
+    [canvasState],
+  );
+  const canSendBackward = useMemo(
+    () => canReorderSelection(canvasState, canvasState.selectedShapeIds, 'down'),
+    [canvasState],
+  );
+
   const handleAddShape = useCallback((shapeIndex: number, colorIndex: number) => {
     addShape(shapeIndex, colorIndex);
   }, [addShape]);
@@ -405,7 +416,7 @@ export function CanvasEditorPage({ challenge }: CanvasEditorPageProps) {
           onMouseDown={handleBackgroundMouseDown}
         >
           <div className="overflow-visible p-4 md:p-16 canvas-wrapper">
-            <Canvas marqueeStartRef={marqueeStartRef} />
+            <Canvas marqueeStartRef={marqueeStartRef} onSetColorIndex={handleSetSelectedColor} />
           </div>
         </main>
 
@@ -432,7 +443,7 @@ export function CanvasEditorPage({ challenge }: CanvasEditorPageProps) {
         {!leftOpen && (
           <button
             data-hint="left-toolbar"
-            className="absolute left-3 top-3 z-20 w-10 h-10 flex items-center justify-center cursor-pointer transition-colors rounded-(--radius-md) bg-(--color-card-bg) text-(--color-text-secondary) hover:bg-(--color-hover) hover:text-(--color-text-primary)"
+            className="absolute left-3 top-3 z-20 w-10 h-10 flex items-center justify-center cursor-pointer transition-colors rounded-(--radius-md) bg-(--color-card-bg) text-(--color-text-secondary) hover:bg-(--color-selected) hover:text-(--color-text-primary)"
             style={{ border: 'var(--border-width, 2px) solid var(--color-border)', boxShadow: 'var(--shadow-btn)' }}
             onClick={toggleLeft}
             title="Show Tools"
@@ -466,16 +477,26 @@ export function CanvasEditorPage({ challenge }: CanvasEditorPageProps) {
                 onRedo={redo}
                 onDuplicate={handleDuplicate}
                 onDelete={deleteSelectedShapes}
-                onMoveUp={() => handleMoveShapes(0, -1)}
-                onMoveDown={() => handleMoveShapes(0, 1)}
-                onMoveLeft={() => handleMoveShapes(-1, 0)}
-                onMoveRight={() => handleMoveShapes(1, 0)}
-                onSizeIncrease={() => handleResizeShapes(5)}
-                onSizeDecrease={() => handleResizeShapes(-5)}
+                onMove={(dx, dy) => handleMoveShapes(dx, dy)}
+                onResize={(delta) => handleResizeShapes(delta)}
+                onRotate={(delta) => {
+                  const ids = [...canvasState.selectedShapeIds];
+                  if (ids.length === 0) return;
+                  const updates = new Map<string, Partial<Shape>>();
+                  ids.forEach(id => {
+                    const shape = canvasState.shapes.find(s => s.id === id);
+                    if (shape) updates.set(id, { rotation: shape.rotation + delta });
+                  });
+                  updateShapes(updates, true, 'Rotate');
+                }}
                 onMirrorHorizontal={handleMirrorHorizontal}
                 onMirrorVertical={handleMirrorVertical}
                 onBringForward={handleBringForward}
                 onSendBackward={handleSendBackward}
+                canBringForward={canBringForward}
+                canSendBackward={canSendBackward}
+                onSelectAll={() => selectShapes(canvasState.shapes.map(s => s.id))}
+                onDeselectAll={() => selectShapes([])}
                 onToggleGrid={toggleGrid}
                 onToggleOffCanvas={toggleOffCanvas}
                 onToolButtonClick={hints.onToolbarButtonClick}
@@ -524,7 +545,7 @@ export function CanvasEditorPage({ challenge }: CanvasEditorPageProps) {
         {!rightOpen && (
           <button
             data-hint="layers-panel"
-            className={`absolute z-20 flex items-center gap-1.5 h-10 px-3.5 cursor-pointer transition-colors rounded-(--radius-md) bg-(--color-card-bg) hover:bg-(--color-hover) text-(--color-text-secondary) ${
+            className={`absolute z-20 flex items-center gap-1.5 h-10 px-3.5 cursor-pointer transition-colors rounded-(--radius-md) bg-(--color-card-bg) hover:bg-(--color-selected) text-(--color-text-secondary) ${
               isDesktop ? 'right-3 top-3' : 'right-3 bottom-30'
             }`}
             style={{ border: 'var(--border-width, 2px) solid var(--color-border)', boxShadow: 'var(--shadow-btn)' }}
