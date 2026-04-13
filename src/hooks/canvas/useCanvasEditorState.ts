@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import type { DailyChallenge, Shape } from '../../types';
+import type { DailyChallenge } from '../../types';
 import type { CanvasEditorContextValue } from '../../contexts/CanvasEditorContext';
 import { useCanvasState } from './useCanvasState';
 import { useViewportState } from './useViewportState';
@@ -29,6 +29,7 @@ export function useCanvasEditorState({ challenge, userId, keyMappings }: UseCanv
     selectShapes,
     moveLayer,
     moveGroup,
+    reorderSelection,
     reorderLayers,
     reorderGroup,
     setBackgroundColor,
@@ -95,21 +96,8 @@ export function useCanvasEditorState({ challenge, userId, keyMappings }: UseCanv
 
   const marqueeStartRef = useRef<((clientX: number, clientY: number) => void) | null>(null);
 
-  const handleBringForward = useCallback(() => {
-    const sorted = [...canvasState.selectedShapeIds]
-      .map(id => canvasState.shapes.find(s => s.id === id))
-      .filter((s): s is Shape => s !== undefined)
-      .sort((a, b) => b.zIndex - a.zIndex);
-    sorted.forEach(shape => moveLayer(shape.id, 'up'));
-  }, [canvasState.selectedShapeIds, canvasState.shapes, moveLayer]);
-
-  const handleSendBackward = useCallback(() => {
-    const sorted = [...canvasState.selectedShapeIds]
-      .map(id => canvasState.shapes.find(s => s.id === id))
-      .filter((s): s is Shape => s !== undefined)
-      .sort((a, b) => a.zIndex - b.zIndex);
-    sorted.forEach(shape => moveLayer(shape.id, 'down'));
-  }, [canvasState.selectedShapeIds, canvasState.shapes, moveLayer]);
+  const handleBringForward = useCallback(() => reorderSelection('up'), [reorderSelection]);
+  const handleSendBackward = useCallback(() => reorderSelection('down'), [reorderSelection]);
 
   const handleZoomIn = useCallback(() => {
     setZoom(viewport.zoom + 0.1);

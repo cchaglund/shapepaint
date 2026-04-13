@@ -8,6 +8,7 @@ import { setIncludedInRanking } from '../lib/api';
 import { useAuthContext } from '../contexts/AuthContext';
 import { useSetHeader } from '../contexts/HeaderContext';
 import { useCanvasEditorState } from '../hooks/canvas/useCanvasEditorState';
+import { canReorderSelection } from '../hooks/canvas/useShapeLayering';
 import { useSidebarState } from '../hooks/ui/useSidebarState';
 import { useAppModals } from '../hooks/ui/useAppModals';
 import { useKeyboardSettings } from '../hooks/ui/useKeyboardSettings';
@@ -322,6 +323,15 @@ export function CanvasEditorPage({ challenge }: CanvasEditorPageProps) {
     return allSameColor ? firstColor : baseColorIndex;
   }, [canvasState.selectedShapeIds, canvasState.shapes, baseColorIndex]);
 
+  const canBringForward = useMemo(
+    () => canReorderSelection(canvasState, canvasState.selectedShapeIds, 'up'),
+    [canvasState],
+  );
+  const canSendBackward = useMemo(
+    () => canReorderSelection(canvasState, canvasState.selectedShapeIds, 'down'),
+    [canvasState],
+  );
+
   const handleAddShape = useCallback((shapeIndex: number, colorIndex: number) => {
     addShape(shapeIndex, colorIndex);
   }, [addShape]);
@@ -483,6 +493,8 @@ export function CanvasEditorPage({ challenge }: CanvasEditorPageProps) {
                 onMirrorVertical={handleMirrorVertical}
                 onBringForward={handleBringForward}
                 onSendBackward={handleSendBackward}
+                canBringForward={canBringForward}
+                canSendBackward={canSendBackward}
                 onSelectAll={() => selectShapes(canvasState.shapes.map(s => s.id))}
                 onDeselectAll={() => selectShapes([])}
                 onToggleGrid={toggleGrid}

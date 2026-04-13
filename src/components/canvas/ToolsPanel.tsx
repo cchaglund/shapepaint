@@ -117,6 +117,8 @@ export interface ToolsPanelProps {
   onMirrorVertical: () => void;
   onBringForward: () => void;
   onSendBackward: () => void;
+  canBringForward?: boolean;
+  canSendBackward?: boolean;
   onSelectAll: () => void;
   onDeselectAll: () => void;
   onToggleGrid: () => void;
@@ -143,6 +145,8 @@ export function ToolsPanel({
   onMirrorVertical,
   onBringForward,
   onSendBackward,
+  canBringForward = true,
+  canSendBackward = true,
   onSelectAll,
   onDeselectAll,
   onToggleGrid,
@@ -231,8 +235,8 @@ export function ToolsPanel({
       </ButtonRow>
 
       <ButtonRow>
-        <ToolButton icon={<SendBackwardIcon />} label="Send backward" shortcut={getShortcut('sendBackward')} onClick={onSendBackward} disabled={!hasSelection} />
-        <ToolButton icon={<BringForwardIcon />} label="Bring forward" shortcut={getShortcut('bringForward')} onClick={onBringForward} disabled={!hasSelection} />
+        <ToolButton icon={<SendBackwardIcon />} label="Send backward" shortcut={getShortcut('sendBackward')} onClick={onSendBackward} disabled={!hasSelection || !canSendBackward} />
+        <ToolButton icon={<BringForwardIcon />} label="Bring forward" shortcut={getShortcut('bringForward')} onClick={onBringForward} disabled={!hasSelection || !canBringForward} />
       </ButtonRow>
 
       <ButtonRow>

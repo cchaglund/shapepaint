@@ -9,15 +9,164 @@ type SetCanvasState = (
   label?: string
 ) => void;
 
-function normalizeZIndices(shapes: Shape[]): Shape[] {
-  const sorted = [...shapes].sort(
-    (a, b) => a.zIndex - b.zIndex || a.id.localeCompare(b.id)
-  );
-  return shapes.map((shape) => ({
-    ...shape,
-    zIndex: sorted.findIndex((s) => s.id === shape.id),
-  }));
+/** The set of shapes that share a movement context with `shape`: same group, or all root-level shapes. */
+export function getShapeContextPool(shape: Shape, allShapes: Shape[]): Shape[] {
+  return shape.groupId
+    ? allShapes.filter((s) => s.groupId === shape.groupId)
+    : allShapes;
 }
+
+/**
+ * True iff applying a `direction` reorder to `selectedIds` would actually change
+ * the layering. Used to drive disabled state for the bring-forward/send-backward
+ * toolbar buttons — guarantees the UI matches the reorder algorithm exactly.
+ */
+export function canReorderSelection(
+  state: CanvasState,
+  selectedIds: Set<string>,
+  direction: 'up' | 'down',
+): boolean {
+  if (selectedIds.size === 0) return false;
+  return reorderInContexts(state, selectedIds, new Set(), direction) !== state;
+}
+
+type ReorderMode = 'up' | 'down' | 'top' | 'bottom';
+
+/**
+ * Reorder `items` in-place by moving "active" items in `mode` direction.
+ *
+ * Rules:
+ *  - up/down: each active item swaps with its neighbor in the direction, but only
+ *    if that neighbor is inactive. Iteration starts at the leading edge so that
+ *    after a swap, the next active item sees the newly-vacated slot — letting
+ *    "bundles" of adjacent active items move together past unselected neighbors.
+ *  - top/bottom: active items partition to the chosen edge, preserving their
+ *    relative order; inactive items keep their relative order in the remainder.
+ */
+function reorderInPlace<T>(items: T[], isActive: (t: T) => boolean, mode: ReorderMode) {
+  if (mode === 'up' || mode === 'down') {
+    const isUp = mode === 'up';
+    const start = isUp ? items.length - 1 : 0;
+    const end = isUp ? -1 : items.length;
+    const step = isUp ? -1 : 1;
+    for (let i = start; i !== end; i += step) {
+      if (!isActive(items[i])) continue;
+      const j = i + (isUp ? 1 : -1);
+      if (j < 0 || j >= items.length) continue;
+      if (isActive(items[j])) continue;
+      [items[i], items[j]] = [items[j], items[i]];
+    }
+    return;
+  }
+  const active: T[] = [];
+  const inactive: T[] = [];
+  for (const item of items) (isActive(item) ? active : inactive).push(item);
+  items.length = 0;
+  items.push(...(mode === 'top' ? [...inactive, ...active] : [...active, ...inactive]));
+}
+
+type RootItem = { kind: 'shape'; id: string } | { kind: 'group'; id: string };
+
+/**
+ * Single algorithm that backs every step-style reorder operation (single shape,
+ * single group, or full selection). The core idea:
+ *
+ *   1. Classify groups: a group is "root-active" if it's in `activeGroupIds` or all
+ *      its shapes are in `activeShapeIds`. Otherwise, partially-selected groups have
+ *      their selected shapes treated as "in-group active".
+ *   2. Build the root context (ungrouped shapes + groups-as-units, z-ascending) and
+ *      reorder it using `reorderInPlace`.
+ *   3. For each partial group, build its internal context and reorder it.
+ *   4. Walk the new root order, assigning contiguous z-indices. Group items expand
+ *      to their members in their (possibly reordered) internal order.
+ *
+ * Returns `prev` unchanged if no z-indices would actually change.
+ */
+function reorderInContexts(
+  prev: CanvasState,
+  activeShapeIds: Set<string>,
+  activeGroupIds: Set<string>,
+  mode: ReorderMode,
+): CanvasState {
+  // --- Classify groups ---
+  const fullyActiveGroupIds = new Set(activeGroupIds);
+  const inGroupActive = new Map<string, Set<string>>(); // groupId → active shape ids in group
+  {
+    const selectedByGroup = new Map<string, Shape[]>();
+    for (const s of prev.shapes) {
+      if (activeShapeIds.has(s.id) && s.groupId) {
+        const arr = selectedByGroup.get(s.groupId) || [];
+        arr.push(s);
+        selectedByGroup.set(s.groupId, arr);
+      }
+    }
+    for (const [groupId, shapes] of selectedByGroup) {
+      if (fullyActiveGroupIds.has(groupId)) continue;
+      const total = prev.shapes.filter((s) => s.groupId === groupId).length;
+      if (shapes.length === total) {
+        fullyActiveGroupIds.add(groupId);
+      } else {
+        inGroupActive.set(groupId, new Set(shapes.map((s) => s.id)));
+      }
+    }
+  }
+
+  // --- Build root context (z-ascending) ---
+  const rootEntries: { item: RootItem; anchorZ: number }[] = [];
+  for (const g of prev.groups) {
+    const gShapes = prev.shapes.filter((s) => s.groupId === g.id);
+    if (gShapes.length === 0) continue;
+    rootEntries.push({
+      item: { kind: 'group', id: g.id },
+      anchorZ: Math.max(...gShapes.map((s) => s.zIndex)),
+    });
+  }
+  for (const s of prev.shapes) {
+    if (!s.groupId) rootEntries.push({ item: { kind: 'shape', id: s.id }, anchorZ: s.zIndex });
+  }
+  rootEntries.sort((a, b) => a.anchorZ - b.anchorZ);
+  const rootItems = rootEntries.map((e) => e.item);
+
+  reorderInPlace(
+    rootItems,
+    (item) => item.kind === 'group' ? fullyActiveGroupIds.has(item.id) : activeShapeIds.has(item.id),
+    mode,
+  );
+
+  // --- Reorder partial group contexts ---
+  const groupOrder = new Map<string, string[]>();
+  for (const [groupId, activeIds] of inGroupActive) {
+    const ordered = prev.shapes
+      .filter((s) => s.groupId === groupId)
+      .sort((a, b) => a.zIndex - b.zIndex);
+    reorderInPlace(ordered, (s) => activeIds.has(s.id), mode);
+    groupOrder.set(groupId, ordered.map((s) => s.id));
+  }
+
+  // --- Assign contiguous z-indices following the new order ---
+  const newZ = new Map<string, number>();
+  let nextZ = 0;
+  for (const item of rootItems) {
+    if (item.kind === 'shape') {
+      newZ.set(item.id, nextZ++);
+      continue;
+    }
+    const ids = groupOrder.get(item.id)
+      ?? prev.shapes
+        .filter((s) => s.groupId === item.id)
+        .sort((a, b) => a.zIndex - b.zIndex)
+        .map((s) => s.id);
+    for (const id of ids) newZ.set(id, nextZ++);
+  }
+
+  const changed = prev.shapes.some((s) => s.zIndex !== newZ.get(s.id));
+  if (!changed) return prev;
+  return {
+    ...prev,
+    shapes: prev.shapes.map((s) => ({ ...s, zIndex: newZ.get(s.id) ?? s.zIndex })),
+  };
+}
+
 
 export function useShapeLayering(setCanvasState: SetCanvasState) {
   const selectShape = useCallback(
@@ -90,53 +239,31 @@ export function useShapeLayering(setCanvasState: SetCanvasState) {
     [setCanvasState]
   );
 
+  // Move a single shape one step in its context (its group, or root if ungrouped).
+  // Backed by `reorderInContexts` with a single-shape activation set.
   const moveLayer = useCallback(
-    (id: string, direction: 'up' | 'down' | 'top' | 'bottom') => {
-      setCanvasState((prev) => {
-        const sortedByZ = [...prev.shapes].sort((a, b) => a.zIndex - b.zIndex);
-        const currentIndex = sortedByZ.findIndex((s) => s.id === id);
-        if (currentIndex === -1) return prev;
-
-        let newShapes: Shape[];
-
-        if (direction === 'up' && currentIndex < sortedByZ.length - 1) {
-          newShapes = prev.shapes.map((s) => {
-            if (s.id === id) {
-              return { ...s, zIndex: sortedByZ[currentIndex + 1].zIndex };
-            }
-            if (s.id === sortedByZ[currentIndex + 1].id) {
-              return { ...s, zIndex: sortedByZ[currentIndex].zIndex };
-            }
-            return s;
-          });
-        } else if (direction === 'down' && currentIndex > 0) {
-          newShapes = prev.shapes.map((s) => {
-            if (s.id === id) {
-              return { ...s, zIndex: sortedByZ[currentIndex - 1].zIndex };
-            }
-            if (s.id === sortedByZ[currentIndex - 1].id) {
-              return { ...s, zIndex: sortedByZ[currentIndex].zIndex };
-            }
-            return s;
-          });
-        } else if (direction === 'top' && currentIndex < sortedByZ.length - 1) {
-          const maxZ = sortedByZ[sortedByZ.length - 1].zIndex;
-          newShapes = prev.shapes.map((s) =>
-            s.id === id ? { ...s, zIndex: maxZ + 1 } : s
-          );
-        } else if (direction === 'bottom' && currentIndex > 0) {
-          const minZ = sortedByZ[0].zIndex;
-          newShapes = prev.shapes.map((s) =>
-            s.id === id ? { ...s, zIndex: minZ - 1 } : s
-          );
-        } else {
-          return prev;
-        }
-
-        return { ...prev, shapes: newShapes };
-      }, true, 'Reorder');
+    (id: string, direction: ReorderMode) => {
+      setCanvasState(
+        (prev) => reorderInContexts(prev, new Set([id]), new Set(), direction),
+        true, 'Reorder',
+      );
     },
-    [setCanvasState]
+    [setCanvasState],
+  );
+
+  // Move every selected shape (and any fully-selected group, as a unit) one step
+  // within its context. Selected items preserve their relative order, so adjacent
+  // selected items move together as a "bundle" past unselected neighbors.
+  const reorderSelection = useCallback(
+    (direction: 'up' | 'down') => {
+      setCanvasState(
+        (prev) => prev.selectedShapeIds.size === 0
+          ? prev
+          : reorderInContexts(prev, prev.selectedShapeIds, new Set(), direction),
+        true, 'Reorder',
+      );
+    },
+    [setCanvasState],
   );
 
   const reorderLayers = useCallback(
@@ -184,149 +311,16 @@ export function useShapeLayering(setCanvasState: SetCanvasState) {
     [setCanvasState]
   );
 
+  // Move an entire group (as a unit) one step in the root context.
+  // Backed by `reorderInContexts` with an empty shape set and a single active group.
   const moveGroup = useCallback(
-    (groupId: string, direction: 'up' | 'down' | 'top' | 'bottom') => {
-      setCanvasState((prev) => {
-        const group = prev.groups.find((g) => g.id === groupId);
-        if (!group) return prev;
-
-        const shapesInGroup = prev.shapes.filter((s) => s.groupId === groupId);
-        if (shapesInGroup.length === 0) return prev;
-
-        const groupMaxZ = Math.max(...shapesInGroup.map((s) => s.zIndex));
-        const groupMinZ = Math.min(...shapesInGroup.map((s) => s.zIndex));
-
-        type TopLevelItem =
-          | { type: 'group'; groupId: string; maxZIndex: number; minZIndex: number }
-          | { type: 'ungrouped-shape'; shapeId: string; zIndex: number };
-
-        const topLevelItems: TopLevelItem[] = [];
-
-        for (const g of prev.groups) {
-          const gShapes = prev.shapes.filter((s) => s.groupId === g.id);
-          if (gShapes.length === 0) continue;
-          const maxZ = Math.max(...gShapes.map((s) => s.zIndex));
-          const minZ = Math.min(...gShapes.map((s) => s.zIndex));
-          topLevelItems.push({ type: 'group', groupId: g.id, maxZIndex: maxZ, minZIndex: minZ });
-        }
-
-        for (const s of prev.shapes) {
-          if (!s.groupId) {
-            topLevelItems.push({ type: 'ungrouped-shape', shapeId: s.id, zIndex: s.zIndex });
-          }
-        }
-
-        topLevelItems.sort((a, b) => {
-          const aZ = a.type === 'group' ? a.maxZIndex : a.zIndex;
-          const bZ = b.type === 'group' ? b.maxZIndex : b.zIndex;
-          return bZ - aZ;
-        });
-
-        const currentIndex = topLevelItems.findIndex(
-          (item) => item.type === 'group' && item.groupId === groupId
-        );
-        if (currentIndex === -1) return prev;
-
-        let newShapes = prev.shapes;
-
-        if (direction === 'up' && currentIndex > 0) {
-          const itemAbove = topLevelItems[currentIndex - 1];
-          if (itemAbove.type === 'group') {
-            const aboveMaxZ = itemAbove.maxZIndex;
-            const aboveMinZ = itemAbove.minZIndex;
-            const groupRange = groupMaxZ - groupMinZ;
-            const aboveRange = aboveMaxZ - aboveMinZ;
-
-            newShapes = prev.shapes.map((s) => {
-              if (s.groupId === groupId) {
-                const offset = s.zIndex - groupMinZ;
-                return { ...s, zIndex: aboveMaxZ - groupRange + offset + aboveRange + 1 };
-              }
-              if (s.groupId === itemAbove.groupId) {
-                const offset = s.zIndex - aboveMinZ;
-                return { ...s, zIndex: groupMinZ + offset };
-              }
-              return s;
-            });
-          } else {
-            const shapeAboveZ = itemAbove.zIndex;
-            const zDiff = shapeAboveZ - groupMaxZ;
-            newShapes = prev.shapes.map((s) => {
-              if (s.groupId === groupId) {
-                return { ...s, zIndex: s.zIndex + zDiff + 1 };
-              }
-              if (s.id === itemAbove.shapeId) {
-                return { ...s, zIndex: groupMinZ - 1 };
-              }
-              return s;
-            });
-          }
-        } else if (direction === 'down' && currentIndex < topLevelItems.length - 1) {
-          const itemBelow = topLevelItems[currentIndex + 1];
-          if (itemBelow.type === 'group') {
-            const belowMaxZ = itemBelow.maxZIndex;
-            const belowMinZ = itemBelow.minZIndex;
-            const groupRange = groupMaxZ - groupMinZ;
-            const belowRange = belowMaxZ - belowMinZ;
-
-            newShapes = prev.shapes.map((s) => {
-              if (s.groupId === groupId) {
-                const offset = s.zIndex - groupMinZ;
-                return { ...s, zIndex: belowMinZ + offset };
-              }
-              if (s.groupId === itemBelow.groupId) {
-                const offset = s.zIndex - belowMinZ;
-                return { ...s, zIndex: groupMaxZ - belowRange + offset + groupRange + 1 };
-              }
-              return s;
-            });
-          } else {
-            const shapeBelowZ = itemBelow.zIndex;
-            const zDiff = groupMinZ - shapeBelowZ;
-            newShapes = prev.shapes.map((s) => {
-              if (s.groupId === groupId) {
-                return { ...s, zIndex: s.zIndex - zDiff - 1 };
-              }
-              if (s.id === itemBelow.shapeId) {
-                return { ...s, zIndex: groupMaxZ + 1 };
-              }
-              return s;
-            });
-          }
-        } else if (direction === 'top' && currentIndex > 0) {
-          const groupShapes = prev.shapes
-            .filter((s) => s.groupId === groupId)
-            .sort((a, b) => a.zIndex - b.zIndex);
-          const otherShapes = prev.shapes
-            .filter((s) => s.groupId !== groupId)
-            .sort((a, b) => a.zIndex - b.zIndex);
-          const reordered = [...otherShapes, ...groupShapes];
-          newShapes = prev.shapes.map((shape) => ({
-            ...shape,
-            zIndex: reordered.findIndex((s) => s.id === shape.id),
-          }));
-        } else if (direction === 'bottom' && currentIndex < topLevelItems.length - 1) {
-          const groupShapes = prev.shapes
-            .filter((s) => s.groupId === groupId)
-            .sort((a, b) => a.zIndex - b.zIndex);
-          const otherShapes = prev.shapes
-            .filter((s) => s.groupId !== groupId)
-            .sort((a, b) => a.zIndex - b.zIndex);
-          const reordered = [...groupShapes, ...otherShapes];
-          newShapes = prev.shapes.map((shape) => ({
-            ...shape,
-            zIndex: reordered.findIndex((s) => s.id === shape.id),
-          }));
-        } else {
-          return prev;
-        }
-
-        newShapes = normalizeZIndices(newShapes);
-
-        return { ...prev, shapes: newShapes };
-      }, true, 'Reorder');
+    (groupId: string, direction: ReorderMode) => {
+      setCanvasState(
+        (prev) => reorderInContexts(prev, new Set(), new Set([groupId]), direction),
+        true, 'Reorder',
+      );
     },
-    [setCanvasState]
+    [setCanvasState],
   );
 
   const reorderGroup = useCallback(
@@ -508,6 +502,7 @@ export function useShapeLayering(setCanvasState: SetCanvasState) {
     selectShapes,
     moveLayer,
     moveGroup,
+    reorderSelection,
     reorderLayers,
     reorderGroup,
     setBackgroundColor,
